@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { LayoutShell } from '@/components/Site';
 
@@ -39,7 +40,7 @@ const products = [
   { title: 'Cartes émotions', price: '24,90 €', href: '/boutique', tone: 'cards', note: 'je suis\nfière de moi' }
 ];
 
-function Scribble({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+function Scribble({ children, className = '' }: { children: ReactNode; className?: string }) {
   return <span className={`scribble ${className}`}>{children}</span>;
 }
 
