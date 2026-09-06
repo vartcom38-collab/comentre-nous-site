@@ -1,0 +1,37 @@
+name: Build and deploy static site to Infomaniak FTP
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build static site
+        run: npm run build
+
+      - name: Deploy to Infomaniak by FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ng43h.ftp.infomaniak.com
+          username: ng43h_comentrenous
+          password: ${{ secrets.INFOMANIAK_FTP_PASSWORD }}
+          port: 21
+          local-dir: ./out/
+          server-dir: ${{ vars.INFOMANIAK_FTP_SERVER_DIR }}
+          protocol: ftp
+          dangerous-clean-slate: false
