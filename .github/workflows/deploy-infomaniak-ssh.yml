@@ -1,4 +1,4 @@
-name: Deploy to Infomaniak
+name: Build and deploy to Infomaniak
 
 on:
   push:
@@ -27,7 +27,7 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    if: ${{ secrets.INFOMANIAK_HOST != '' }}
+    if: github.event_name == 'workflow_dispatch' && vars.ENABLE_INFOMANIAK_DEPLOY == 'true'
     steps:
       - name: Deploy by SSH
         uses: appleboy/ssh-action@v1.0.3
