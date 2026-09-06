@@ -1,8 +1,6 @@
-name: Build and deploy to Infomaniak
+name: Build only — SSH deploy disabled
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -15,30 +13,10 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: 24
 
       - name: Install dependencies
         run: npm install
 
       - name: Build site
         run: npm run build
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' && vars.ENABLE_INFOMANIAK_DEPLOY == 'true'
-    steps:
-      - name: Deploy by SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.INFOMANIAK_HOST }}
-          username: ${{ secrets.INFOMANIAK_USER }}
-          key: ${{ secrets.INFOMANIAK_SSH_KEY }}
-          port: ${{ secrets.INFOMANIAK_PORT }}
-          script: |
-            cd ${{ secrets.INFOMANIAK_APP_PATH }}
-            git pull origin main
-            npm install --omit=dev
-            npm run build
-            touch tmp/restart.txt || true
