@@ -40,6 +40,6 @@ jobs:
           password: ${{ secrets.INFOMANIAK_FTP_PASSWORD }}
           port: 21
           local-dir: ./out/
-          server-dir: ./
+          server-dir: ./sites/comentrenous.marionbolomey.fr/
           protocol: ftp
           dangerous-clean-slate: false
