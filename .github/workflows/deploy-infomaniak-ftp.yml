@@ -1,20 +1,35 @@
 name: Build and deploy static site to Infomaniak FTP
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    env:
+      INFOMANIAK_FTP_PASSWORD_VALUE: ${{ secrets.INFOMANIAK_FTP_PASSWORD }}
+      INFOMANIAK_FTP_SERVER_DIR_VALUE: ${{ vars.INFOMANIAK_FTP_SERVER_DIR }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Check deployment settings
+        run: |
+          if [ -z "$INFOMANIAK_FTP_PASSWORD_VALUE" ]; then
+            echo "Missing secret INFOMANIAK_FTP_PASSWORD"
+            exit 1
+          fi
+          if [ -z "$INFOMANIAK_FTP_SERVER_DIR_VALUE" ]; then
+            echo "Missing variable INFOMANIAK_FTP_SERVER_DIR"
+            exit 1
+          fi
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: 24
 
       - name: Install dependencies
         run: npm install
