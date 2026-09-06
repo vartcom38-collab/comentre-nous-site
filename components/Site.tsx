@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { navItems, universes } from '@/src/data/site';
 import { products, Product } from '@/src/data/products';
@@ -14,7 +15,7 @@ export function Footer() {
   return <footer className="footer"><div><Logo /><p>Des mots, des outils, des humains.</p></div><div className="footer-links">{navItems.map((item) => <Link key={item.href} href={item.href}>{item.label}</Link>)}<Link href="/mentions-legales">Mentions légales</Link><Link href="/contact">Contact</Link><Link href="/faq">FAQ</Link></div><div className="socials"><span>Instagram</span><span>YouTube</span><span>Pinterest</span><span>Spotify</span></div><p className="thanks">Merci d’être ici ! ♥</p></footer>;
 }
 
-export function LayoutShell({ children }: { children: React.ReactNode }) {
+export function LayoutShell({ children }: { children: ReactNode }) {
   return <><Header />{children}<Footer /></>;
 }
 
