@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import './globals.css';
+import './font-fix.css';
 
 export const metadata: Metadata = {
   title: "Com' entre nous — Des outils pour créer du lien",
