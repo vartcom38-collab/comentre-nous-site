@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import homeSprite from './homeSprite';
 
 const nav = [
   ['Com’ en famille', '/com-en-famille'],
@@ -12,158 +11,161 @@ const nav = [
 
 const universes = [
   {
-    title: 'Com’ en\nfamille',
-    text: 'Des jeux et des outils pour se parler, s’écouter et grandir ensemble.',
+    title: 'Com’ en famille',
+    kicker: 'Parents · enfants · émotions',
+    text: 'Des jeux, cartes et rituels pour ouvrir la discussion sans pression.',
     href: '/com-en-famille',
-    theme: 'family',
-    sprite: 'family-img'
+    theme: 'family'
   },
   {
-    title: 'Com’ des\nentrepreneuses',
-    text: 'Des cartes et des carnets pour clarifier tes idées, oser te montrer et créer avec plus de justesse.',
+    title: 'Com’ des entrepreneuses',
+    kicker: 'Idées · visibilité · clarté',
+    text: 'Des supports pour poser tes mots, clarifier tes offres et oser te montrer.',
     href: '/com-des-entrepreneuses',
-    theme: 'business',
-    sprite: 'business-img'
+    theme: 'business'
   },
   {
-    title: 'Papeterie\ndu lien',
-    text: 'Des carnets, kits, jeux à imprimer et jolis accessoires pour mettre de la magie dans le quotidien.',
+    title: 'Papeterie du lien',
+    kicker: 'Carnets · kits · imprimables',
+    text: 'Des objets doux, utiles et beaux pour mettre du lien dans le quotidien.',
     href: '/papeterie-du-lien',
-    theme: 'paper',
-    sprite: 'paper-img'
+    theme: 'paper'
   }
 ];
 
-const values = [
-  ['♡', 'Des créations\navec amour'],
-  ['✦', 'Une approche bienveillante\net sans pression'],
-  ['☷', 'Des outils pour la vraie vie'],
-  ['☆', 'Une communauté qui inspire']
-];
-
 const products = [
-  ['Les Petits Liens', '29,00 €', 'Nouveau', '/produits/les-petits-liens', 'product1-img'],
-  ['Mon carnet de clarté', '12,90 €', '', '/produits/mon-carnet-de-clarte', 'product2-img'],
-  ['Mon kit d’été', '12,90 €', '', '/produits/mon-kit-ete', 'product3-img'],
-  ['Cartes émotions', '24,90 €', '', '/boutique', 'product4-img']
+  ['Les Petits Liens', '29,00 €', 'Jeu de cartes famille', '/produits/les-petits-liens', 'Nouveau'],
+  ['Mon carnet de clarté', '12,90 €', 'Carnet guidé', '/produits/mon-carnet-de-clarte', ''],
+  ['Mon kit d’été', '12,90 €', 'Activités à imprimer', '/produits/mon-kit-ete', ''],
+  ['Cartes émotions', '24,90 €', 'Outil du quotidien', '/boutique', '']
 ];
-
-function Sprite({ name }: { name: string }) {
-  return <span className={`sprite ${name}`} aria-hidden="true" />;
-}
 
 export default function HomePage() {
   return (
-    <main className="mock-home">
+    <main className="home-clean">
       <style>{styles}</style>
 
-      <header className="topbar">
-        <Link href="/" className="logo" aria-label="Accueil Com’ entre nous"><Sprite name="logo-img" /></Link>
+      <header className="site-header">
+        <Link href="/" className="brand" aria-label="Accueil Com’ entre nous">
+          <span>Com’</span><span>entre</span><span>nous</span><b>♥</b>
+        </Link>
         <nav aria-label="Navigation principale">
-          {nav.map(([label, href]) => <Link key={href} href={href}>{label}</Link>)}
+          {nav.map(([label, href]) => <Link href={href} key={href}>{label}</Link>)}
         </nav>
-        <Link href="/boutique" className="cart" aria-label="Voir la boutique"><span>2</span>🛒</Link>
+        <Link href="/boutique" className="cart" aria-label="Boutique"><small>2</small>Panier</Link>
       </header>
 
-      <section className="hero" id="accueil">
-        <span className="sun" />
-        <span className="blob blob-left" />
-        <span className="blob blob-right" />
-
+      <section className="hero-clean">
         <div className="hero-text">
+          <p className="eyebrow">Des outils doux, vrais, et un peu magiques.</p>
           <h1>Des mots,<br />des cartes et des carnets<br />pour <em>créer du lien.</em></h1>
-          <p>Des outils doux, illustrés et concrets pour exprimer ce que tu ressens, trouver les mots et faire circuler les idées.<br />En famille, dans ton quotidien ou dans ton projet.</p>
-          <div className="buttons">
-            <Link className="btn red" href="/par-ou-commencer">Découvrir nos univers <span>→</span></Link>
-            <Link className="btn white" href="/boutique">Voir les nouveautés</Link>
+          <p className="intro">Pour parler plus simplement de ce qui compte : les émotions, les idées, les petits chaos du quotidien et les grands moments de vie.</p>
+          <div className="actions">
+            <Link href="/par-ou-commencer" className="btn primary">Découvrir nos univers <span>→</span></Link>
+            <Link href="/boutique" className="btn ghost">Voir les nouveautés</Link>
           </div>
         </div>
 
-        <div className="hero-art">
-          <Sprite name="hero-img" />
+        <div className="hero-board" aria-label="Visuel principal">
+          <div className="note note-one">Écouter<br />vraiment</div>
+          <div className="note note-two">Trouver<br />les mots</div>
+          <div className="photo-card main-photo">
+            <span>Photo mère + enfant<br />à ajouter</span>
+          </div>
+          <div className="photo-card small-photo">
+            <span>Cartes · carnets<br />moments vrais</span>
+          </div>
+          <p className="handline">Les mots d’aujourd’hui<br />pour demain ♡</p>
         </div>
       </section>
 
-      <section className="universes" id="univers">
-        <h2><span />Quel est ton univers ?<span /></h2>
+      <section className="choose">
+        <div className="section-title">
+          <span></span>
+          <h2>Quel est ton univers ?</h2>
+          <span></span>
+        </div>
         <div className="universe-grid">
           {universes.map((item) => (
-            <Link key={item.href} href={item.href} className={`universe-card ${item.theme}`}>
-              <div className="universe-copy">
-                <h3>{item.title.split('\n').map((line) => <span key={line}>{line}</span>)}</h3>
-                <p>{item.text}</p>
-                <b>Découvrir →</b>
-              </div>
-              <div className="universe-visual"><Sprite name={item.sprite} /></div>
-              <i>♡</i>
+            <Link href={item.href} className={`universe ${item.theme}`} key={item.href}>
+              <p>{item.kicker}</p>
+              <h3>{item.title}</h3>
+              <b>{item.text}</b>
+              <small>Découvrir →</small>
             </Link>
           ))}
         </div>
       </section>
 
-      <section className="values" aria-label="Nos valeurs">
-        {values.map(([icon, label]) => (
-          <div key={label}>
-            <strong>{icon}</strong>
-            <p>{label.split('\n').map((line) => <span key={line}>{line}</span>)}</p>
-          </div>
-        ))}
+      <section className="promise-strip">
+        <div><strong>♡</strong><span>Des créations avec amour</span></div>
+        <div><strong>✦</strong><span>Une approche bienveillante</span></div>
+        <div><strong>☷</strong><span>Des outils pour la vraie vie</span></div>
+        <div><strong>☆</strong><span>Une communauté qui inspire</span></div>
       </section>
 
-      <section className="products" id="nouveautes">
-        <h2><span />Les nouveautés<span /></h2>
-        <div className="product-row">
+      <section className="shop-preview">
+        <div className="section-title products-title">
+          <span></span>
+          <h2>Les nouveautés</h2>
+          <span></span>
+        </div>
+        <div className="product-layout">
           <div className="product-grid">
-            {products.map(([title, price, badge, href, sprite]) => (
-              <article className="product-card" key={title}>
-                {badge ? <span className="badge">{badge}</span> : null}
-                <Link href={href} className="product-img"><Sprite name={sprite} /></Link>
-                <div className="product-meta">
+            {products.map(([title, price, type, href, badge], index) => (
+              <article className="product" key={title}>
+                {badge ? <em>{badge}</em> : null}
+                <Link href={href} className={`product-visual product-${index + 1}`} aria-label={`Voir ${title}`}>
+                  <span>{type}</span>
+                </Link>
+                <div className="product-info">
                   <div><h3>{title}</h3><p>{price}</p></div>
-                  <Link href={href} className="bag" aria-label={`Voir ${title}`}>🛒</Link>
+                  <Link href={href}>→</Link>
                 </div>
               </article>
             ))}
           </div>
-          <aside className="shop-note">
+          <aside className="shop-card">
             <p>Des idées<br />dans ta valise !</p>
             <Link href="/boutique">Voir toute la boutique →</Link>
           </aside>
         </div>
       </section>
 
-      <section className="podcast">
-        <div className="mic"><Sprite name="mic-img" /></div>
-        <div className="pod-copy">
-          <h2>Com’ entre nous<br />Le podcast</h2>
-          <p>Des conversations vraies autour de la parentalité, des émotions, de l’entrepreneuriat et de tout ce qui nous traverse entre deux cafés froids.</p>
-          <Link className="btn white" href="/podcast">Écouter le dernier épisode →</Link>
+      <section className="podcast-band">
+        <div className="mic">🎙</div>
+        <div>
+          <p className="eyebrow">Com’ entre nous · le podcast</p>
+          <h2>Des conversations vraies, imparfaites, et tellement nous.</h2>
+          <p>Parentalité, émotions, entrepreneuriat, coulisses, cafés froids et mots qui font du bien.</p>
+          <Link href="/podcast" className="btn ghost">Écouter le dernier épisode →</Link>
         </div>
-        <div className="pod-photo"><Sprite name="podcast-img" /></div>
-        <div className="pod-quote"><p>« Des discussions<br />imparfaites, vraies<br />et tellement nous. »</p><Link href="/podcast">Voir tous les épisodes →</Link></div>
+        <div className="podcast-photo"><span>Photo Marion + Aurélie<br />à ajouter</span></div>
       </section>
 
       <section className="newsletter">
         <div className="mail">✉</div>
-        <div><h2>Reçois des idées, des ressources et des coulisses !</h2><p>Et en cadeau, une fiche à imprimer pour un vrai moment de discussion en famille.</p></div>
-        <form><input placeholder="Ton adresse email" aria-label="Ton adresse email" /><button type="button">Je m’inscris !</button></form>
+        <div>
+          <h2>Reçois des idées, des ressources et des coulisses.</h2>
+          <p>Une dose de lien, de vrai, et de petits outils à tester dans la vraie vie.</p>
+        </div>
+        <form>
+          <input aria-label="Ton adresse email" placeholder="Ton adresse email" />
+          <button type="button">Je m’inscris !</button>
+        </form>
       </section>
 
-      <footer className="footer">
-        <Link href="/" className="footer-logo"><Sprite name="logo-img" /></Link>
+      <footer className="footer-clean">
+        <Link href="/" className="footer-brand">Com’<br />entre<br />nous <b>♥</b></Link>
         <p>Des mots, des outils, des humains.</p>
         <nav><Link href="/mentions-legales">Mentions légales</Link><Link href="/contact">Contact</Link><Link href="/faq">FAQ</Link></nav>
-        <strong>Merci<br />d’être ici ! ♡</strong>
+        <strong>Merci<br />d’être ici ♡</strong>
       </footer>
     </main>
   );
 }
 
 const styles = `
-@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@500;700;800&family=Patrick+Hand&display=swap');
-:root{--cream:#fff7ec;--ink:#111827;--red:#ff5b5b;--pink:#ffc7c0;--mint:#ccefe9;--teal:#079c9d;--lav:#ead8ff;--purple:#7c57c3;--yellow:#ffe985;--peach:#ffe5db;--hand:'Patrick Hand','Comic Sans MS',cursive;--round:'Comfortaa',system-ui,sans-serif;--shadow:0 18px 44px rgba(50,35,22,.10)}
-*{box-sizing:border-box}body{margin:0;background:var(--cream)}
-.mock-home{min-height:100vh;background:radial-gradient(circle at 0 24%,rgba(255,218,111,.92) 0 66px,transparent 68px),radial-gradient(circle at 100% 28%,rgba(190,238,231,.88) 0 72px,transparent 74px),radial-gradient(circle at 88% 100%,rgba(255,222,133,.5) 0 74px,transparent 76px),linear-gradient(#fffaf2,var(--cream));color:var(--ink);font-family:var(--round);overflow:hidden}.topbar,.hero,.universes,.values,.products,.podcast,.newsletter,.footer{width:min(1160px,calc(100vw - 52px));margin-inline:auto}.topbar{height:92px;display:grid;grid-template-columns:94px 1fr 42px;align-items:center;gap:22px}.topbar nav{display:flex;justify-content:center;gap:clamp(17px,2.2vw,32px);white-space:nowrap}.topbar a{color:var(--ink);text-decoration:none;font-size:13.5px;font-weight:800}.cart{position:relative;font-size:25px;justify-self:end;transform:rotate(-5deg)}.cart span{position:absolute;right:-11px;top:-11px;width:23px;height:23px;border-radius:50%;background:var(--red);color:white;display:grid;place-items:center;font-size:12px;font-weight:800}.sprite{display:block;background-image:url("${homeSprite}");background-repeat:no-repeat;background-size:624px 450px}.logo-img{width:75px;height:70px;background-position:0 0}.hero-img{width:502px;height:375px;background-position:-82px 0;border-radius:30px;filter:drop-shadow(0 22px 36px rgba(48,30,18,.10))}.family-img{width:110px;height:138px;background-position:-524px 0}.business-img{width:110px;height:146px;background-position:0 -170px}.paper-img{width:124px;height:126px;background-position:-112px -170px}.product1-img{width:150px;height:104px;background-position:-225px -170px}.product2-img{width:150px;height:104px;background-position:-365px -170px}.product3-img{width:150px;height:104px;background-position:-225px -280px}.product4-img{width:150px;height:104px;background-position:-365px -280px}.podcast-img{width:230px;height:138px;background-position:0 -312px}.mic-img{width:48px;height:81px;background-position:-524px -150px}.hero{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 510px;gap:38px;align-items:center;min-height:440px;padding:20px 0 16px}.hero-text{position:relative;z-index:2;padding-left:92px}.hero-text h1{font-family:var(--hand);font-size:clamp(52px,5.1vw,72px);line-height:.95;letter-spacing:-.6px;margin:0;font-weight:400}.hero-text h1 em{font-style:normal;position:relative;display:inline-block;z-index:1}.hero-text h1 em:before{content:'';position:absolute;left:-8px;right:-17px;bottom:5px;height:.42em;background:var(--pink);border-radius:999px;z-index:-1;transform:rotate(-1.2deg)}.hero-text p{font-size:15.5px;line-height:1.6;font-weight:700;max-width:500px;margin:24px 0 0}.buttons{display:flex;gap:18px;align-items:center;margin-top:26px}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 25px;border-radius:999px;text-decoration:none;font-weight:800;font-size:14px}.btn.red{background:var(--red);color:white;box-shadow:0 12px 22px rgba(255,91,91,.22)}.btn.white{border:2px solid var(--ink);color:var(--ink);background:rgba(255,255,255,.55)}.sun{position:absolute;left:54px;top:72px;width:42px;height:42px;border:4px solid #ffae00;border-radius:50%;box-shadow:0 0 0 11px rgba(255,174,0,.08)}.sun:before{content:'';position:absolute;inset:-18px;border-radius:50%;background:repeating-conic-gradient(#ffae00 0 8deg,transparent 8deg 31deg);z-index:-1}.blob{position:absolute;pointer-events:none}.blob-left{left:-68px;top:235px;width:135px;height:210px;border-radius:0 999px 999px 0;background:#ffdc79}.blob-right{right:-58px;bottom:32px;width:122px;height:122px;border-radius:999px 0 0 999px;background:var(--mint)}.hero-art{position:relative;z-index:1;display:flex;justify-content:flex-end;align-items:center}.hero-art .hero-img{transform:translate(10px,4px) scale(.98);transform-origin:center}.universes{padding:5px 0 26px}.universes h2,.products h2{font-family:var(--hand);font-size:clamp(42px,4.5vw,57px);font-weight:400;line-height:.95;text-align:center;margin:0 0 25px}.universes h2 span,.products h2 span{display:inline-block;width:26px;height:4px;border-radius:99px;background:var(--ink);margin:0 15px 10px;transform:rotate(25deg)}.universes h2 span:last-child,.products h2 span:last-child{transform:rotate(-25deg)}.universe-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}.universe-card{position:relative;min-height:225px;border-radius:28px;padding:28px 22px 20px 27px;display:grid;grid-template-columns:1fr 112px;align-items:end;gap:8px;text-decoration:none;color:var(--ink);overflow:hidden;box-shadow:0 16px 36px rgba(45,30,20,.07)}.universe-card.family{background:linear-gradient(135deg,#ffe0dc,#fff1ed)}.universe-card.business{background:linear-gradient(135deg,#cff1ed,#effbf8)}.universe-card.paper{background:linear-gradient(135deg,#ead8ff,#fff2ff)}.universe-card h3{font-family:var(--hand);font-size:41px;line-height:.82;font-weight:400;margin:0 0 15px}.universe-card h3 span{display:block}.family h3{color:var(--red)}.business h3{color:#04999a}.paper h3{color:var(--purple)}.universe-card p{font-size:13.5px;line-height:1.52;font-weight:700;margin:0 0 16px;max-width:220px}.universe-card b{display:inline-flex;align-items:center;min-height:37px;border:1.7px solid var(--ink);border-radius:999px;padding:0 17px;font-size:12px}.universe-card i{position:absolute;right:24px;top:34px;color:var(--red);font-family:var(--hand);font-style:normal;font-size:31px}.universe-visual{align-self:end;justify-self:end;display:flex;align-items:end;justify-content:end;filter:drop-shadow(0 10px 15px rgba(25,18,12,.05))}.values{margin-top:2px;display:grid;grid-template-columns:repeat(4,1fr);border-radius:26px;background:rgba(255,255,255,.62);box-shadow:0 14px 30px rgba(33,22,15,.05);overflow:hidden}.values div{min-height:83px;display:grid;grid-template-columns:42px 1fr;gap:11px;align-items:center;padding:15px 20px;border-right:1px solid rgba(20,25,32,.12)}.values div:last-child{border-right:0}.values strong{font-family:var(--hand);font-size:29px;font-weight:400;text-align:center}.values p{margin:0;font-size:11.8px;line-height:1.3;font-weight:700}.values p span{display:block}.products{padding:28px 0 21px}.product-row{display:grid;grid-template-columns:1fr 184px;gap:24px;align-items:center}.product-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.product-card{position:relative;padding:10px;border-radius:16px;background:rgba(255,255,255,.72);box-shadow:0 12px 24px rgba(25,20,14,.07)}.badge{position:absolute;top:-11px;left:23px;z-index:3;background:#ffd45f;border-radius:999px;padding:6px 13px;font-family:var(--hand);font-size:18px;transform:rotate(-7deg)}.product-img{height:118px;border-radius:12px;background:#fff5ed;display:grid;place-items:center;overflow:hidden}.product-img .sprite{transform:scale(1.04)}.product-meta{display:flex;justify-content:space-between;align-items:end;gap:9px;padding:10px 0 1px}.product-meta h3{font-size:12.6px;line-height:1.18;margin:0 0 4px}.product-meta p{font-size:12.5px;font-weight:800;margin:0}.bag{width:36px;height:36px;border-radius:11px;background:var(--red);color:white;text-decoration:none;display:grid;place-items:center;font-size:18px}.shop-note{display:grid;gap:25px;text-align:center;justify-items:center}.shop-note p{font-family:var(--hand);font-size:29px;line-height:.94;margin:0;transform:rotate(-7deg);position:relative}.shop-note p:before{content:'';position:absolute;z-index:-1;left:50%;top:6px;width:115px;height:65px;translate:-50% 0;border-radius:28% 72% 37% 63%;background:rgba(255,203,96,.75);transform:rotate(5deg)}.shop-note a,.pod-quote a{min-height:42px;border-radius:999px;background:rgba(255,255,255,.82);box-shadow:0 10px 20px rgba(0,0,0,.05);color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;padding:0 18px;font-size:11.5px;font-weight:800}.podcast{margin-top:16px;min-height:205px;border-radius:30px;background:linear-gradient(135deg,#ffd5ce,#ffe6de);box-shadow:var(--shadow);display:grid;grid-template-columns:70px 1fr 250px 235px;gap:20px;align-items:center;padding:27px 32px;overflow:hidden}.mic{display:flex;justify-content:center}.pod-copy h2{font-family:var(--hand);font-size:38px;line-height:.88;font-weight:400;margin:0 0 10px}.pod-copy p{font-size:13.4px;line-height:1.42;font-weight:700;max-width:390px;margin:0 0 13px}.pod-copy .btn{min-height:42px;font-size:12.5px;padding-inline:20px}.pod-photo{display:flex;align-self:end;justify-content:center;align-items:end;height:158px;overflow:hidden}.pod-photo .sprite{transform:scale(1.08);transform-origin:bottom center}.pod-quote{display:grid;gap:16px;justify-items:center;text-align:center}.pod-quote p{font-family:var(--hand);font-size:26px;line-height:.95;margin:0;transform:rotate(-6deg)}.newsletter{margin-top:24px;min-height:92px;border-radius:27px;background:linear-gradient(90deg,#d8f1ec,#c8eee8);box-shadow:0 14px 30px rgba(20,45,38,.06);display:grid;grid-template-columns:72px 1fr 410px;gap:18px;align-items:center;padding:16px 24px}.mail{font-family:var(--hand);font-size:46px;text-align:center;transform:rotate(-9deg)}.newsletter h2{font-family:var(--hand);font-weight:400;font-size:26px;line-height:1;margin:0 0 5px}.newsletter p{font-size:11.7px;font-weight:700;margin:0}.newsletter form{display:grid;grid-template-columns:1fr 142px;gap:12px}.newsletter input,.newsletter button{height:48px;border:0;border-radius:999px;font-family:var(--round);font-weight:800}.newsletter input{padding:0 20px;background:rgba(255,255,255,.92)}.newsletter button{background:var(--red);color:white;cursor:pointer}.footer{min-height:135px;display:grid;grid-template-columns:95px 1fr auto 125px;gap:20px;align-items:center;padding:22px 0 35px}.footer-logo .logo-img{transform:scale(.72);transform-origin:left center}.footer p{font-size:10.8px;font-weight:700;margin:46px 0 0 -42px}.footer nav{display:flex;gap:18px;justify-self:center}.footer a{color:var(--ink);text-decoration:none;font-size:11.5px;font-weight:700}.footer strong{font-family:var(--hand);font-weight:400;font-size:24px;line-height:.94;justify-self:end;transform:rotate(-7deg)}
-@media(max-width:960px){.topbar,.hero,.universes,.values,.products,.podcast,.newsletter,.footer{width:min(760px,calc(100vw - 32px))}.topbar{grid-template-columns:82px 1fr 36px}.topbar nav{justify-content:flex-start;overflow:auto;padding-bottom:5px}.hero{grid-template-columns:1fr;gap:16px}.hero-text{padding-left:58px}.hero-art{justify-content:center}.universe-grid,.product-grid{grid-template-columns:1fr}.product-row,.newsletter{grid-template-columns:1fr}.values{grid-template-columns:repeat(2,1fr)}.podcast{grid-template-columns:58px 1fr}.pod-photo,.pod-quote{grid-column:1/-1}.footer{grid-template-columns:1fr;justify-items:center;text-align:center}.footer p{margin:-20px 0 0}.footer strong{justify-self:center}}
-@media(max-width:560px){.topbar{height:auto;min-height:88px}.topbar nav{font-size:12px}.hero-text{padding-left:0;padding-top:38px}.sun{left:6px;top:26px}.blob-left{display:none}.hero-text h1{font-size:47px}.buttons{display:grid}.btn{width:100%}.hero-img{transform:scale(.72)!important}.hero-art{min-height:285px}.universe-card{grid-template-columns:1fr 105px}.values{grid-template-columns:1fr}.values div{border-right:0;border-bottom:1px solid rgba(20,25,32,.10)}.podcast{grid-template-columns:1fr;text-align:center}.newsletter form{grid-template-columns:1fr}.footer nav{flex-wrap:wrap;justify-content:center}}
+@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@500;600;700;800&family=Patrick+Hand&display=swap');
+:root{--cream:#fff7ec;--cream2:#fffaf3;--ink:#101827;--red:#ff5d5b;--rose:#ffd8d2;--rose2:#fff0ed;--mint:#d5f2ee;--teal:#049898;--lav:#eadcff;--purple:#7c5cc6;--yellow:#ffe58a;--peach:#ffe2cf;--shadow:0 22px 60px rgba(42,31,23,.10);--round:'Comfortaa',system-ui,sans-serif;--hand:'Patrick Hand','Comic Sans MS',cursive}body{margin:0;background:var(--cream);}.home-clean{font-family:var(--round);color:var(--ink);background:radial-gradient(circle at -20px 230px,#ffdf87 0 96px,transparent 98px),radial-gradient(circle at calc(100% + 10px) 420px,#caeee8 0 110px,transparent 112px),linear-gradient(180deg,var(--cream2),var(--cream));min-height:100vh;overflow:hidden}.site-header,.hero-clean,.choose,.promise-strip,.shop-preview,.podcast-band,.newsletter,.footer-clean{width:min(1240px,calc(100vw - 56px));margin-inline:auto}.site-header{height:104px;display:grid;grid-template-columns:110px 1fr 92px;align-items:center;gap:20px}.brand,.footer-brand{position:relative;color:#070b12;text-decoration:none;font-family:var(--hand);font-size:34px;line-height:.72;font-weight:400;letter-spacing:-1px;transform:rotate(-2deg);width:82px;display:block}.brand span{display:block}.brand b,.footer-brand b{position:absolute;right:-15px;top:-13px;color:var(--red);font-family:var(--round);font-size:19px;transform:rotate(15deg)}.site-header nav{display:flex;justify-content:center;gap:clamp(17px,2.4vw,34px);white-space:nowrap}.site-header nav a,.footer-clean a{font-size:14px;font-weight:800;text-decoration:none;color:var(--ink)}.cart{justify-self:end;position:relative;border:1.5px solid rgba(16,24,39,.18);border-radius:999px;padding:11px 17px;color:var(--ink);text-decoration:none;font-size:13px;font-weight:800;background:rgba(255,255,255,.58)}.cart small{position:absolute;top:-12px;right:-10px;width:25px;height:25px;border-radius:50%;display:grid;place-items:center;background:var(--red);color:white;font-size:12px}.hero-clean{display:grid;grid-template-columns:1.02fr .98fr;align-items:center;gap:58px;min-height:560px;padding:18px 0 38px}.hero-text{max-width:650px}.eyebrow{margin:0 0 18px;font-size:13px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;color:rgba(16,24,39,.62)}.hero-text h1{font-family:var(--hand);font-size:clamp(64px,6vw,98px);line-height:.88;font-weight:400;letter-spacing:-1.8px;margin:0}.hero-text h1 em{position:relative;font-style:normal;display:inline-block;z-index:1}.hero-text h1 em:before{content:'';position:absolute;left:-10px;right:-18px;bottom:7px;height:.45em;background:#ffaaa5;border-radius:999px 70% 999px 80%;z-index:-1;opacity:.9;transform:rotate(-1.2deg)}.intro{max-width:560px;margin:28px 0 0;font-size:18px;line-height:1.62;font-weight:700}.actions{display:flex;gap:18px;flex-wrap:wrap;margin-top:30px}.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 26px;border-radius:999px;text-decoration:none;font-weight:900}.primary{background:var(--red);color:white;box-shadow:0 16px 28px rgba(255,93,91,.23)}.ghost{background:rgba(255,255,255,.62);border:2px solid var(--ink);color:var(--ink)}.hero-board{position:relative;min-height:430px;border-radius:42px;background:linear-gradient(135deg,rgba(255,255,255,.56),rgba(255,224,212,.68));box-shadow:var(--shadow);overflow:hidden}.hero-board:before{content:'';position:absolute;inset:auto -40px -70px 110px;height:360px;background:linear-gradient(135deg,#fff7ef,#ffb2a7);border-radius:180px 180px 0 0;opacity:.82}.hero-board:after{content:'';position:absolute;right:-70px;top:-60px;width:260px;height:260px;border-radius:50%;background:#ffcac2;filter:blur(4px);opacity:.42}.photo-card{position:absolute;border-radius:28px;background:rgba(255,255,255,.75);box-shadow:0 20px 40px rgba(41,30,21,.11);display:grid;place-items:center;text-align:center;font-size:13px;font-weight:900;color:rgba(16,24,39,.48);border:1px solid rgba(255,255,255,.72);overflow:hidden}.photo-card:before{content:'';position:absolute;inset:18px;border-radius:22px;background:linear-gradient(135deg,#ffe8dd,#fff8f0 48%,#d7f0ec);opacity:.9}.photo-card span{position:relative}.main-photo{left:70px;top:70px;width:330px;height:280px;transform:rotate(-1.5deg)}.small-photo{right:52px;bottom:54px;width:210px;height:170px;transform:rotate(3deg)}.note{position:absolute;z-index:4;border-radius:14px;padding:13px 20px;font-family:var(--hand);font-size:26px;line-height:.9;box-shadow:0 14px 24px rgba(32,24,18,.09)}.note-one{right:42px;top:48px;background:#ffd4b6;transform:rotate(-4deg)}.note-two{left:34px;bottom:50px;background:#c7eee8;transform:rotate(4deg)}.handline{position:absolute;z-index:5;left:230px;top:162px;margin:0;font-family:var(--hand);font-size:35px;line-height:.95;text-align:center;transform:rotate(-3deg)}.section-title{display:flex;align-items:center;justify-content:center;gap:18px;margin:0 0 28px}.section-title span{width:34px;height:4px;border-radius:99px;background:var(--ink);transform:rotate(25deg)}.section-title span:last-child{transform:rotate(-25deg)}.section-title h2{font-family:var(--hand);font-size:56px;line-height:.9;font-weight:400;margin:0}.choose{padding:10px 0 30px}.universe-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}.universe{min-height:258px;border-radius:34px;padding:32px 30px;display:flex;flex-direction:column;justify-content:space-between;color:var(--ink);text-decoration:none;box-shadow:0 18px 38px rgba(41,30,20,.07);position:relative;overflow:hidden}.universe:after{content:'♡';position:absolute;right:30px;top:26px;font-family:var(--hand);font-size:42px;color:var(--red);transform:rotate(10deg)}.universe.family{background:linear-gradient(135deg,#ffe1db,#fff1ec)}.universe.business{background:linear-gradient(135deg,#d6f3ef,#f2fffb)}.universe.paper{background:linear-gradient(135deg,#eadcff,#fff5fb)}.universe p{margin:0;font-size:12px;font-weight:900;letter-spacing:.04em;text-transform:uppercase;color:rgba(16,24,39,.54)}.universe h3{font-family:var(--hand);font-size:52px;line-height:.86;font-weight:400;margin:16px 0 18px;max-width:310px}.family h3{color:var(--red)}.business h3{color:var(--teal)}.paper h3{color:var(--purple)}.universe b{max-width:290px;font-size:15px;line-height:1.52}.universe small{margin-top:22px;width:max-content;min-height:42px;padding:0 19px;border:2px solid var(--ink);border-radius:999px;display:inline-flex;align-items:center;font-weight:900;background:rgba(255,255,255,.45)}.promise-strip{margin-top:8px;display:grid;grid-template-columns:repeat(4,1fr);border-radius:30px;background:rgba(255,255,255,.58);box-shadow:0 14px 34px rgba(31,22,15,.05);overflow:hidden}.promise-strip div{min-height:92px;padding:18px 22px;display:grid;grid-template-columns:44px 1fr;align-items:center;border-right:1px solid rgba(16,24,39,.10)}.promise-strip div:last-child{border-right:0}.promise-strip strong{font-family:var(--hand);font-size:32px;text-align:center}.promise-strip span{font-size:13px;font-weight:800;line-height:1.35}.shop-preview{padding:38px 0 28px}.products-title{margin-bottom:22px}.product-layout{display:grid;grid-template-columns:1fr 210px;gap:28px;align-items:center}.product-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}.product{position:relative;border-radius:22px;background:rgba(255,255,255,.72);box-shadow:0 16px 32px rgba(40,28,18,.08);padding:12px}.product em{position:absolute;left:22px;top:-13px;background:#ffd45f;border-radius:999px;padding:7px 13px;font-family:var(--hand);font-size:20px;font-style:normal;z-index:3;transform:rotate(-7deg)}.product-visual{height:146px;border-radius:16px;background:linear-gradient(135deg,#ffe0d6,#fff8ed);display:grid;place-items:center;text-decoration:none;color:rgba(16,24,39,.50);font-size:12px;font-weight:900;text-align:center;position:relative;overflow:hidden}.product-visual:before{content:'';position:absolute;width:72%;height:64%;border-radius:16px;background:rgba(255,255,255,.58);box-shadow:0 12px 22px rgba(37,27,18,.08);transform:rotate(-3deg)}.product-visual span{position:relative;z-index:1}.product-2{background:linear-gradient(135deg,#efe0c9,#fff3df)}.product-3{background:linear-gradient(135deg,#fff0a6,#d6f1eb)}.product-4{background:linear-gradient(135deg,#ffd5d1,#dfefe9)}.product-info{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding:13px 3px 2px}.product h3{font-size:14px;line-height:1.2;margin:0 0 6px}.product p{font-size:13px;font-weight:900;margin:0}.product-info a{width:38px;height:38px;border-radius:12px;background:var(--red);color:white;text-decoration:none;display:grid;place-items:center;font-weight:900}.shop-card{min-height:210px;border-radius:28px;background:#fff2dd;display:grid;align-content:center;justify-items:center;text-align:center;padding:22px;box-shadow:0 16px 34px rgba(43,30,20,.06)}.shop-card p{font-family:var(--hand);font-size:34px;line-height:.9;margin:0 0 24px;transform:rotate(-5deg)}.shop-card a{color:var(--ink);font-size:13px;font-weight:900;text-decoration:none;background:white;border-radius:999px;padding:14px 18px}.podcast-band{margin-top:16px;border-radius:34px;background:linear-gradient(135deg,#ffd7d0,#ffece5);box-shadow:var(--shadow);display:grid;grid-template-columns:80px 1fr 310px;gap:26px;align-items:center;padding:34px 42px}.mic{width:66px;height:86px;border-radius:999px;background:#16aaa8;display:grid;place-items:center;font-size:37px}.podcast-band h2{font-family:var(--hand);font-size:45px;line-height:.95;font-weight:400;margin:0 0 10px}.podcast-band p:not(.eyebrow){font-size:15px;line-height:1.55;font-weight:700;margin:0 0 16px;max-width:580px}.podcast-photo{height:190px;border-radius:28px;background:linear-gradient(135deg,rgba(255,255,255,.78),rgba(255,145,130,.30));box-shadow:inset 0 0 0 1px rgba(255,255,255,.75);display:grid;place-items:center;text-align:center;color:rgba(16,24,39,.48);font-size:13px;font-weight:900}.newsletter{margin-top:28px;border-radius:30px;background:linear-gradient(90deg,#d8f1ec,#c9eee8);display:grid;grid-template-columns:72px 1fr 460px;align-items:center;gap:22px;padding:22px 28px}.mail{font-family:var(--hand);font-size:48px;text-align:center;transform:rotate(-8deg)}.newsletter h2{font-family:var(--hand);font-size:31px;line-height:1;font-weight:400;margin:0 0 8px}.newsletter p{font-size:13px;line-height:1.4;font-weight:800;margin:0}.newsletter form{display:grid;grid-template-columns:1fr 160px;gap:12px}.newsletter input,.newsletter button{height:52px;border:0;border-radius:999px;font-family:var(--round);font-weight:800}.newsletter input{padding:0 22px;background:rgba(255,255,255,.9)}.newsletter button{background:var(--red);color:white}.footer-clean{min-height:155px;display:grid;grid-template-columns:105px 1fr auto 140px;gap:24px;align-items:center;padding:28px 0 44px}.footer-brand{font-size:27px}.footer-clean p{font-size:12px;font-weight:800;margin:42px 0 0 -98px}.footer-clean nav{display:flex;gap:20px;font-size:12px;justify-self:center}.footer-clean strong{justify-self:end;font-family:var(--hand);font-size:27px;line-height:.92;font-weight:400;transform:rotate(-6deg)}@media(max-width:1050px){.site-header,.hero-clean,.choose,.promise-strip,.shop-preview,.podcast-band,.newsletter,.footer-clean{width:min(840px,calc(100vw - 36px))}.site-header{grid-template-columns:86px 1fr 68px}.site-header nav{justify-content:flex-start;overflow-x:auto;padding-bottom:8px}.hero-clean{grid-template-columns:1fr;gap:24px}.hero-board{min-height:380px}.universe-grid,.product-grid{grid-template-columns:1fr}.promise-strip{grid-template-columns:repeat(2,1fr)}.product-layout{grid-template-columns:1fr}.podcast-band{grid-template-columns:70px 1fr}.podcast-photo{grid-column:1/-1}.newsletter{grid-template-columns:60px 1fr}.newsletter form{grid-column:1/-1}.footer-clean{grid-template-columns:1fr;text-align:center;justify-items:center}.footer-clean p{margin:-14px 0 0}.footer-clean strong{justify-self:center}}@media(max-width:620px){.home-clean{background:linear-gradient(180deg,var(--cream2),var(--cream))}.site-header{height:auto;padding:20px 0;grid-template-columns:78px 1fr}.cart{grid-column:2;justify-self:end}.site-header nav{grid-column:1/-1}.brand{font-size:28px}.hero-clean{min-height:auto;padding:22px 0 30px}.hero-text h1{font-size:54px}.intro{font-size:15px}.btn{width:100%}.hero-board{min-height:330px;border-radius:30px}.main-photo{left:24px;top:70px;width:240px;height:220px}.small-photo{right:18px;bottom:28px;width:160px;height:130px}.handline{left:110px;top:150px;font-size:27px}.note{font-size:21px}.note-one{right:20px;top:26px}.note-two{left:18px;bottom:26px}.section-title h2{font-size:43px}.universe h3{font-size:43px}.promise-strip{grid-template-columns:1fr}.promise-strip div{border-right:0;border-bottom:1px solid rgba(16,24,39,.10)}.podcast-band{grid-template-columns:1fr;padding:28px}.newsletter{grid-template-columns:1fr}.newsletter form{grid-template-columns:1fr}.footer-clean nav{flex-wrap:wrap;justify-content:center}}
 `;
