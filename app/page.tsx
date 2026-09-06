@@ -10,12 +10,12 @@ const nav = [
   ['À propos', '/a-propos']
 ] as const;
 
-const products = [
+const products: Array<{ title: string; price: string; href: string; visual: string; badge?: boolean }> = [
   { title: 'Les Petits Liens', price: '29,00 €', href: '/produits/les-petits-liens', visual: 'product-one', badge: true },
   { title: 'Mon carnet de clarté', price: '12,90 €', href: '/produits/mon-carnet-de-clarte', visual: 'product-two' },
   { title: 'Mon kit d’été', price: '12,90 €', href: '/produits/mon-kit-ete', visual: 'product-three' },
   { title: 'Cartes émotions', price: '24,90 €', href: '/boutique', visual: 'product-four' }
-] as const;
+];
 
 function Slice({ name }: { name: string }) {
   return <span className={`slice ${name}`} aria-hidden="true" />;
