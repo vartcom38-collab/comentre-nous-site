@@ -10,19 +10,14 @@ jobs:
     runs-on: ubuntu-latest
     env:
       INFOMANIAK_FTP_PASSWORD_VALUE: ${{ secrets.INFOMANIAK_FTP_PASSWORD }}
-      INFOMANIAK_FTP_SERVER_DIR_VALUE: ${{ vars.INFOMANIAK_FTP_SERVER_DIR }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Check deployment settings
+      - name: Check FTP password secret
         run: |
           if [ -z "$INFOMANIAK_FTP_PASSWORD_VALUE" ]; then
             echo "Missing secret INFOMANIAK_FTP_PASSWORD"
-            exit 1
-          fi
-          if [ -z "$INFOMANIAK_FTP_SERVER_DIR_VALUE" ]; then
-            echo "Missing variable INFOMANIAK_FTP_SERVER_DIR"
             exit 1
           fi
 
@@ -45,6 +40,6 @@ jobs:
           password: ${{ secrets.INFOMANIAK_FTP_PASSWORD }}
           port: 21
           local-dir: ./out/
-          server-dir: ${{ vars.INFOMANIAK_FTP_SERVER_DIR }}
+          server-dir: ./
           protocol: ftp
           dangerous-clean-slate: false
