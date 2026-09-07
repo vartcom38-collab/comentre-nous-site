@@ -16,106 +16,46 @@ const univers = [
   {
     title: 'Com’ en famille',
     href: '/com-en-famille',
-    text: 'Des jeux et des outils pour ouvrir les discussions, accueillir les émotions et créer des petits rituels de lien.',
-    tag: 'cartes · émotions · quotidien',
-    kind: 'family',
+    text: 'Des cartes, des jeux et des rituels pour parler, écouter, comprendre et créer du lien au quotidien.',
+    tone: 'family',
+    tag: 'Famille · émotions',
   },
   {
     title: 'Com’ des entrepreneuses',
     href: '/com-des-entrepreneuses',
-    text: 'Des supports pour poser tes idées, clarifier tes messages et avancer dans ta com sans te perdre en route.',
-    tag: 'idées · visibilité · clarté',
-    kind: 'business',
+    text: 'Des supports pour poser tes idées, clarifier ton message et retrouver une com qui te ressemble.',
+    tone: 'business',
+    tag: 'Idées · visibilité',
   },
   {
     title: 'La papeterie',
     href: '/papeterie-du-lien',
-    text: 'To-do lists, pages de bujo, trackers, plannings et carnets pour organiser ton quotidien avec plus de douceur.',
-    tag: 'bujo · to-do · trackers',
-    kind: 'paper',
+    text: 'To-do lists, bujo, trackers, carnets et pages à imprimer pour organiser la vraie vie sans pression.',
+    tone: 'paper',
+    tag: 'Bujo · to-do',
   },
 ] as const;
 
 const products = [
-  ['Les Petits Liens', 'Jeu de cartes famille', '29,00 €', '/products/les-petits-liens'],
-  ['Mon carnet de clarté', 'Carnet guidé', '12,90 €', '/products/mon-carnet-de-clarte'],
-  ['Mon kit d’été', 'Activités à imprimer', '12,90 €', '/products/mon-kit-dete'],
+  ['Les Petits Liens', 'Jeu de cartes famille', '29,00 €', '/produits/les-petits-liens'],
+  ['Mon carnet de clarté', 'Carnet guidé', '12,90 €', '/produits/mon-carnet-de-clarte'],
+  ['Mon kit d’été', 'Activités à imprimer', '12,90 €', '/produits/mon-kit-ete'],
 ] as const;
 
-function FamilySketch() {
+function HeroVisual() {
   return (
-    <svg viewBox="0 0 360 250" className="sketch sketch-family" aria-hidden="true">
-      <path className="paper-bg" d="M35 34c55-22 238-25 286 6 28 18 30 145 1 172-41 38-243 35-289 4-32-22-29-166 2-182Z" />
-      <path className="hair" d="M137 77c-12-23 5-50 35-48 28 2 41 26 30 48" />
-      <path className="line" d="M130 94c10-44 80-41 86 2 6 42-23 67-49 65-30-3-47-29-37-67Z" />
-      <path className="line" d="M112 163c29 33 83 34 116 0l18 52H92l20-52Z" />
-      <path className="fill-yellow" d="M232 145c-12-20 2-42 28-41 25 1 37 23 28 43" />
-      <path className="line" d="M225 158c7-33 61-34 69-1 8 35-16 55-39 53-23-2-37-20-30-52Z" />
-      <path className="fill-yellow" d="M214 201c30 22 74 21 99 1l12 35H202l12-36Z" />
-      <path className="line loose" d="M113 173c27 25 64 38 105 30 33-6 59-26 72-53" />
-      <path className="heart" d="M61 98c-19-25 27-38 29-6 8-32 50-14 26 12l-27 29-28-35Z" />
-      <path className="accent" d="M296 70l12-25 10 28 26-8-22 21 14 24-28-10-18 23 3-31-25-12 28-10Z" />
-      <path className="dash" d="M43 157h24M293 150h28M175 25v24M178 214v23" />
-    </svg>
-  );
-}
-
-function BusinessSketch() {
-  return (
-    <svg viewBox="0 0 360 250" className="sketch sketch-business" aria-hidden="true">
-      <path className="paper-bg minty" d="M31 42c43-30 249-27 296-1 30 17 29 148 2 176-39 40-256 38-298 2-27-24-31-154 0-177Z" />
-      <path className="hair dark" d="M170 78c-10-25 6-48 35-48 29 0 43 24 33 50" />
-      <path className="line" d="M153 99c8-43 83-46 94-3 10 40-20 68-47 67-29-1-56-24-47-64Z" />
-      <path className="line" d="M134 166c39 25 93 26 130-2l13 41H122l12-39Z" />
-      <path className="screen" d="M74 161h212c10 0 18 8 18 18v35H56v-35c0-10 8-18 18-18Z" />
-      <path className="line" d="M56 216h248l-17 19H73l-17-19Z" />
-      <path className="heart small" d="M172 185c-9-13 13-19 15-4 3-15 25-8 13 6l-14 15-14-17Z" />
-      <path className="accent" d="M97 73c0-19 15-34 34-34s34 15 34 34c0 17-10 26-19 34H116c-9-8-19-17-19-34Z" />
-      <path className="line loose" d="M119 123h24M114 139h35M291 142c14-16 30-27 48-30M305 158c15-4 29-4 43 1" />
-      <path className="dash" d="M61 99l-22-16M286 57l22-18M54 133H25M315 86h24" />
-    </svg>
-  );
-}
-
-function PaperSketch() {
-  return (
-    <svg viewBox="0 0 360 250" className="sketch sketch-paper" aria-hidden="true">
-      <path className="paper-bg lilacy" d="M31 34c45-22 248-22 296 3 31 16 33 151 4 180-40 39-259 37-300 0-26-23-31-163 0-183Z" />
-      <path className="page-fill" d="M105 32h143c20 0 36 16 36 36v143c0 20-16 36-36 36H105V32Z" />
-      <path className="line" d="M105 32h143c20 0 36 16 36 36v143c0 20-16 36-36 36H105V32Z" />
-      <path className="line loose" d="M142 79h95M142 111h108M142 143h80M142 175h106" />
-      <path className="ring" d="M88 66h33M88 105h33M88 144h33M88 183h33" />
-      <path className="pencil" d="M267 47l44 137-17 28-45-139 18-26Z" />
-      <path className="heart" d="M154 195c-15-21 22-31 25-5 5-25 40-12 21 12l-22 22-24-29Z" />
-      <path className="accent" d="M61 83l8-19 7 20 22-4-17 14 10 19-20-8-15 16 2-22-20-9 23-7Z" />
-      <path className="dash" d="M307 73h26M42 154h26M296 211l22 18" />
-    </svg>
-  );
-}
-
-function HeroIllustration() {
-  return (
-    <div className="hero-card" aria-hidden="true">
-      <svg viewBox="0 0 520 420" className="hero-art">
-        <path className="blob" d="M76 64c71-48 281-52 361 5 75 54 66 236 14 295-70 80-304 63-377 2C8 310 4 112 76 64Z" />
-        <path className="adult-hair" d="M190 107c-22-45 9-94 65-91 56 3 83 53 57 98" />
-        <path className="ink" d="M168 143c15-86 157-85 173 0 13 70-38 115-88 111-55-4-100-46-85-111Z" />
-        <path className="adult-shirt" d="M140 265c66 58 177 59 238 0l39 128H101l39-128Z" />
-        <path className="child-hair" d="M334 161c-14-37 11-72 55-69 41 3 59 37 44 74" />
-        <path className="ink" d="M318 193c11-60 108-60 119 1 10 53-27 85-62 83-39-2-67-32-57-84Z" />
-        <path className="child-shirt" d="M298 292c48 42 125 42 168 2l30 97H269l29-99Z" />
-        <path className="ink loose" d="M141 280c56 53 151 68 236 26 35-17 65-42 87-77" />
-        <path className="heart hero-heart" d="M90 123c-18-24 25-37 28-7 8-32 47-11 24 15l-25 25-27-33Z" />
-        <path className="sun" d="M78 58c0 21-17 38-38 38S2 79 2 58s17-38 38-38 38 17 38 38Z" />
-        <path className="sunrays" d="M40 0v16M40 100v16M-18 58h16M82 58h16M0 16l12 12M68 88l12 12M0 100l12-12M68 28l12-12" />
-      </svg>
-      <div className="postits">
-        <span>Écouter</span>
-        <span>Comprendre</span>
-        <span>Ressentir</span>
-        <span>Partager</span>
+    <div className="hero-visual" aria-label="Espace photo à intégrer">
+      <div className="photo-frame">
+        <div className="photo-soft-bg" />
+        <div className="photo-message">
+          <span>photo à intégrer</span>
+          <strong>une vraie image douce,<br />humaine, Com’ entre nous</strong>
+        </div>
       </div>
-      <p>Les mots<br />d’aujourd’hui<br />pour demain ♡</p>
+      <div className="paper-note note-one">écouter</div>
+      <div className="paper-note note-two">ressentir</div>
+      <div className="paper-note note-three">partager</div>
+      <div className="small-heart">♡</div>
     </div>
   );
 }
@@ -137,74 +77,69 @@ export default function HomePage() {
   }
 
   return (
-    <main className="page">
+    <main className="site-page">
       <style>{styles}</style>
 
-      <header className="header">
-        <Link href="/" className="logo" aria-label="Com’ entre nous accueil">
-          <img src="/logo-comentre-nous.webp" alt="Com’ entre nous" />
+      <header className="topbar">
+        <Link href="/" className="brand-logo" aria-label="Com’ entre nous accueil">
+          <img src="/logo-comentre-nous.svg?v=transparent-final-20260907" alt="Com’ entre nous" />
         </Link>
 
-        <nav className="nav" aria-label="Navigation principale">
+        <nav className="main-nav" aria-label="Navigation principale">
           {nav.map(([label, href]) => <Link key={href} href={href}>{label}</Link>)}
         </nav>
 
-        <div className="actions">
-          <Link href="/boutique" aria-label="Recherche" className="icon-link">⌕</Link>
-          <Link href="/a-propos" aria-label="Compte" className="icon-link">♡</Link>
-          <Link href="/boutique" className="cart" aria-label={`Panier ${cartCount} article${cartCount > 1 ? 's' : ''}`}>
+        <div className="shop-actions">
+          <Link href="/boutique" aria-label="Recherche" className="round-action">⌕</Link>
+          <Link href="/a-propos" aria-label="Compte" className="round-action">♡</Link>
+          <Link href="/boutique" className="cart-link" aria-label={`Panier ${cartCount} article${cartCount > 1 ? 's' : ''}`}>
             <span>Panier</span><b>{cartCount}</b>
           </Link>
         </div>
       </header>
 
-      <section className="hero">
+      <section className="hero-section">
         <div className="hero-copy">
-          <p className="eyebrow">Des petits outils pour de grands moments</p>
-          <h1>Des mots,<br />des cartes et des carnets<br />pour <mark>créer du lien.</mark></h1>
-          <p className="intro">Des outils doux, illustrés et concrets pour exprimer ce que tu ressens, trouver les mots et faire circuler les idées. En famille, dans ton quotidien ou dans tes projets.</p>
-          <div className="button-row">
-            <Link href="/par-ou-commencer" className="btn primary">Découvrir nos univers →</Link>
-            <Link href="/boutique" className="btn secondary">Voir les nouveautés →</Link>
+          <p className="hero-kicker">Des petits outils pour de grands moments</p>
+          <h1>Des mots, des cartes et des carnets pour <mark>créer du lien.</mark></h1>
+          <p className="hero-text">Des outils doux, illustrés et concrets pour trouver les mots, faire circuler les idées et remettre un peu de lien dans la vraie vie.</p>
+          <div className="hero-buttons">
+            <Link href="/par-ou-commencer" className="button primary-button">Découvrir nos univers →</Link>
+            <Link href="/boutique" className="button secondary-button">Voir les nouveautés →</Link>
           </div>
         </div>
-        <HeroIllustration />
+        <HeroVisual />
       </section>
 
-      <section className="values-strip" aria-label="Nos valeurs">
-        <p><strong>Des créations</strong><span>avec amour</span></p>
-        <p><strong>Une approche</strong><span>bienveillante et sans pression</span></p>
-        <p><strong>Des outils</strong><span>pour la vraie vie</span></p>
+      <section className="mini-values" aria-label="Nos intentions">
+        <p><strong>Du concret</strong><span>pas des grandes leçons</span></p>
+        <p><strong>Du lien</strong><span>dans la vraie vie</span></p>
+        <p><strong>Du doux</strong><span>mais pas gnangnan</span></p>
       </section>
 
-      <section className="univers" aria-labelledby="univers-title">
-        <div className="section-head">
+      <section className="univers-section" aria-labelledby="univers-title">
+        <div className="section-heading">
           <p>Choisis ton coin</p>
           <h2 id="univers-title">Quel est ton univers ?</h2>
         </div>
         <div className="univers-grid">
           {univers.map((item) => (
-            <Link href={item.href} key={item.href} className={`univers-card ${item.kind}`}>
-              <div className="sticker">
-                {item.kind === 'family' && <FamilySketch />}
-                {item.kind === 'business' && <BusinessSketch />}
-                {item.kind === 'paper' && <PaperSketch />}
-              </div>
-              <div className="card-copy">
-                <span>{item.tag}</span>
-                <h3>{item.title}</h3>
-                <p>{item.text}</p>
-                <em>Découvrir →</em>
-              </div>
+            <Link href={item.href} key={item.href} className={`universe-card ${item.tone}`}>
+              <span>{item.tag}</span>
+              <h3>{item.title}</h3>
+              <p>{item.text}</p>
+              <em>Découvrir →</em>
             </Link>
           ))}
         </div>
       </section>
 
-      <section className="products" aria-labelledby="news-title">
-        <div className="section-title">
-          <p>Boutique en construction</p>
-          <h2 id="news-title">Les nouveautés arrivent doucement</h2>
+      <section className="products-section" aria-labelledby="news-title">
+        <div className="section-title-row">
+          <div>
+            <p>Boutique en construction</p>
+            <h2 id="news-title">Les nouveautés arrivent doucement</h2>
+          </div>
           <Link href="/boutique">Voir toute la boutique →</Link>
         </div>
         <div className="product-grid">
@@ -221,18 +156,19 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="podcast">
-        <div className="podcast-copy">
-          <p className="label">Com’ entre nous · le podcast</p>
+      <section className="podcast-section">
+        <div>
+          <p>Com’ entre nous · le podcast</p>
           <h2>Des conversations vraies, imparfaites, et tellement nous.</h2>
-          <p>Le podcast est à venir. En attendant, on prépare un espace doux pour parler parentalité, émotions, entrepreneuriat, coulisses et cafés froids.</p>
-          <Link href="/podcast" className="btn secondary">Découvrir l’espace podcast →</Link>
+          <Link href="/podcast" className="button secondary-button">Découvrir l’espace podcast →</Link>
         </div>
-        <div className="podcast-sticker"><span>à venir</span><b>🎙️</b></div>
+        <div className="podcast-card">à venir<br /><b>🎙️</b></div>
       </section>
 
-      <footer className="footer">
-        <div className="footer-brand"><img src="/logo-comentre-nous.webp" alt="Com’ entre nous" /></div>
+      <footer className="site-footer">
+        <Link href="/" className="footer-logo" aria-label="Com’ entre nous accueil">
+          <img src="/logo-comentre-nous.svg?v=transparent-final-20260907" alt="Com’ entre nous" />
+        </Link>
         <p>Des mots, des outils, des humains.</p>
         <nav><Link href="/mentions-legales">Mentions légales</Link><Link href="/contact">Contact</Link><Link href="/faq">FAQ</Link></nav>
       </footer>
@@ -242,8 +178,12 @@ export default function HomePage() {
 
 const styles = String.raw`
 @import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@500;600;700;800&family=Patrick+Hand&display=swap');
-:root{--cream:#fff8ef;--paper:#fffdfa;--ink:#111827;--muted:#5d5a57;--coral:#ff5a5f;--rose:#ffdcd7;--rose-soft:#fff0ec;--mint:#d7f5f1;--mint-deep:#18a7a0;--yellow:#ffe7a5;--lilac:#ead7ff;--sand:#f8e5c8;--shadow:0 22px 60px rgba(61,38,22,.12);--body:'Comfortaa',system-ui,sans-serif;--hand:'Patrick Hand','Comic Sans MS',cursive}
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--cream);color:var(--ink)}a{color:inherit}.page{min-height:100vh;background:radial-gradient(circle at -4rem 15rem,#ffd7cf 0 8rem,transparent 8.1rem),radial-gradient(circle at calc(100% + 4rem) 18rem,#c9f1eb 0 8rem,transparent 8.1rem),linear-gradient(180deg,#fffbf6 0%,#fff8ef 100%);font-family:var(--body);overflow-x:hidden}.header{position:sticky;top:0;z-index:50;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:2rem;width:100%;padding:.55rem clamp(1rem,3vw,3.2rem);background:rgba(255,248,239,.95);backdrop-filter:blur(18px);border-bottom:1px solid rgba(17,24,39,.06)}.logo{display:flex;align-items:center;justify-content:center;width:clamp(5.2rem,6.4vw,6.9rem);min-width:5.2rem;text-decoration:none}.logo img{display:block;width:100%;height:auto}.nav{display:flex;justify-content:center;align-items:center;gap:clamp(.75rem,2vw,2rem);font-weight:800;font-size:clamp(.73rem,.86vw,.92rem);white-space:nowrap}.nav a{text-decoration:none;position:relative}.nav a:first-child{background:var(--rose-soft);padding:.62rem .95rem;border-radius:999px}.nav a:first-child:after{content:'';position:absolute;left:19%;right:19%;bottom:-.18rem;height:.18rem;background:var(--coral);border-radius:999px;transform:rotate(-3deg)}.actions{display:flex;align-items:center;gap:.75rem}.icon-link{display:grid;place-items:center;width:2.25rem;height:2.25rem;text-decoration:none;font:700 2rem/1 var(--hand)}.cart{position:relative;display:inline-flex;align-items:center;gap:.55rem;min-height:2.75rem;padding:.65rem 1rem .58rem 1.05rem;border:2px solid var(--ink);border-radius:999px;text-decoration:none;font-weight:800;background:white}.cart:before{content:'🛒';font-size:1rem}.cart b{display:grid;place-items:center;min-width:1.35rem;height:1.35rem;padding:0 .35rem;background:var(--coral);color:white;border-radius:999px;font-size:.73rem}.hero{position:relative;width:min(1480px,100%);margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,.92fr);align-items:center;gap:clamp(2rem,5vw,5rem);padding:clamp(2rem,5vw,4.5rem) clamp(1rem,5vw,5rem) 1.5rem}.hero:before{content:'';position:absolute;left:-4rem;top:19%;width:10rem;height:17rem;background:var(--yellow);border-radius:0 999px 999px 0;opacity:.62}.hero-copy{position:relative;z-index:2}.eyebrow{display:inline-block;margin:0 0 1rem;padding:.55rem 1rem;background:#fff;border:1px solid rgba(17,24,39,.08);border-radius:999px;box-shadow:0 10px 24px rgba(61,38,22,.07);font:700 clamp(1.3rem,2vw,2rem)/1 var(--hand);transform:rotate(-2deg)}h1{margin:0 0 1.35rem;font:700 clamp(3.4rem,6.7vw,7.5rem)/.82 var(--hand);letter-spacing:-.055em;max-width:780px}mark{color:inherit;background:linear-gradient(90deg,rgba(255,190,182,.55),rgba(255,151,146,.88));border-radius:999px;padding:0 .16em;box-decoration-break:clone;-webkit-box-decoration-break:clone}.intro{max-width:670px;font-size:clamp(1rem,1.32vw,1.32rem);line-height:1.55;margin:0;color:#151b28}.button-row{display:flex;gap:1rem;flex-wrap:wrap;margin-top:1.9rem}.btn,.brush-link{display:inline-flex;align-items:center;justify-content:center;min-height:3.25rem;padding:.95rem 1.45rem;border-radius:999px;text-decoration:none;font:800 .95rem/1 var(--body);letter-spacing:-.02em}.primary{background:var(--coral);color:white;box-shadow:0 16px 34px rgba(255,90,95,.22)}.secondary{background:rgba(255,255,255,.72);border:2px solid var(--ink)}.hero-card{position:relative;min-height:520px;display:grid;place-items:center}.hero-art{width:min(620px,100%);filter:drop-shadow(0 24px 35px rgba(61,38,22,.12))}.blob{fill:#fff1eb}.ink,.line,.dash,.ring{fill:none;stroke:var(--ink);stroke-width:7;stroke-linecap:round;stroke-linejoin:round}.loose{stroke-width:5;stroke-dasharray:1000;stroke-dashoffset:0}.adult-hair,.child-hair,.hair{fill:none;stroke:#653817;stroke-width:15;stroke-linecap:round;stroke-linejoin:round}.adult-shirt{fill:#fffdfa;stroke:var(--ink);stroke-width:7;stroke-linejoin:round}.child-shirt,.fill-yellow{fill:#ffd56b;stroke:var(--ink);stroke-width:7;stroke-linejoin:round}.heart{fill:#ffc4bd;stroke:var(--ink);stroke-width:6;stroke-linejoin:round}.hero-heart{transform-origin:center}.sun,.sunrays{fill:none;stroke:#f6aa19;stroke-width:8;stroke-linecap:round}.postits{position:absolute;right:3%;top:18%;display:grid;gap:.75rem}.postits span{display:block;min-width:8.5rem;padding:.58rem 1rem;border-radius:.55rem;font:700 1.55rem/1 var(--hand);text-align:center;box-shadow:0 8px 18px rgba(61,38,22,.08);transform:rotate(-4deg)}.postits span:nth-child(1){background:#ffd8b8}.postits span:nth-child(2){background:#bfeee7;transform:rotate(2deg)}.postits span:nth-child(3){background:#ffd1d2;transform:rotate(-2deg)}.postits span:nth-child(4){background:#e5ccff;transform:rotate(2deg)}.hero-card p{position:absolute;left:7%;bottom:8%;margin:0;padding:.8rem 1.1rem;background:#ffe39a;border-radius:1rem;font:700 2rem/.95 var(--hand);transform:rotate(-7deg);box-shadow:0 10px 25px rgba(61,38,22,.09)}.values-strip{width:min(1180px,calc(100% - 2rem));margin:0 auto 3.5rem;padding:1.2rem clamp(1rem,3vw,2.4rem);display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;background:rgba(255,255,255,.72);border:1px solid rgba(17,24,39,.07);border-radius:2rem;box-shadow:0 12px 30px rgba(61,38,22,.06)}.values-strip p{margin:0;text-align:center}.values-strip strong{display:block;font:800 .95rem/1.2 var(--body)}.values-strip span{display:block;margin-top:.25rem;color:var(--muted);font-size:.82rem}.univers{width:min(1260px,calc(100% - 2rem));margin:0 auto 4rem}.section-head{text-align:center;margin-bottom:1.6rem}.section-head p,.section-title p,.label{margin:0 0 .45rem;color:var(--coral);font-weight:800;text-transform:uppercase;font-size:.76rem;letter-spacing:.08em}.section-head h2,.section-title h2,.podcast h2{margin:0;font:700 clamp(2.6rem,4.5vw,4.8rem)/.9 var(--hand);letter-spacing:-.04em}.univers-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.35rem}.univers-card{position:relative;min-height:440px;display:flex;flex-direction:column;justify-content:space-between;padding:1rem 1rem 1.25rem;text-decoration:none;background:white;border-radius:2rem;box-shadow:var(--shadow);overflow:hidden;transition:transform .2s ease,box-shadow .2s ease}.univers-card:hover{transform:translateY(-5px) rotate(0deg);box-shadow:0 26px 70px rgba(61,38,22,.16)}.univers-card.family{background:linear-gradient(180deg,#fff1ed,#fffaf6);transform:rotate(-1deg)}.univers-card.business{background:linear-gradient(180deg,#eafbf8,#fffaf6);transform:rotate(.7deg)}.univers-card.paper{background:linear-gradient(180deg,#f3e7ff,#fffaf6);transform:rotate(-.4deg)}.sticker{height:215px;border-radius:1.55rem;background:rgba(255,255,255,.56);display:grid;place-items:center;overflow:hidden}.sketch{width:100%;max-width:360px}.paper-bg{fill:#fff3ed}.minty{fill:#ecfffb}.lilacy{fill:#f6eaff}.dark{stroke:#3f2233}.screen{fill:#e9f5f5;stroke:var(--ink);stroke-width:7;stroke-linejoin:round}.page-fill{fill:#fffdfa}.pencil{fill:#ffad93;stroke:var(--ink);stroke-width:6;stroke-linejoin:round}.accent{fill:none;stroke:#ff5a5f;stroke-width:7;stroke-linecap:round;stroke-linejoin:round}.small{stroke-width:5}.card-copy{padding:.95rem .35rem 0}.card-copy span{display:inline-block;margin-bottom:.7rem;padding:.42rem .75rem;background:#fff;border-radius:999px;color:#706660;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em}.card-copy h3{margin:0 0 .7rem;font:700 clamp(2.1rem,3.6vw,3.6rem)/.88 var(--hand);letter-spacing:-.04em}.card-copy p{margin:0 0 1rem;color:#252b36;line-height:1.5;font-size:.98rem}.card-copy em{font-style:normal;font-weight:800}.products{width:min(1260px,calc(100% - 2rem));margin:0 auto 4rem}.section-title{display:grid;grid-template-columns:1fr auto;align-items:end;gap:1rem;margin-bottom:1.2rem}.section-title p{grid-column:1/-1;margin-bottom:-.3rem}.section-title a{font-weight:800;text-decoration:none;background:white;border:1px solid rgba(17,24,39,.08);padding:.9rem 1.2rem;border-radius:999px}.product-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem}.product-card{background:white;border-radius:1.6rem;padding:.85rem;box-shadow:0 16px 40px rgba(61,38,22,.09)}.product-visual{height:180px;border-radius:1.15rem;background:linear-gradient(135deg,#ffe5de,#fff7ee 60%,#d7f5f1);display:grid;place-items:center;text-decoration:none;overflow:hidden}.product-visual span{display:inline-block;max-width:70%;padding:1.2rem 1.4rem;background:rgba(255,255,255,.72);border-radius:1rem;font:700 1.5rem/1.05 var(--hand);text-align:center;transform:rotate(-2deg)}.product-card h3{margin:1rem .25rem .6rem;font-size:1rem;line-height:1.3}.product-card h3 a{text-decoration:none}.product-bottom{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin:.25rem}.product-bottom button{border:0;background:var(--coral);color:white;border-radius:999px;padding:.75rem 1rem;font:800 .82rem/1 var(--body);cursor:pointer}.podcast{width:min(1260px,calc(100% - 2rem));margin:0 auto 4rem;padding:clamp(1.5rem,4vw,3rem);display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:2rem;align-items:center;background:#ffd9d1;border-radius:2.2rem;box-shadow:var(--shadow)}.podcast-copy p:not(.label){max-width:760px;line-height:1.55}.podcast-sticker{justify-self:end;width:230px;aspect-ratio:1;border-radius:2rem;background:#fff7ee;display:grid;place-items:center;box-shadow:0 12px 28px rgba(61,38,22,.1);transform:rotate(2deg)}.podcast-sticker span{align-self:end;font-weight:800;color:var(--coral);text-transform:uppercase;font-size:.8rem;letter-spacing:.08em}.podcast-sticker b{align-self:start;font-size:5rem}.footer{width:min(1260px,calc(100% - 2rem));margin:0 auto;padding:2rem 0 3rem;display:grid;grid-template-columns:auto 1fr auto;gap:1.5rem;align-items:center;color:#312b28}.footer-brand{display:flex;align-items:center;width:5.6rem}.footer-brand img{display:block;width:100%;height:auto}.footer p{margin:0;color:var(--muted)}.footer nav{display:flex;gap:1rem}.footer nav a{text-decoration:none;font-size:.82rem;font-weight:800}
-@media(max-width:1080px){.header{grid-template-columns:auto auto;gap:1rem}.nav{grid-column:1/-1;justify-content:flex-start;overflow-x:auto;padding:.4rem 0}.hero{grid-template-columns:1fr;padding-top:2rem}.hero-card{min-height:430px}.univers-grid,.product-grid{grid-template-columns:1fr}.univers-card{min-height:unset;display:grid;grid-template-columns:minmax(210px,.9fr) 1fr;gap:1rem;align-items:center}.sticker{height:220px}.podcast{grid-template-columns:1fr}.podcast-sticker{justify-self:start}.footer{grid-template-columns:1fr}}
-@media(max-width:680px){.page{background:linear-gradient(180deg,#fffaf4,#fff8ef)}.header{position:relative;grid-template-columns:1fr auto;padding:.6rem 1rem}.logo{width:5rem;min-width:5rem}.actions{gap:.35rem}.icon-link{width:2rem;height:2rem}.cart{padding:.55rem .7rem;font-size:.8rem}.nav{font-size:.76rem;gap:.75rem}.hero{padding:2rem 1rem 1rem;gap:1rem}.hero:before{display:none}.eyebrow{font-size:1.3rem}.intro{font-size:1rem}.button-row{display:grid}.btn{width:100%;min-height:3.1rem}.hero-card{min-height:340px}.postits{right:0;top:12%;gap:.45rem}.postits span{min-width:6.3rem;font-size:1.05rem;padding:.45rem .7rem}.hero-card p{font-size:1.3rem;left:2%;bottom:4%}.values-strip{grid-template-columns:1fr;margin-bottom:2.5rem}.section-head h2,.section-title h2,.podcast h2{font-size:2.55rem}.univers-card{grid-template-columns:1fr;padding:.8rem;border-radius:1.6rem;transform:none!important}.sticker{height:185px}.card-copy h3{font-size:2.65rem}.section-title{grid-template-columns:1fr}.product-visual{height:150px}.podcast{border-radius:1.6rem}.podcast-sticker{width:170px}.footer nav{flex-wrap:wrap}}
+:root{--cream:#fff8ef;--paper:#fffdfa;--ink:#0f1728;--muted:#5f5a56;--coral:#ff5a5f;--rose:#ffd9d2;--rose-soft:#fff1ed;--mint:#d5f4ef;--teal:#179e99;--yellow:#ffe39a;--lilac:#ead8ff;--shadow:0 18px 45px rgba(55,35,22,.10);--body:'Comfortaa',system-ui,sans-serif;--hand:'Patrick Hand','Comic Sans MS',cursive}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--cream);color:var(--ink);font-family:var(--body)}a{color:inherit;text-decoration:none}.site-page{min-height:100vh;overflow-x:hidden;background:radial-gradient(circle at -70px 190px,rgba(255,217,210,.8) 0 120px,transparent 121px),radial-gradient(circle at calc(100% + 80px) 180px,rgba(213,244,239,.9) 0 130px,transparent 131px),linear-gradient(180deg,#fffaf4 0%,#fff8ef 100%)}
+.topbar{position:sticky;top:0;z-index:50;display:grid;grid-template-columns:150px minmax(0,1fr) auto;align-items:center;gap:24px;padding:10px clamp(18px,4vw,62px);background:rgba(255,248,239,.94);backdrop-filter:blur(18px);border-bottom:1px solid rgba(15,23,40,.06)}.brand-logo{display:flex;align-items:center;width:132px;min-width:132px}.brand-logo img{display:block;width:100%;height:auto}.main-nav{display:flex;justify-content:center;align-items:center;gap:clamp(14px,2vw,30px);white-space:nowrap;font-size:clamp(12px,.9vw,14px);font-weight:800}.main-nav a{position:relative}.main-nav a:first-child{padding:10px 14px;background:var(--rose-soft);border-radius:999px}.main-nav a:first-child:after{content:'';position:absolute;left:18px;right:18px;bottom:3px;height:4px;border-radius:999px;background:var(--coral);transform:rotate(-2deg)}.shop-actions{display:flex;align-items:center;gap:9px}.round-action{display:grid;place-items:center;width:36px;height:36px;border-radius:999px;font:700 28px/1 var(--hand)}.cart-link{display:inline-flex;align-items:center;gap:9px;min-height:42px;padding:8px 13px;border:2px solid var(--ink);border-radius:999px;background:#fff;font-weight:800;font-size:13px}.cart-link:before{content:'🛒';font-size:15px}.cart-link b{display:grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:var(--coral);color:white;font-size:11px}
+.hero-section{width:min(1240px,calc(100% - 40px));margin:0 auto;padding:clamp(34px,5vw,72px) 0 38px;display:grid;grid-template-columns:minmax(0,1fr) minmax(330px,430px);gap:clamp(28px,5vw,70px);align-items:center}.hero-copy{position:relative}.hero-kicker{display:inline-block;margin:0 0 18px;padding:10px 18px;border-radius:999px;background:rgba(255,255,255,.78);box-shadow:0 8px 22px rgba(55,35,22,.07);font:700 clamp(22px,2vw,32px)/1 var(--hand);transform:rotate(-2deg)}.hero-copy h1{margin:0;max-width:760px;font:700 clamp(46px,5.05vw,76px)/.94 var(--hand);letter-spacing:-.038em}.hero-copy mark{padding:0 .12em .02em;border-radius:999px;background:linear-gradient(90deg,rgba(255,165,158,.62),rgba(255,90,95,.45));color:inherit;box-decoration-break:clone;-webkit-box-decoration-break:clone}.hero-text{max-width:655px;margin:22px 0 0;font-size:clamp(15px,1.12vw,18px);line-height:1.68;color:#20283a}.hero-buttons{display:flex;flex-wrap:wrap;gap:14px;margin-top:26px}.button{display:inline-flex;align-items:center;justify-content:center;min-height:50px;padding:14px 22px;border-radius:999px;font:800 15px/1 var(--body);letter-spacing:-.02em}.primary-button{background:var(--coral);color:#fff;box-shadow:0 14px 30px rgba(255,90,95,.22)}.secondary-button{background:rgba(255,255,255,.78);border:2px solid var(--ink)}
+.hero-visual{position:relative;min-height:410px}.photo-frame{position:absolute;inset:22px 14px 22px 0;border-radius:44px;background:#fffdfa;box-shadow:var(--shadow);overflow:hidden;transform:rotate(1.2deg)}.photo-frame:before{content:'';position:absolute;inset:18px;border-radius:34px;background:linear-gradient(135deg,rgba(255,218,210,.92),rgba(255,248,239,.85) 45%,rgba(213,244,239,.75));}.photo-soft-bg{position:absolute;inset:54px 42px 0;border-radius:48% 52% 13% 13%;background:radial-gradient(circle at 28% 24%,rgba(116,62,32,.38),transparent 16%),radial-gradient(circle at 68% 31%,rgba(116,62,32,.30),transparent 15%),linear-gradient(135deg,rgba(255,255,255,.6),rgba(255,126,120,.42));filter:blur(.2px)}.photo-message{position:absolute;left:34px;right:34px;bottom:30px;padding:18px 20px;border-radius:22px;background:rgba(255,255,255,.76);box-shadow:0 10px 24px rgba(55,35,22,.08)}.photo-message span{display:block;margin-bottom:8px;color:var(--coral);text-transform:uppercase;font-size:11px;font-weight:900;letter-spacing:.08em}.photo-message strong{display:block;font:700 26px/.95 var(--hand);letter-spacing:-.025em}.paper-note{position:absolute;z-index:4;right:0;padding:10px 17px;border-radius:12px;box-shadow:0 10px 22px rgba(55,35,22,.09);font:700 23px/1 var(--hand)}.note-one{top:70px;background:#ffd8b5;transform:rotate(-4deg)}.note-two{top:126px;background:#ffd4d6;transform:rotate(3deg)}.note-three{top:182px;background:#e6d1ff;transform:rotate(-2deg)}.small-heart{position:absolute;z-index:5;left:6px;top:52px;color:var(--coral);font:700 58px/1 var(--hand);transform:rotate(-12deg)}
+.mini-values{width:min(1040px,calc(100% - 40px));margin:0 auto 54px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:16px;border-radius:30px;background:rgba(255,255,255,.68);box-shadow:0 10px 28px rgba(55,35,22,.06)}.mini-values p{margin:0;text-align:center}.mini-values strong{display:block;font-weight:900}.mini-values span{display:block;margin-top:4px;color:var(--muted);font-size:13px}.univers-section,.products-section,.podcast-section,.site-footer{width:min(1180px,calc(100% - 40px));margin:0 auto}.section-heading{text-align:center;margin-bottom:24px}.section-heading p,.section-title-row p,.podcast-section p{margin:0 0 7px;color:var(--coral);font-size:12px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}.section-heading h2,.section-title-row h2,.podcast-section h2{margin:0;font:700 clamp(38px,4vw,58px)/.95 var(--hand);letter-spacing:-.04em}.univers-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:58px}.universe-card{min-height:270px;padding:28px;border-radius:30px;background:white;box-shadow:var(--shadow);display:flex;flex-direction:column;justify-content:space-between}.universe-card.family{background:#fff1ed}.universe-card.business{background:#eafbfa}.universe-card.paper{background:#f5e9ff}.universe-card span{font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}.universe-card h3{margin:18px 0 12px;font:700 clamp(34px,3.4vw,48px)/.9 var(--hand);letter-spacing:-.04em}.universe-card p{margin:0;color:#293146;line-height:1.55;font-size:14px}.universe-card em{margin-top:20px;font-style:normal;font-weight:900}.section-title-row{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:18px}.section-title-row a{padding:12px 16px;border-radius:999px;background:white;font-size:13px;font-weight:900}.product-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:56px}.product-card{padding:12px;border-radius:26px;background:white;box-shadow:0 14px 34px rgba(55,35,22,.08)}.product-visual{height:155px;border-radius:20px;background:linear-gradient(135deg,#ffe4de,#fff9f2 58%,#d5f4ef);display:grid;place-items:center}.product-visual span{padding:14px 18px;border-radius:18px;background:rgba(255,255,255,.72);font:700 22px/1 var(--hand);transform:rotate(-2deg)}.product-card h3{margin:14px 4px 10px;font-size:15px;line-height:1.35}.product-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 4px 4px}.product-bottom button{border:0;border-radius:999px;background:var(--coral);color:white;padding:11px 15px;font:800 12px/1 var(--body);cursor:pointer}.podcast-section{margin-bottom:44px;padding:28px;display:grid;grid-template-columns:1fr 190px;gap:26px;align-items:center;border-radius:34px;background:#ffd9d1;box-shadow:var(--shadow)}.podcast-section h2{max-width:760px}.podcast-card{justify-self:end;width:165px;min-height:165px;border-radius:28px;background:#fffaf4;box-shadow:0 10px 26px rgba(55,35,22,.08);display:grid;place-items:center;text-align:center;color:var(--coral);font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;transform:rotate(2deg)}.podcast-card b{font-size:54px}.site-footer{padding:22px 0 42px;display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center}.footer-logo{width:92px}.footer-logo img{width:100%;height:auto;display:block}.site-footer p{margin:0;color:var(--muted)}.site-footer nav{display:flex;gap:14px;font-size:12px;font-weight:900}
+@media(max-width:1050px){.topbar{grid-template-columns:auto auto}.main-nav{grid-column:1/-1;justify-content:flex-start;overflow-x:auto;padding:4px 0}.hero-section{grid-template-columns:1fr}.hero-visual{min-height:360px;max-width:520px}.univers-grid,.product-grid{grid-template-columns:1fr}.podcast-section{grid-template-columns:1fr}.podcast-card{justify-self:start}.site-footer{grid-template-columns:1fr}.mini-values{grid-template-columns:1fr}}
+@media(max-width:660px){.site-page{background:linear-gradient(180deg,#fffaf4,#fff8ef)}.topbar{position:relative;padding:10px 16px;gap:12px}.brand-logo{width:104px;min-width:104px}.shop-actions{gap:5px}.round-action{width:32px;height:32px;font-size:23px}.cart-link{min-height:36px;padding:7px 10px}.cart-link span{display:none}.main-nav{font-size:12px;gap:12px}.hero-section{width:calc(100% - 28px);padding:30px 0 26px;gap:22px}.hero-kicker{font-size:22px}.hero-copy h1{font-size:clamp(42px,15vw,58px);line-height:.9}.hero-text{font-size:15px;line-height:1.6}.hero-buttons{display:grid}.button{width:100%;min-height:48px}.hero-visual{min-height:310px}.photo-frame{inset:10px 0 18px 0;border-radius:32px}.photo-message{left:20px;right:20px;bottom:22px}.photo-message strong{font-size:23px}.paper-note{font-size:20px;right:-4px}.note-one{top:54px}.note-two{top:105px}.note-three{top:156px}.small-heart{font-size:48px;left:10px;top:38px}.mini-values,.univers-section,.products-section,.podcast-section,.site-footer{width:calc(100% - 28px)}.section-heading h2,.section-title-row h2,.podcast-section h2{font-size:38px}.universe-card{min-height:230px;padding:24px}.section-title-row{display:block}.section-title-row a{display:inline-flex;margin-top:14px}.podcast-section{padding:22px}.site-footer nav{flex-wrap:wrap}}
 `;
