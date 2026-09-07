@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { heroScene } from './heroScene';
 
 const nav = [
   ['Com’ en famille', '/com-en-famille'],
@@ -13,27 +14,9 @@ const nav = [
 ] as const;
 
 const univers = [
-  {
-    title: 'Com’ en famille',
-    href: '/com-en-famille',
-    text: 'Des cartes, des jeux et des rituels pour parler, écouter, comprendre et créer du lien au quotidien.',
-    tone: 'family',
-    tag: 'Famille · émotions',
-  },
-  {
-    title: 'Com’ des entrepreneuses',
-    href: '/com-des-entrepreneuses',
-    text: 'Des supports pour poser tes idées, clarifier ton message et retrouver une com qui te ressemble.',
-    tone: 'business',
-    tag: 'Idées · visibilité',
-  },
-  {
-    title: 'La papeterie',
-    href: '/papeterie-du-lien',
-    text: 'To-do lists, bujo, trackers, carnets et pages à imprimer pour organiser la vraie vie sans pression.',
-    tone: 'paper',
-    tag: 'Bujo · to-do',
-  },
+  ['Com’ en famille', 'Des cartes, des jeux et des rituels pour parler, écouter, comprendre et créer du lien au quotidien.', '/com-en-famille', 'family'],
+  ['Com’ des entrepreneuses', 'Des supports pour clarifier tes idées, poser tes mots et rendre ta communication plus simple.', '/com-des-entrepreneuses', 'business'],
+  ['La papeterie', 'To-do lists, bujo, trackers, plannings et carnets à imprimer pour organiser la vraie vie.', '/papeterie-du-lien', 'paper'],
 ] as const;
 
 const products = [
@@ -41,24 +24,6 @@ const products = [
   ['Mon carnet de clarté', 'Carnet guidé', '12,90 €', '/produits/mon-carnet-de-clarte'],
   ['Mon kit d’été', 'Activités à imprimer', '12,90 €', '/produits/mon-kit-ete'],
 ] as const;
-
-function HeroVisual() {
-  return (
-    <div className="hero-visual" aria-label="Espace photo à intégrer">
-      <div className="photo-frame">
-        <div className="photo-soft-bg" />
-        <div className="photo-message">
-          <span>photo à intégrer</span>
-          <strong>une vraie image douce,<br />humaine, Com’ entre nous</strong>
-        </div>
-      </div>
-      <div className="paper-note note-one">écouter</div>
-      <div className="paper-note note-two">ressentir</div>
-      <div className="paper-note note-three">partager</div>
-      <div className="small-heart">♡</div>
-    </div>
-  );
-}
 
 export default function HomePage() {
   const [cartCount, setCartCount] = useState(0);
@@ -77,70 +42,71 @@ export default function HomePage() {
   }
 
   return (
-    <main className="site-page">
+    <main className="home-page">
       <style>{styles}</style>
 
-      <header className="topbar">
-        <Link href="/" className="brand-logo" aria-label="Com’ entre nous accueil">
+      <header className="header">
+        <Link href="/" className="logo" aria-label="Com’ entre nous accueil">
           <img src="/logo-comentre-nous.svg?v=transparent-final-20260907" alt="Com’ entre nous" />
         </Link>
 
-        <nav className="main-nav" aria-label="Navigation principale">
+        <nav className="nav" aria-label="Navigation principale">
           {nav.map(([label, href]) => <Link key={href} href={href}>{label}</Link>)}
         </nav>
 
-        <div className="shop-actions">
-          <Link href="/boutique" aria-label="Recherche" className="round-action">⌕</Link>
-          <Link href="/a-propos" aria-label="Compte" className="round-action">♡</Link>
-          <Link href="/boutique" className="cart-link" aria-label={`Panier ${cartCount} article${cartCount > 1 ? 's' : ''}`}>
+        <div className="actions">
+          <Link href="/boutique" aria-label="Recherche" className="icon-link">⌕</Link>
+          <Link href="/a-propos" aria-label="Compte" className="icon-link">♡</Link>
+          <Link href="/boutique" className="cart" aria-label={`Panier ${cartCount} article${cartCount > 1 ? 's' : ''}`}>
             <span>Panier</span><b>{cartCount}</b>
           </Link>
         </div>
       </header>
 
-      <section className="hero-section">
+      <section className="hero" aria-label="Présentation Com’ entre nous">
         <div className="hero-copy">
-          <p className="hero-kicker">Des petits outils pour de grands moments</p>
-          <h1>Des mots, des cartes et des carnets pour <mark>créer du lien.</mark></h1>
-          <p className="hero-text">Des outils doux, illustrés et concrets pour trouver les mots, faire circuler les idées et remettre un peu de lien dans la vraie vie.</p>
-          <div className="hero-buttons">
-            <Link href="/par-ou-commencer" className="button primary-button">Découvrir nos univers →</Link>
-            <Link href="/boutique" className="button secondary-button">Voir les nouveautés →</Link>
+          <p className="eyebrow">Des petits outils pour de grands moments</p>
+          <h1>Des mots,<br />des cartes et des carnets pour <mark>créer du lien.</mark></h1>
+          <p className="intro">Des outils doux, illustrés et concrets pour exprimer ce que tu ressens, faire circuler les idées et remettre un peu de lien dans la vraie vie.</p>
+          <div className="button-row">
+            <Link href="/par-ou-commencer" className="btn primary">Découvrir nos univers →</Link>
+            <Link href="/boutique" className="btn secondary">Voir les nouveautés →</Link>
           </div>
         </div>
-        <HeroVisual />
+
+        <div className="hero-visual">
+          <img src={heroScene} alt="Une mère et une enfant autour de cartes de communication Com’ entre nous" />
+        </div>
       </section>
 
-      <section className="mini-values" aria-label="Nos intentions">
-        <p><strong>Du concret</strong><span>pas des grandes leçons</span></p>
-        <p><strong>Du lien</strong><span>dans la vraie vie</span></p>
-        <p><strong>Du doux</strong><span>mais pas gnangnan</span></p>
+      <section className="promise-strip" aria-label="Nos promesses">
+        <div><span>♡</span><strong>Des outils concrets</strong><p>pour le quotidien</p></div>
+        <div><span>✦</span><strong>Des idées simples</strong><p>à mettre en place</p></div>
+        <div><span>⌁</span><strong>Pour toute la famille</strong><p>petits et grands</p></div>
+        <div><span>☾</span><strong>Sans pression</strong><p>juste du lien</p></div>
       </section>
 
-      <section className="univers-section" aria-labelledby="univers-title">
-        <div className="section-heading">
+      <section className="univers" aria-labelledby="univers-title">
+        <div className="section-head">
           <p>Choisis ton coin</p>
-          <h2 id="univers-title">Quel est ton univers ?</h2>
+          <h2 id="univers-title">Bienvenue dans nos univers</h2>
         </div>
         <div className="univers-grid">
-          {univers.map((item) => (
-            <Link href={item.href} key={item.href} className={`universe-card ${item.tone}`}>
-              <span>{item.tag}</span>
-              <h3>{item.title}</h3>
-              <p>{item.text}</p>
+          {univers.map(([title, text, href, tone]) => (
+            <Link href={href} key={href} className={`univers-card ${tone}`}>
+              <span>{title === 'La papeterie' ? 'bujo · to-do · trackers' : title === 'Com’ en famille' ? 'famille · émotions · lien' : 'idées · clarté · visibilité'}</span>
+              <h3>{title}</h3>
+              <p>{text}</p>
               <em>Découvrir →</em>
             </Link>
           ))}
         </div>
       </section>
 
-      <section className="products-section" aria-labelledby="news-title">
-        <div className="section-title-row">
-          <div>
-            <p>Boutique en construction</p>
-            <h2 id="news-title">Les nouveautés arrivent doucement</h2>
-          </div>
-          <Link href="/boutique">Voir toute la boutique →</Link>
+      <section className="products" aria-labelledby="news-title">
+        <div className="section-head left">
+          <p>Boutique en construction</p>
+          <h2 id="news-title">Les nouveautés arrivent doucement</h2>
         </div>
         <div className="product-grid">
           {products.map(([title, tag, price, href]) => (
@@ -156,19 +122,17 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="podcast-section">
+      <section className="podcast">
         <div>
-          <p>Com’ entre nous · le podcast</p>
+          <p className="label">Com’ entre nous · le podcast</p>
           <h2>Des conversations vraies, imparfaites, et tellement nous.</h2>
-          <Link href="/podcast" className="button secondary-button">Découvrir l’espace podcast →</Link>
+          <p>Le podcast est à venir. On lui garde une place douce, sans en faire trop pour l’instant.</p>
         </div>
-        <div className="podcast-card">à venir<br /><b>🎙️</b></div>
+        <Link href="/podcast" className="btn secondary">Découvrir l’espace podcast →</Link>
       </section>
 
-      <footer className="site-footer">
-        <Link href="/" className="footer-logo" aria-label="Com’ entre nous accueil">
-          <img src="/logo-comentre-nous.svg?v=transparent-final-20260907" alt="Com’ entre nous" />
-        </Link>
+      <footer className="footer">
+        <div className="footer-brand"><img src="/logo-comentre-nous.svg?v=transparent-final-20260907" alt="Com’ entre nous" /></div>
         <p>Des mots, des outils, des humains.</p>
         <nav><Link href="/mentions-legales">Mentions légales</Link><Link href="/contact">Contact</Link><Link href="/faq">FAQ</Link></nav>
       </footer>
@@ -177,13 +141,6 @@ export default function HomePage() {
 }
 
 const styles = String.raw`
-@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@500;600;700;800&family=Patrick+Hand&display=swap');
-:root{--cream:#fff8ef;--paper:#fffdfa;--ink:#0f1728;--muted:#5f5a56;--coral:#ff5a5f;--rose:#ffd9d2;--rose-soft:#fff1ed;--mint:#d5f4ef;--teal:#179e99;--yellow:#ffe39a;--lilac:#ead8ff;--shadow:0 18px 45px rgba(55,35,22,.10);--body:'Comfortaa',system-ui,sans-serif;--hand:'Patrick Hand','Comic Sans MS',cursive}
-*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--cream);color:var(--ink);font-family:var(--body)}a{color:inherit;text-decoration:none}.site-page{min-height:100vh;overflow-x:hidden;background:radial-gradient(circle at -70px 190px,rgba(255,217,210,.8) 0 120px,transparent 121px),radial-gradient(circle at calc(100% + 80px) 180px,rgba(213,244,239,.9) 0 130px,transparent 131px),linear-gradient(180deg,#fffaf4 0%,#fff8ef 100%)}
-.topbar{position:sticky;top:0;z-index:50;display:grid;grid-template-columns:150px minmax(0,1fr) auto;align-items:center;gap:24px;padding:10px clamp(18px,4vw,62px);background:rgba(255,248,239,.94);backdrop-filter:blur(18px);border-bottom:1px solid rgba(15,23,40,.06)}.brand-logo{display:flex;align-items:center;width:132px;min-width:132px}.brand-logo img{display:block;width:100%;height:auto}.main-nav{display:flex;justify-content:center;align-items:center;gap:clamp(14px,2vw,30px);white-space:nowrap;font-size:clamp(12px,.9vw,14px);font-weight:800}.main-nav a{position:relative}.main-nav a:first-child{padding:10px 14px;background:var(--rose-soft);border-radius:999px}.main-nav a:first-child:after{content:'';position:absolute;left:18px;right:18px;bottom:3px;height:4px;border-radius:999px;background:var(--coral);transform:rotate(-2deg)}.shop-actions{display:flex;align-items:center;gap:9px}.round-action{display:grid;place-items:center;width:36px;height:36px;border-radius:999px;font:700 28px/1 var(--hand)}.cart-link{display:inline-flex;align-items:center;gap:9px;min-height:42px;padding:8px 13px;border:2px solid var(--ink);border-radius:999px;background:#fff;font-weight:800;font-size:13px}.cart-link:before{content:'🛒';font-size:15px}.cart-link b{display:grid;place-items:center;min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:var(--coral);color:white;font-size:11px}
-.hero-section{width:min(1240px,calc(100% - 40px));margin:0 auto;padding:clamp(34px,5vw,72px) 0 38px;display:grid;grid-template-columns:minmax(0,1fr) minmax(330px,430px);gap:clamp(28px,5vw,70px);align-items:center}.hero-copy{position:relative}.hero-kicker{display:inline-block;margin:0 0 18px;padding:10px 18px;border-radius:999px;background:rgba(255,255,255,.78);box-shadow:0 8px 22px rgba(55,35,22,.07);font:700 clamp(22px,2vw,32px)/1 var(--hand);transform:rotate(-2deg)}.hero-copy h1{margin:0;max-width:760px;font:700 clamp(46px,5.05vw,76px)/.94 var(--hand);letter-spacing:-.038em}.hero-copy mark{padding:0 .12em .02em;border-radius:999px;background:linear-gradient(90deg,rgba(255,165,158,.62),rgba(255,90,95,.45));color:inherit;box-decoration-break:clone;-webkit-box-decoration-break:clone}.hero-text{max-width:655px;margin:22px 0 0;font-size:clamp(15px,1.12vw,18px);line-height:1.68;color:#20283a}.hero-buttons{display:flex;flex-wrap:wrap;gap:14px;margin-top:26px}.button{display:inline-flex;align-items:center;justify-content:center;min-height:50px;padding:14px 22px;border-radius:999px;font:800 15px/1 var(--body);letter-spacing:-.02em}.primary-button{background:var(--coral);color:#fff;box-shadow:0 14px 30px rgba(255,90,95,.22)}.secondary-button{background:rgba(255,255,255,.78);border:2px solid var(--ink)}
-.hero-visual{position:relative;min-height:410px}.photo-frame{position:absolute;inset:22px 14px 22px 0;border-radius:44px;background:#fffdfa;box-shadow:var(--shadow);overflow:hidden;transform:rotate(1.2deg)}.photo-frame:before{content:'';position:absolute;inset:18px;border-radius:34px;background:linear-gradient(135deg,rgba(255,218,210,.92),rgba(255,248,239,.85) 45%,rgba(213,244,239,.75));}.photo-soft-bg{position:absolute;inset:54px 42px 0;border-radius:48% 52% 13% 13%;background:radial-gradient(circle at 28% 24%,rgba(116,62,32,.38),transparent 16%),radial-gradient(circle at 68% 31%,rgba(116,62,32,.30),transparent 15%),linear-gradient(135deg,rgba(255,255,255,.6),rgba(255,126,120,.42));filter:blur(.2px)}.photo-message{position:absolute;left:34px;right:34px;bottom:30px;padding:18px 20px;border-radius:22px;background:rgba(255,255,255,.76);box-shadow:0 10px 24px rgba(55,35,22,.08)}.photo-message span{display:block;margin-bottom:8px;color:var(--coral);text-transform:uppercase;font-size:11px;font-weight:900;letter-spacing:.08em}.photo-message strong{display:block;font:700 26px/.95 var(--hand);letter-spacing:-.025em}.paper-note{position:absolute;z-index:4;right:0;padding:10px 17px;border-radius:12px;box-shadow:0 10px 22px rgba(55,35,22,.09);font:700 23px/1 var(--hand)}.note-one{top:70px;background:#ffd8b5;transform:rotate(-4deg)}.note-two{top:126px;background:#ffd4d6;transform:rotate(3deg)}.note-three{top:182px;background:#e6d1ff;transform:rotate(-2deg)}.small-heart{position:absolute;z-index:5;left:6px;top:52px;color:var(--coral);font:700 58px/1 var(--hand);transform:rotate(-12deg)}
-.mini-values{width:min(1040px,calc(100% - 40px));margin:0 auto 54px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:16px;border-radius:30px;background:rgba(255,255,255,.68);box-shadow:0 10px 28px rgba(55,35,22,.06)}.mini-values p{margin:0;text-align:center}.mini-values strong{display:block;font-weight:900}.mini-values span{display:block;margin-top:4px;color:var(--muted);font-size:13px}.univers-section,.products-section,.podcast-section,.site-footer{width:min(1180px,calc(100% - 40px));margin:0 auto}.section-heading{text-align:center;margin-bottom:24px}.section-heading p,.section-title-row p,.podcast-section p{margin:0 0 7px;color:var(--coral);font-size:12px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}.section-heading h2,.section-title-row h2,.podcast-section h2{margin:0;font:700 clamp(38px,4vw,58px)/.95 var(--hand);letter-spacing:-.04em}.univers-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:58px}.universe-card{min-height:270px;padding:28px;border-radius:30px;background:white;box-shadow:var(--shadow);display:flex;flex-direction:column;justify-content:space-between}.universe-card.family{background:#fff1ed}.universe-card.business{background:#eafbfa}.universe-card.paper{background:#f5e9ff}.universe-card span{font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}.universe-card h3{margin:18px 0 12px;font:700 clamp(34px,3.4vw,48px)/.9 var(--hand);letter-spacing:-.04em}.universe-card p{margin:0;color:#293146;line-height:1.55;font-size:14px}.universe-card em{margin-top:20px;font-style:normal;font-weight:900}.section-title-row{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:18px}.section-title-row a{padding:12px 16px;border-radius:999px;background:white;font-size:13px;font-weight:900}.product-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:56px}.product-card{padding:12px;border-radius:26px;background:white;box-shadow:0 14px 34px rgba(55,35,22,.08)}.product-visual{height:155px;border-radius:20px;background:linear-gradient(135deg,#ffe4de,#fff9f2 58%,#d5f4ef);display:grid;place-items:center}.product-visual span{padding:14px 18px;border-radius:18px;background:rgba(255,255,255,.72);font:700 22px/1 var(--hand);transform:rotate(-2deg)}.product-card h3{margin:14px 4px 10px;font-size:15px;line-height:1.35}.product-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 4px 4px}.product-bottom button{border:0;border-radius:999px;background:var(--coral);color:white;padding:11px 15px;font:800 12px/1 var(--body);cursor:pointer}.podcast-section{margin-bottom:44px;padding:28px;display:grid;grid-template-columns:1fr 190px;gap:26px;align-items:center;border-radius:34px;background:#ffd9d1;box-shadow:var(--shadow)}.podcast-section h2{max-width:760px}.podcast-card{justify-self:end;width:165px;min-height:165px;border-radius:28px;background:#fffaf4;box-shadow:0 10px 26px rgba(55,35,22,.08);display:grid;place-items:center;text-align:center;color:var(--coral);font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;transform:rotate(2deg)}.podcast-card b{font-size:54px}.site-footer{padding:22px 0 42px;display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center}.footer-logo{width:92px}.footer-logo img{width:100%;height:auto;display:block}.site-footer p{margin:0;color:var(--muted)}.site-footer nav{display:flex;gap:14px;font-size:12px;font-weight:900}
-@media(max-width:1050px){.topbar{grid-template-columns:auto auto}.main-nav{grid-column:1/-1;justify-content:flex-start;overflow-x:auto;padding:4px 0}.hero-section{grid-template-columns:1fr}.hero-visual{min-height:360px;max-width:520px}.univers-grid,.product-grid{grid-template-columns:1fr}.podcast-section{grid-template-columns:1fr}.podcast-card{justify-self:start}.site-footer{grid-template-columns:1fr}.mini-values{grid-template-columns:1fr}}
-@media(max-width:660px){.site-page{background:linear-gradient(180deg,#fffaf4,#fff8ef)}.topbar{position:relative;padding:10px 16px;gap:12px}.brand-logo{width:104px;min-width:104px}.shop-actions{gap:5px}.round-action{width:32px;height:32px;font-size:23px}.cart-link{min-height:36px;padding:7px 10px}.cart-link span{display:none}.main-nav{font-size:12px;gap:12px}.hero-section{width:calc(100% - 28px);padding:30px 0 26px;gap:22px}.hero-kicker{font-size:22px}.hero-copy h1{font-size:clamp(42px,15vw,58px);line-height:.9}.hero-text{font-size:15px;line-height:1.6}.hero-buttons{display:grid}.button{width:100%;min-height:48px}.hero-visual{min-height:310px}.photo-frame{inset:10px 0 18px 0;border-radius:32px}.photo-message{left:20px;right:20px;bottom:22px}.photo-message strong{font-size:23px}.paper-note{font-size:20px;right:-4px}.note-one{top:54px}.note-two{top:105px}.note-three{top:156px}.small-heart{font-size:48px;left:10px;top:38px}.mini-values,.univers-section,.products-section,.podcast-section,.site-footer{width:calc(100% - 28px)}.section-heading h2,.section-title-row h2,.podcast-section h2{font-size:38px}.universe-card{min-height:230px;padding:24px}.section-title-row{display:block}.section-title-row a{display:inline-flex;margin-top:14px}.podcast-section{padding:22px}.site-footer nav{flex-wrap:wrap}}
+@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;500;600;700;800&family=Patrick+Hand&display=swap');
+:root{--cream:#fff9f1;--paper:#fffdfa;--ink:#0d1424;--muted:#5c5760;--coral:#ff565f;--coral-soft:#ffc6c2;--pink:#ffe7e5;--peach:#ffd6b6;--mint:#c9f2ec;--yellow:#ffd768;--lilac:#ead4ff;--shadow:0 24px 70px rgba(48,30,18,.12);--body:'Comfortaa',system-ui,sans-serif;--hand:'Patrick Hand','Comic Sans MS',cursive}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--cream);color:var(--ink)}a{color:inherit;text-decoration:none}button{font:inherit}.home-page{min-height:100vh;overflow-x:hidden;background:radial-gradient(circle at -3rem 14rem,rgba(255,198,194,.64) 0 9rem,transparent 9.1rem),radial-gradient(circle at calc(100% + 3rem) 12rem,rgba(201,242,236,.82) 0 9rem,transparent 9.1rem),linear-gradient(180deg,#fffdfa 0%,#fff7ec 100%);font-family:var(--body)}.header{position:sticky;top:0;z-index:40;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:clamp(1rem,2.5vw,2.5rem);padding:.72rem clamp(1rem,4vw,4rem);background:rgba(255,253,248,.94);backdrop-filter:blur(16px);border-bottom:1px solid rgba(13,20,36,.06)}.logo{display:flex;align-items:center;justify-content:center;width:132px;min-width:132px;text-indent:0!important}.logo img{display:block;width:100%;height:auto}.nav{display:flex;justify-content:center;gap:clamp(.9rem,2vw,2.15rem);font-weight:800;font-size:clamp(.76rem,.86vw,.94rem);white-space:nowrap}.nav a{position:relative}.nav a:hover:after{transform:scaleX(1)}.nav a:after{content:'';position:absolute;left:0;right:0;bottom:-.45rem;height:.34rem;border-radius:999px;background:var(--pink);transform:scaleX(0);transform-origin:left;transition:transform .18s ease}.actions{display:flex;align-items:center;gap:.65rem}.icon-link{display:grid;place-items:center;width:2.3rem;height:2.3rem;border-radius:999px;font:700 1.8rem/1 var(--hand)}.cart{display:inline-flex;align-items:center;gap:.52rem;min-height:2.65rem;padding:.65rem .92rem;border:2px solid var(--ink);border-radius:999px;background:#fff;font-weight:800}.cart b{display:grid;place-items:center;min-width:1.35rem;height:1.35rem;border-radius:999px;background:var(--coral);color:white;font-size:.72rem}.hero{width:min(1540px,100%);margin:0 auto;display:grid;grid-template-columns:minmax(420px,.88fr) minmax(560px,1.12fr);align-items:center;gap:clamp(2rem,4vw,4.5rem);padding:clamp(2.6rem,5vw,5.2rem) clamp(1.1rem,5vw,5.2rem) clamp(1.6rem,3vw,2.5rem)}.hero-copy{position:relative;z-index:2}.eyebrow{display:inline-block;margin:0 0 1.45rem;padding:.6rem 1.1rem;background:rgba(255,255,255,.84);border-radius:999px;box-shadow:0 12px 34px rgba(38,24,14,.08);font:700 clamp(1.15rem,1.65vw,1.75rem)/1 var(--hand);transform:rotate(-2deg)}h1{margin:0 0 1.35rem;max-width:740px;font:700 clamp(3.15rem,4.45vw,4.8rem)/.92 var(--hand);letter-spacing:-.045em}mark{display:inline-block;color:inherit;background:linear-gradient(90deg,rgba(255,180,176,.74),rgba(255,206,199,.78));border-radius:999px;padding:0 .16em .04em;box-decoration-break:clone;-webkit-box-decoration-break:clone}.intro{max-width:650px;margin:0;color:#202636;font-size:clamp(1rem,1.12vw,1.18rem);line-height:1.7}.button-row{display:flex;flex-wrap:wrap;gap:1rem;margin-top:2rem}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:3.2rem;padding:.92rem 1.42rem;border-radius:999px;font-weight:800;letter-spacing:-.02em}.primary{background:var(--coral);color:white;box-shadow:0 16px 34px rgba(255,86,95,.24)}.secondary{background:rgba(255,255,255,.78);border:2px solid var(--ink)}.hero-visual{position:relative;justify-self:end;width:min(780px,100%);border-radius:4.5rem 3.4rem 4.2rem 2.8rem;overflow:hidden;background:rgba(255,255,255,.62);box-shadow:var(--shadow);transform:rotate(.3deg)}.hero-visual:before{content:'';position:absolute;inset:1rem;border-radius:3.6rem 2.8rem 3.4rem 2.2rem;border:1px solid rgba(255,255,255,.8);z-index:2;pointer-events:none}.hero-visual img{display:block;width:100%;height:auto;min-height:430px;object-fit:cover}.promise-strip{width:min(1360px,calc(100% - 2rem));margin:0 auto 4.2rem;display:grid;grid-template-columns:repeat(4,1fr);gap:1px;padding:1.1rem 1.4rem;background:rgba(255,233,231,.7);border-radius:2.2rem;box-shadow:0 18px 48px rgba(48,30,18,.08)}.promise-strip div{display:grid;grid-template-columns:auto 1fr;gap:.25rem .8rem;align-items:center;padding:.35rem .8rem}.promise-strip span{grid-row:1/3;font:700 2rem/1 var(--hand)}.promise-strip strong{font-size:.98rem}.promise-strip p{margin:0;color:var(--muted);font-size:.85rem}.univers,.products{width:min(1260px,calc(100% - 2rem));margin:0 auto 4.5rem}.section-head{text-align:center;margin-bottom:1.7rem}.section-head.left{text-align:left}.section-head p,.label{margin:0 0 .55rem;color:var(--coral);font-weight:800;text-transform:uppercase;letter-spacing:.08em;font-size:.76rem}.section-head h2,.podcast h2{margin:0;font:700 clamp(2.5rem,4.5vw,4.8rem)/.95 var(--hand);letter-spacing:-.035em}.univers-grid,.product-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem}.univers-card{min-height:270px;padding:1.55rem;border-radius:2rem;background:rgba(255,255,255,.76);box-shadow:0 18px 45px rgba(48,30,18,.08);transition:transform .18s ease}.univers-card:hover{transform:translateY(-4px)}.univers-card.family{background:linear-gradient(135deg,#ffe5e1,#fffaf4)}.univers-card.business{background:linear-gradient(135deg,#ddf8f4,#fffaf4)}.univers-card.paper{background:linear-gradient(135deg,#f0ddff,#fffaf4)}.univers-card span{display:inline-block;margin-bottom:1rem;padding:.42rem .72rem;border-radius:999px;background:rgba(255,255,255,.68);font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em}.univers-card h3{margin:0 0 .75rem;font:700 clamp(2rem,3vw,3.1rem)/.9 var(--hand);letter-spacing:-.035em}.univers-card p{margin:0 0 1.25rem;line-height:1.6;color:#2a2e3a}.univers-card em{font-style:normal;font-weight:800}.product-card{background:white;border-radius:1.6rem;padding:.9rem;box-shadow:0 16px 40px rgba(48,30,18,.08)}.product-visual{height:160px;border-radius:1.2rem;background:linear-gradient(135deg,#ffe5df,#fff8ef 58%,#d7f6f0);display:grid;place-items:center;text-align:center}.product-visual span{max-width:80%;font:700 1.42rem/1.05 var(--hand)}.product-card h3{margin:1rem .25rem .65rem;font-size:1rem;line-height:1.35}.product-bottom{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin:.25rem}.product-bottom button{border:0;background:var(--coral);color:white;border-radius:999px;padding:.76rem 1rem;font-weight:800;cursor:pointer}.podcast{width:min(1260px,calc(100% - 2rem));margin:0 auto 4rem;padding:clamp(1.5rem,4vw,3rem);display:flex;align-items:center;justify-content:space-between;gap:2rem;background:#ffd8d1;border-radius:2.2rem;box-shadow:var(--shadow)}.podcast p:not(.label){max-width:760px;line-height:1.6}.footer{width:min(1260px,calc(100% - 2rem));margin:0 auto;padding:2rem 0 3rem;display:grid;grid-template-columns:auto 1fr auto;gap:1.4rem;align-items:center}.footer-brand{width:92px}.footer-brand img{width:100%;height:auto}.footer p{margin:0;color:var(--muted)}.footer nav{display:flex;gap:1rem;font-size:.82rem;font-weight:800}@media(max-width:1120px){.header{grid-template-columns:auto auto}.nav{grid-column:1/-1;order:3;justify-content:flex-start;overflow-x:auto;padding:.4rem 0}.hero{grid-template-columns:1fr;gap:2.2rem}.hero-visual{justify-self:center}.univers-grid,.product-grid{grid-template-columns:1fr}.promise-strip{grid-template-columns:repeat(2,1fr)}.podcast{display:grid}}@media(max-width:680px){.header{position:relative;grid-template-columns:1fr auto;padding:.7rem 1rem}.logo{width:104px!important;min-width:104px!important;height:82px!important;min-height:82px!important}.actions{gap:.3rem}.icon-link{display:none}.cart{padding:.55rem .72rem;font-size:.82rem}.nav{font-size:.78rem;gap:.9rem}.hero{padding:2rem 1rem 1rem}.eyebrow{font-size:1.2rem}.hero h1{font-size:3.1rem;line-height:.95}.button-row{display:grid}.btn{width:100%}.hero-visual{border-radius:2.2rem;transform:none}.hero-visual img{min-height:0}.promise-strip{grid-template-columns:1fr;margin-top:1.2rem}.univers-card{min-height:0}.podcast .btn{width:100%}.footer{grid-template-columns:1fr}}
 `;
