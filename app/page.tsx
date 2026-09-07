@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import homeSprite from './homeSprite';
+
+const dreamImage = 'https://drive.google.com/uc?export=view&id=1KIuLAfhc2d5bnpPMtUZQ6DWXeomxfR7f';
 
 const links = [
   { href: '/', label: 'Accueil', className: 'logo-link' },
@@ -12,45 +13,37 @@ const links = [
   { href: '/boutique', label: 'Recherche', className: 'icon-search' },
   { href: '/a-propos', label: 'Compte', className: 'icon-account' },
   { href: '/boutique', label: 'Panier', className: 'icon-cart' },
-  { href: '/boutique', label: 'Des petites idées qui font du bien', className: 'top-note-link' },
   { href: '/par-ou-commencer', label: 'Découvrir nos univers', className: 'cta-univers' },
   { href: '/boutique', label: 'Voir les nouveautés', className: 'cta-news' },
-  { href: '/par-ou-commencer', label: 'Valeurs Com’ entre nous', className: 'values-link' },
-  { href: '/com-en-famille', label: 'Image famille', className: 'photo-link' },
-  { href: '/par-ou-commencer', label: 'Écouter comprendre ressentir partager avancer', className: 'tabs-link' },
-  { href: '/com-en-famille', label: 'Ici on parle vrai', className: 'truth-link' },
+  { href: '/com-en-famille', label: 'Com’ en famille', className: 'card-family' },
+  { href: '/com-des-entrepreneuses', label: 'Com’ des entrepreneuses', className: 'card-business' },
+  { href: '/papeterie-du-lien', label: 'Papeterie du lien', className: 'card-paper' },
+  { href: '/products/les-petits-liens', label: 'Les Petits Liens', className: 'product-1' },
+  { href: '/products/mon-carnet-de-clarte', label: 'Mon carnet de clarté', className: 'product-2' },
+  { href: '/products/mon-kit-dete', label: 'Mon kit d’été', className: 'product-3' },
+  { href: '/products/cartes-emotions', label: 'Cartes émotions', className: 'product-4' },
+  { href: '/boutique', label: 'Voir toute la boutique', className: 'shop-note' },
+  { href: '/podcast', label: 'Écouter le dernier épisode', className: 'podcast-main' },
+  { href: '/podcast', label: 'Voir tous les épisodes', className: 'podcast-all' },
+  { href: '/les-petits-cadeaux', label: 'Newsletter et petits cadeaux', className: 'newsletter-zone' },
+  { href: '/mentions-legales', label: 'Mentions légales', className: 'legal' },
+  { href: '/contact', label: 'Contact', className: 'contact' },
+  { href: '/faq', label: 'FAQ', className: 'faq' },
 ] as const;
 
 export default function HomePage() {
   return (
-    <main className="image-home">
+    <main className="dream-page">
       <style>{styles}</style>
-
-      <nav className="sr-only" aria-label="Navigation principale">
-        <Link href="/com-en-famille">Com’ en famille</Link>
-        <Link href="/com-des-entrepreneuses">Com’ des entrepreneuses</Link>
-        <Link href="/papeterie-du-lien">Papeterie du lien</Link>
-        <Link href="/podcast">Le podcast</Link>
-        <Link href="/les-petits-cadeaux">Les petits cadeaux</Link>
-        <Link href="/a-propos">À propos</Link>
-        <Link href="/boutique">Boutique</Link>
-      </nav>
-
-      <section className="hero-board" aria-label="Accueil Com’ entre nous">
-        <img
-          src={homeSprite}
-          alt="Com’ entre nous — Des mots, des cartes et des carnets pour créer du lien"
-          draggable="false"
-        />
-        {links.map((link) => (
-          <Link key={`${link.href}-${link.className}`} href={link.href} aria-label={link.label} className={`hotspot ${link.className}`} />
-        ))}
+      <section className="visual-board" aria-label="Accueil Com’ entre nous">
+        <img src={dreamImage} alt="Com’ entre nous — Des mots, des cartes et des carnets pour créer du lien" draggable="false" />
+        {links.map((link) => <Link key={`${link.href}-${link.className}`} href={link.href} aria-label={link.label} className={`hotspot ${link.className}`} />)}
       </section>
     </main>
   );
 }
 
 const styles = `
-*{box-sizing:border-box}html,body{margin:0;background:#fffaf2;color:#101827}.image-home{min-height:100vh;background:#fffaf2;overflow-x:hidden}.hero-board{position:relative;width:min(1672px,100vw);margin:0 auto;background:#fffaf2}.hero-board img{display:block;width:100%;height:auto;user-select:none}.hotspot{position:absolute;z-index:5;display:block;border-radius:999px;text-indent:-9999px;overflow:hidden}.hotspot:focus-visible{outline:3px solid rgba(255,87,92,.75);outline-offset:4px;background:rgba(255,255,255,.12)}@media (hover:hover){.hotspot:hover{outline:2px dashed rgba(255,87,92,.32);outline-offset:4px}}
-.logo-link{left:2.4%;top:1.7%;width:11.8%;height:13.5%}.nav-family{left:15.1%;top:3.9%;width:10.2%;height:5.8%}.nav-business{left:25.4%;top:3.9%;width:14.2%;height:5.8%}.nav-paper{left:39.7%;top:3.9%;width:11.4%;height:5.8%}.nav-podcast{left:51.3%;top:3.9%;width:8.2%;height:5.8%}.nav-gifts{left:59.4%;top:3.9%;width:11.4%;height:5.8%}.nav-about{left:70.6%;top:3.9%;width:7.6%;height:5.8%}.icon-search{left:79.0%;top:2.8%;width:3.8%;height:7.4%}.icon-account{left:83.0%;top:2.8%;width:3.7%;height:7.4%}.icon-cart{left:86.5%;top:2.2%;width:4.3%;height:8.5%}.top-note-link{left:90.0%;top:0.4%;width:9.0%;height:12.4%;border-radius:34px}.cta-univers{left:8.5%;top:68.0%;width:20.4%;height:7.4%}.cta-news{left:29.0%;top:68.0%;width:18.4%;height:7.4%}.values-link{left:3.6%;top:78.4%;width:44.0%;height:9.8%}.photo-link{left:48.6%;top:11.0%;width:38.8%;height:82.4%;border-radius:26px}.tabs-link{left:84.9%;top:14.0%;width:12.2%;height:50.0%;border-radius:18px}.truth-link{left:89.5%;top:67.0%;width:9.4%;height:19.0%;border-radius:34px}.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}@media(max-width:760px){.hero-board{width:100vw}.nav-family,.nav-business,.nav-paper,.nav-podcast,.nav-gifts,.nav-about,.top-note-link{display:none}.icon-search,.icon-account,.icon-cart{top:2.5%;height:8.2%}.cta-univers{left:8%;top:68%;width:24%;height:8%}.cta-news{left:33%;top:68%;width:22%;height:8%}.photo-link{left:47%;top:11%;width:49%;height:82%}}
+*{box-sizing:border-box}html,body{margin:0;background:#fffaf2;color:#101827}.dream-page{min-height:100vh;background:#fffaf2;padding:0 0 42px;overflow-x:hidden}.visual-board{position:relative;width:min(977px,100vw);margin:0 auto;background:#fffaf2}.visual-board img{display:block;width:100%;height:auto;user-select:none}.hotspot{position:absolute;z-index:5;display:block;border-radius:999px;text-indent:-9999px;overflow:hidden}.hotspot:focus-visible{outline:3px solid rgba(255,87,92,.7);outline-offset:3px;background:rgba(255,255,255,.12)}@media(hover:hover){.hotspot:hover{outline:2px dashed rgba(255,87,92,.28);outline-offset:3px}}
+.logo-link{left:3.0%;top:1.0%;width:12.5%;height:7.7%}.nav-family{left:17.0%;top:2.3%;width:11.5%;height:3.2%}.nav-business{left:30.0%;top:2.3%;width:15.0%;height:3.2%}.nav-paper{left:45.5%;top:2.3%;width:11.5%;height:3.2%}.nav-podcast{left:57.0%;top:2.3%;width:8.2%;height:3.2%}.nav-gifts{left:66.0%;top:2.3%;width:12.0%;height:3.2%}.nav-about{left:78.0%;top:2.3%;width:8.5%;height:3.2%}.icon-search{left:79.4%;top:1.4%;width:4.2%;height:4.7%}.icon-account{left:84.0%;top:1.4%;width:4.1%;height:4.7%}.icon-cart{left:88.3%;top:1.0%;width:4.2%;height:5.1%}.cta-univers{left:10.4%;top:22.2%;width:18.5%;height:3.8%}.cta-news{left:30.0%;top:22.2%;width:16.2%;height:3.8%}.card-family{left:3.1%;top:30.3%;width:30.0%;height:17.2%;border-radius:32px}.card-business{left:34.5%;top:30.3%;width:30.0%;height:17.2%;border-radius:32px}.card-paper{left:65.7%;top:30.3%;width:30.8%;height:17.2%;border-radius:32px}.product-1{left:2.6%;top:56.5%;width:18.4%;height:15.0%;border-radius:18px}.product-2{left:21.9%;top:56.5%;width:18.5%;height:15.0%;border-radius:18px}.product-3{left:41.6%;top:56.5%;width:18.5%;height:15.0%;border-radius:18px}.product-4{left:61.4%;top:56.5%;width:18.5%;height:15.0%;border-radius:18px}.shop-note{left:79.7%;top:54.0%;width:18.0%;height:18.0%;border-radius:32px}.podcast-main{left:13.5%;top:79.4%;width:22.0%;height:3.8%}.podcast-all{left:78.0%;top:78.8%;width:18.0%;height:4.0%}.newsletter-zone{left:3.0%;top:86.6%;width:94.5%;height:6.0%;border-radius:32px}.legal{left:43.0%;top:95.0%;width:7.0%;height:2.0%}.contact{left:51.0%;top:95.0%;width:5.8%;height:2.0%}.faq{left:57.8%;top:95.0%;width:4.0%;height:2.0%}@media(max-width:760px){.dream-page{padding-bottom:18px}.visual-board{width:100vw}.nav-family,.nav-business,.nav-paper,.nav-podcast,.nav-gifts,.nav-about{display:none}.icon-search{left:79%;top:1.3%;width:5%;height:5%}.icon-account{left:84%;top:1.3%;width:5%;height:5%}.icon-cart{left:89%;top:1%;width:5%;height:5.5%}}
 `;
