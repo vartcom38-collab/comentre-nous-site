@@ -5,6 +5,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+concurrency:
+  group: infomaniak-ftp-deploy
+  cancel-in-progress: false
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -43,3 +47,4 @@ jobs:
           server-dir: ./sites/comentrenous.marionbolomey.fr/
           protocol: ftp
           dangerous-clean-slate: false
+          state-name: .ftp-deploy-sync-state-v2.json
