@@ -1,123 +1,60 @@
-@import url('https://fonts.googleapis.com/css2?family=Caveat+Brush&family=Kalam:wght@400;700&family=Comfortaa:wght@400;500;600;700;800&display=swap');
+/* Correctif prioritaire : forcer l’affichage du vrai logo Com’ entre nous.
+   Le logo est aussi appelé avec une version pour éviter l’ancien cache navigateur. */
 
-/* Correction typo Com’ entre nous : plus proche de la maquette validée */
-.dream-home {
-  --hand: 'Caveat Brush', 'Kalam', 'Comic Sans MS', cursive !important;
-  --note: 'Kalam', 'Comic Sans MS', cursive !important;
-  --round-font: 'Comfortaa', system-ui, sans-serif !important;
-}
-
-.dream-home,
-.dream-home .site-header nav,
-.dream-home .button,
-.dream-home .mini-values span,
-.dream-home .next-block,
-.dream-home .cards span {
-  font-family: 'Comfortaa', system-ui, sans-serif !important;
-  letter-spacing: -0.015em !important;
-}
-
-.dream-home .logo,
-.dream-home .hero-copy h1,
-.dream-home .next-block h2,
-.dream-home .cards strong {
-  font-family: 'Caveat Brush', 'Kalam', cursive !important;
-  font-weight: 400 !important;
-  letter-spacing: -0.055em !important;
-  word-spacing: -0.04em !important;
-}
-
-.dream-home .hero-copy h1 {
-  font-size: clamp(62px, 5.65vw, 92px) !important;
-  line-height: .78 !important;
-  max-width: 735px !important;
-}
-
-.dream-home .hero-copy em {
-  letter-spacing: -0.06em !important;
-}
-
-.dream-home .hero-copy p {
-  font-family: 'Comfortaa', system-ui, sans-serif !important;
-  font-size: clamp(17px, 1.22vw, 21px) !important;
-  line-height: 1.45 !important;
-  font-weight: 600 !important;
-  letter-spacing: -0.018em !important;
-}
-
-.dream-home .hand-note,
-.dream-home .truth-note,
-.dream-home .top-note,
-.dream-home .photo-shirt-note,
-.dream-home .tab-stack,
-.dream-home .doodle-heart,
-.dream-home .mini-values strong {
-  font-family: 'Kalam', 'Comic Sans MS', cursive !important;
-  font-weight: 700 !important;
-  letter-spacing: -0.045em !important;
-}
-
-.dream-home .top-note {
-  font-size: 23px !important;
-  line-height: .95 !important;
-}
-
-.dream-home .hand-note {
-  font-size: 33px !important;
-  line-height: .92 !important;
-}
-
-.dream-home .truth-note {
-  font-size: 35px !important;
-  line-height: .86 !important;
-}
-
-.dream-home .site-header nav {
-  font-size: 15px !important;
-  font-weight: 700 !important;
-}
-
-.dream-home .button {
-  font-size: 18px !important;
-  font-weight: 700 !important;
-}
-
-/* Le symbole soleil faisait trop pictogramme/roue : on le redessine en CSS */
-.dream-home .sun {
+.logo,
+.footer-brand {
+  position: relative !important;
+  display: block !important;
+  flex: 0 0 auto !important;
+  width: 138px !important;
+  min-width: 138px !important;
+  height: 108px !important;
+  min-height: 108px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: visible !important;
+  background-image: url('/logo-comentre-nous.webp?v=logo-visible-20260907') !important;
+  background-repeat: no-repeat !important;
+  background-position: center center !important;
+  background-size: contain !important;
   color: transparent !important;
   font-size: 0 !important;
-  width: 74px !important;
-  height: 74px !important;
-  border: 7px solid #f6ad18 !important;
-  border-radius: 999px !important;
-  background: radial-gradient(circle, #fffaf2 0 38%, transparent 39%) !important;
-  box-shadow: 0 0 0 11px rgba(246, 173, 24, .10) !important;
-  transform: rotate(-8deg) !important;
+  line-height: 0 !important;
+  letter-spacing: 0 !important;
+  text-indent: -9999px !important;
+  transform: none !important;
 }
 
-.dream-home .sun::before {
-  content: '' !important;
-  position: absolute !important;
-  inset: -29px !important;
-  border-radius: 999px !important;
-  background: repeating-conic-gradient(#f6ad18 0deg 8deg, transparent 8deg 23deg) !important;
-  z-index: -1 !important;
+.logo img,
+.footer-brand img,
+.logo span,
+.logo i,
+.footer-brand span,
+.footer-brand i {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
 }
 
-/* Petits ajustements visuels liés à la nouvelle typo */
-.dream-home .hero-copy {
-  top: 86px !important;
+.footer-brand {
+  width: 98px !important;
+  min-width: 98px !important;
+  height: 92px !important;
+  min-height: 92px !important;
 }
 
-.dream-home .hero-actions {
-  margin-top: 30px !important;
-}
+@media (max-width: 760px) {
+  .logo {
+    width: 104px !important;
+    min-width: 104px !important;
+    height: 88px !important;
+    min-height: 88px !important;
+  }
 
-.dream-home .mini-values {
-  margin-top: 42px !important;
-}
-
-.dream-home .logo {
-  line-height: .68 !important;
-  letter-spacing: -0.08em !important;
+  .footer-brand {
+    width: 92px !important;
+    min-width: 92px !important;
+    height: 82px !important;
+    min-height: 82px !important;
+  }
 }
