@@ -1,5 +1,5 @@
-/* Correctif prioritaire : forcer l’affichage du vrai logo Com’ entre nous.
-   Le logo est aussi appelé avec une version pour éviter l’ancien cache navigateur. */
+/* Correctif prioritaire : vrai logo Com’ entre nous sur fond transparent.
+   On utilise un SVG tracé depuis le logo fourni, sans fond blanc/gris. */
 
 .logo,
 .footer-brand {
@@ -13,7 +13,7 @@
   padding: 0 !important;
   margin: 0 !important;
   overflow: visible !important;
-  background-image: url('/logo-comentre-nous.webp?v=logo-visible-20260907') !important;
+  background-image: url('/logo-comentre-nous.svg?v=transparent-final-20260907') !important;
   background-repeat: no-repeat !important;
   background-position: center center !important;
   background-size: contain !important;
