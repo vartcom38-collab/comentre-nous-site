@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import homeSprite from './homeSprite';
 
 const links = [
   { href: '/', label: 'Accueil', className: 'logo-link' },
@@ -37,7 +38,7 @@ export default function HomePage() {
 
       <section className="hero-board" aria-label="Accueil Com’ entre nous">
         <img
-          src="/hero-accueil-comentre-nous.webp"
+          src={homeSprite}
           alt="Com’ entre nous — Des mots, des cartes et des carnets pour créer du lien"
           draggable="false"
         />
