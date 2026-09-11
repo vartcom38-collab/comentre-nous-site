@@ -4,15 +4,15 @@ import path from 'node:path';
 const assets = [
   {
     name: 'universe-family-hd.png',
-    url: 'https://pikaso.cdnpk.net/private/production/5426781477/3580008901.jpg?token=exp=1789516800~hmac=63c6b8d37923756683d56c119fa4fa7983f6379c3ab67b5593692d655362b5c0'
+    url: 'https://pikaso.cdnpk.net/private/production/5426798905/3580017407.jpg?token=exp=1789516800~hmac=57c1b6df5122cb16b6d896a837e971fe526fb0bbf0272546049c67027dd9379a'
   },
   {
     name: 'universe-business-hd.png',
-    url: 'https://pikaso.cdnpk.net/private/production/5426780793/3580008562.jpg?token=exp=1789516800~hmac=bc3b610425d247cca7cbc179cf0fd78ba4cbfbf3c31d9ef9bed0c586e5d61bff'
+    url: 'https://pikaso.cdnpk.net/private/production/5426799537/3580017751.jpg?token=exp=1789516800~hmac=2d16ffd7b9b46f0b3aab2e6c71fbf9da140d8a66e1d502b628e4e1a448e20982'
   },
   {
     name: 'universe-paper-hd.png',
-    url: 'https://pikaso.cdnpk.net/private/production/5426780348/3580008353.jpg?token=exp=1789516800~hmac=04bf31000dbd95580333ab74e4ec9290655898974a4accbfa88a6b2eb75e2929'
+    url: 'https://pikaso.cdnpk.net/private/production/5426800156/3580017991.jpg?token=exp=1789516800~hmac=6d51af3cfe6bf245c19f602d558a3f522f4a7b90386963476e147f92e9150c9b'
   }
 ];
 
