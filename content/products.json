@@ -1,0 +1,54 @@
+[
+  {
+    "id": "les-petits-liens",
+    "title": "Les Petits Liens",
+    "tagline": "Jeu de cartes famille",
+    "price": "29,00 €",
+    "slug": "les-petits-liens",
+    "image": "",
+    "category": "famille",
+    "published": false,
+    "featured": false,
+    "new": false,
+    "createdAt": "2026-09-12"
+  },
+  {
+    "id": "mon-carnet-de-clarte",
+    "title": "Mon carnet de clarté",
+    "tagline": "Carnet guidé",
+    "price": "12,90 €",
+    "slug": "mon-carnet-de-clarte",
+    "image": "",
+    "category": "entrepreneuses",
+    "published": false,
+    "featured": false,
+    "new": false,
+    "createdAt": "2026-09-12"
+  },
+  {
+    "id": "mon-kit-ete",
+    "title": "Mon kit d’été",
+    "tagline": "Activités à imprimer",
+    "price": "12,90 €",
+    "slug": "mon-kit-ete",
+    "image": "",
+    "category": "famille",
+    "published": false,
+    "featured": false,
+    "new": false,
+    "createdAt": "2026-09-12"
+  },
+  {
+    "id": "cartes-emotions",
+    "title": "Cartes émotions",
+    "tagline": "Support à imprimer",
+    "price": "24,90 €",
+    "slug": "cartes-emotions",
+    "image": "",
+    "category": "famille",
+    "published": false,
+    "featured": false,
+    "new": false,
+    "createdAt": "2026-09-12"
+  }
+]
