@@ -1,0 +1,13 @@
+{
+  "hero": {
+    "eyebrow": "Des petits outils pour de grands moments",
+    "title": "Des mots, des cartes et des carnets pour créer du lien.",
+    "intro": "Des outils doux, illustrés et concrets pour exprimer ce que tu ressens, faire circuler les idées et remettre un peu de lien dans la vraie vie."
+  },
+  "homeProducts": {
+    "eyebrow": "Les nouveautés",
+    "title": "Nos dernières créations",
+    "mode": "newest",
+    "limit": 4
+  }
+}
