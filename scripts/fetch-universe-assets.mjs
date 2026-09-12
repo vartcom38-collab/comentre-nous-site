@@ -13,6 +13,14 @@ const assets = [
   {
     name: 'universe-paper-hd.png',
     url: 'https://pikaso.cdnpk.net/private/production/5426800156/3580017991.jpg?token=exp=1789516800~hmac=6d51af3cfe6bf245c19f602d558a3f522f4a7b90386963476e147f92e9150c9b'
+  },
+  {
+    name: 'home-hero-hd.png',
+    url: 'https://pikaso.cdnpk.net/private/production/5429342431/3581265061.png?token=exp=1789516800~hmac=9f20cdd0c8d6250258d06ff5c6d9af65d93eb42bbc06c770650bb20e2420d024'
+  },
+  {
+    name: 'home-hero-mobile-hd.png',
+    url: 'https://pikaso.cdnpk.net/private/production/5429342802/3581265208.png?token=exp=1789516800~hmac=8512250699637080f8889955b047ad33367c325ed425cb06575183069354a89f'
   }
 ];
 
