@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import MobileMenu from './MobileMenu';
+import HomeContentBridge from './HomeContentBridge';
 import './globals.css';
 import './font-fix.css';
 import './universe-polish.css';
@@ -17,6 +18,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="fr">
       <body>
         <MobileMenu />
+        <HomeContentBridge />
         {children}
       </body>
     </html>
