@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import './globals.css';
 import './font-fix.css';
 import './universe-polish.css';
+import './site-responsive.css';
 
 export const metadata: Metadata = {
   title: "Com' entre nous — Des outils pour créer du lien",
