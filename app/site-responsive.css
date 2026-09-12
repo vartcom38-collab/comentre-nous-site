@@ -21,6 +21,7 @@ input,textarea,select,button{max-width:100%}
   .hero-copy,.home-hero-copy{padding-left:0!important;max-width:760px!important}
   .hero-visual,.home-hero-visual{justify-self:center!important;width:min(760px,100%)!important;min-height:0!important}
   .hero-photo-slot{position:relative!important;right:auto!important;bottom:auto!important;width:min(700px,100%)!important;margin-inline:auto!important}
+  .hero-visual img{width:100%!important;aspect-ratio:16/10!important;object-fit:cover!important;object-position:center!important}
 
   /* Grilles principales */
   .product-grid,.products-grid,.shop-grid,.feature-grid,.features-grid,.cards-grid,.resource-grid,.resources-grid,.category-grid,.faq-grid{
@@ -40,7 +41,7 @@ input,textarea,select,button{max-width:100%}
 }
 
 @media (max-width:820px){
-  /* Header compact mais navigation toujours accessible */
+  /* Header compact */
   .header,.site-header{grid-template-columns:1fr auto!important;padding:.62rem .85rem!important}
   .header .logo,.site-header .logo{width:112px!important;min-width:0!important;font-size:30px!important}
   .actions{gap:.25rem!important}
@@ -57,7 +58,7 @@ input,textarea,select,button{max-width:100%}
   /* Heroes */
   .hero,.home-hero{padding-top:1.6rem!important;gap:1.4rem!important}
   .hero-visual{border-radius:2rem!important}
-  .hero-visual img{min-height:0!important;width:100%!important;object-fit:cover!important}
+  .hero-visual img{content:url('/home-hero-mobile-hd.png?v=20260912-hd')!important;aspect-ratio:4/5!important;min-height:0!important;width:100%!important;object-fit:cover!important;object-position:center!important}
   .home-hero-copy p,.intro{font-size:.98rem!important;line-height:1.65!important}
   .button-row,.home-actions{gap:.7rem!important}
   .button-row .btn,.home-actions a{width:100%!important}
@@ -97,6 +98,9 @@ input,textarea,select,button{max-width:100%}
   h1,.home-hero-copy h1{font-size:clamp(2.45rem,13vw,3.55rem)!important}
   .intro,.home-hero-copy p{font-size:.94rem!important}
   .btn,.red-button,.outline-button{min-height:2.9rem!important;padding:.78rem 1rem!important}
+
+  .hero-visual{border-radius:1.6rem!important}
+  .hero-visual img{aspect-ratio:4/5!important;object-position:center 42%!important}
 
   .promise-strip{grid-template-columns:1fr!important;border-radius:1.5rem!important}
   .promise-strip div{grid-template-columns:auto 1fr!important}
