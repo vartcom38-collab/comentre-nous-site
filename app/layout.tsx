@@ -4,7 +4,7 @@ import MobileMenu from './MobileMenu';
 import './globals.css';
 import './font-fix.css';
 import './universe-polish.css';
-import './responsive.css';
+import './site-responsive.css';
 import './mobile-menu.css';
 
 export const metadata: Metadata = {
