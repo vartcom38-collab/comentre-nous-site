@@ -1,0 +1,115 @@
+/* Responsive global — tablette + téléphone, sans changer le rendu desktop */
+html,body{max-width:100%;overflow-x:hidden}
+img,svg,video,canvas{max-width:100%;height:auto}
+input,textarea,select,button{max-width:100%}
+
+@media (max-width:1180px){
+  /* En-têtes */
+  .header,.site-header{grid-template-columns:auto 1fr auto!important;gap:.8rem!important;padding:.75rem 1.2rem!important}
+  .header .nav,.site-header nav{grid-column:1/-1!important;grid-row:2!important;justify-content:flex-start!important;overflow-x:auto!important;overscroll-behavior-inline:contain!important;-webkit-overflow-scrolling:touch!important;scrollbar-width:none!important;padding:.4rem 0 .15rem!important;gap:1.2rem!important;white-space:nowrap!important}
+  .header .nav::-webkit-scrollbar,.site-header nav::-webkit-scrollbar{display:none!important}
+  .logo{min-width:0!important}
+
+  /* Heroes */
+  .hero,.home-hero,.page-hero,.about-hero,.shop-hero,.contact-hero,.faq-hero,.category-hero{
+    grid-template-columns:1fr!important;
+    gap:2rem!important;
+    min-height:0!important;
+    padding-left:clamp(1rem,4vw,2.5rem)!important;
+    padding-right:clamp(1rem,4vw,2.5rem)!important;
+  }
+  .hero-copy,.home-hero-copy{padding-left:0!important;max-width:760px!important}
+  .hero-visual,.home-hero-visual{justify-self:center!important;width:min(760px,100%)!important;min-height:0!important}
+  .hero-photo-slot{position:relative!important;right:auto!important;bottom:auto!important;width:min(700px,100%)!important;margin-inline:auto!important}
+
+  /* Grilles principales */
+  .product-grid,.products-grid,.shop-grid,.feature-grid,.features-grid,.cards-grid,.resource-grid,.resources-grid,.category-grid,.faq-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  .home-universe-grid,.univers-grid{grid-template-columns:1fr!important}
+  .home-universe-card{grid-template-columns:1fr minmax(180px,34%)!important}
+
+  /* Sections en deux colonnes */
+  .podcast,.content-grid,.about-grid,.split,.split-section,.two-columns,.two-col,.contact-grid{
+    grid-template-columns:1fr!important;
+  }
+
+  /* largeur et respiration */
+  .home-mockup{padding-inline:clamp(1rem,4vw,2.5rem)!important}
+  section,.products,.univers,.promise-strip,.podcast,.footer{max-width:100%!important}
+}
+
+@media (max-width:820px){
+  /* Header compact mais navigation toujours accessible */
+  .header,.site-header{grid-template-columns:1fr auto!important;padding:.62rem .85rem!important}
+  .header .logo,.site-header .logo{width:112px!important;min-width:0!important;font-size:30px!important}
+  .actions{gap:.25rem!important}
+  .actions .icon-link{width:2rem!important;height:2rem!important}
+  .cart{min-height:2.35rem!important;padding:.5rem .68rem!important}
+  .cart span{display:none!important}
+  .header .nav,.site-header nav{font-size:.76rem!important;gap:1rem!important}
+
+  /* Typo fluide */
+  h1,.home-hero-copy h1{font-size:clamp(2.7rem,11vw,4.5rem)!important;line-height:.95!important}
+  h2,.section-head h2,.section-center-title h2,.podcast h2{font-size:clamp(2.2rem,9vw,3.8rem)!important}
+  p{overflow-wrap:anywhere}
+
+  /* Heroes */
+  .hero,.home-hero{padding-top:1.6rem!important;gap:1.4rem!important}
+  .hero-visual{border-radius:2rem!important}
+  .hero-visual img{min-height:0!important;width:100%!important;object-fit:cover!important}
+  .home-hero-copy p,.intro{font-size:.98rem!important;line-height:1.65!important}
+  .button-row,.home-actions{gap:.7rem!important}
+  .button-row .btn,.home-actions a{width:100%!important}
+
+  /* Promesses */
+  .promise-strip{grid-template-columns:1fr 1fr!important;width:calc(100% - 1rem)!important;margin-bottom:2.4rem!important;padding:.8rem!important}
+  .promise-strip div{padding:.55rem!important}
+
+  /* Grilles */
+  .product-grid,.products-grid,.shop-grid,.feature-grid,.features-grid,.cards-grid,.resource-grid,.resources-grid,.category-grid,.faq-grid{
+    grid-template-columns:1fr!important;
+  }
+  .home-universe-card{grid-template-columns:1fr!important;min-height:0!important}
+  .home-universe-card .universe-visual{min-height:190px!important}
+
+  /* Cartes / blocs */
+  .product-card,.card,.feature-card,.resource-card,.faq-card{min-width:0!important}
+  .section-head.left .shop-link{position:static!important;display:inline-flex!important;margin-top:1rem!important}
+  .podcast{padding:1.35rem!important;border-radius:1.7rem!important}
+
+  /* Footer */
+  .footer{grid-template-columns:1fr!important;text-align:center!important;justify-items:center!important;padding-inline:1rem!important}
+  .footer nav{flex-wrap:wrap!important;justify-content:center!important}
+}
+
+@media (max-width:520px){
+  /* Mobile étroit */
+  .header,.site-header{padding-inline:.7rem!important}
+  .header .logo,.site-header .logo{width:98px!important}
+  .header .nav,.site-header nav{margin-inline:-.1rem!important;padding-bottom:.3rem!important}
+
+  .hero,.home-hero,.page-hero,.about-hero,.shop-hero,.contact-hero,.faq-hero,.category-hero{
+    padding-left:.85rem!important;padding-right:.85rem!important
+  }
+  .home-mockup{padding-inline:.85rem!important}
+  .eyebrow{font-size:1.05rem!important;margin-bottom:1rem!important}
+  h1,.home-hero-copy h1{font-size:clamp(2.45rem,13vw,3.55rem)!important}
+  .intro,.home-hero-copy p{font-size:.94rem!important}
+  .btn,.red-button,.outline-button{min-height:2.9rem!important;padding:.78rem 1rem!important}
+
+  .promise-strip{grid-template-columns:1fr!important;border-radius:1.5rem!important}
+  .promise-strip div{grid-template-columns:auto 1fr!important}
+
+  .products,.univers,.podcast,.footer{width:calc(100% - 1rem)!important}
+  .product-card{padding:.55rem!important}
+  .product-visual{min-height:145px!important}
+  .product-bottom{gap:.5rem!important;align-items:center!important}
+  .product-bottom button,.product-bottom a{padding:.6rem .7rem!important}
+
+  .section-head.left{padding-right:0!important}
+  .section-head h2,.section-center-title h2,.podcast h2{font-size:clamp(2.1rem,11vw,3rem)!important}
+
+  /* évite les débordements sur les éléments décoratifs */
+  .tab-stack,.sun-doodle,.hero-handnote{transform:scale(.82)!important;transform-origin:center!important}
+}
