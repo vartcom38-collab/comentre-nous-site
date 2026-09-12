@@ -1,9 +1,11 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
+import MobileMenu from './MobileMenu';
 import './globals.css';
 import './font-fix.css';
 import './universe-polish.css';
-import './site-responsive.css';
+import './responsive.css';
+import './mobile-menu.css';
 
 export const metadata: Metadata = {
   title: "Com' entre nous — Des outils pour créer du lien",
@@ -13,7 +15,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="fr">
-      <body>{children}</body>
+      <body>
+        <MobileMenu />
+        {children}
+      </body>
     </html>
   );
 }
