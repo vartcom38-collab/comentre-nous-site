@@ -26,7 +26,7 @@ export type Product = {
   care?: string;
   buyLabel: string;
   buyUrl: string;
-  purchaseChannel?: 'none' | 'amazon' | 'stripe' | 'external';
+  purchaseChannel?: 'none' | 'woo' | 'amazon' | 'stripe' | 'external';
   amazonUrl?: string;
   stripeUrl?: string;
   externalUrl?: string;
@@ -51,7 +51,7 @@ export type Product = {
 export const allProducts: Product[] = (catalog as Omit<Product, 'description' | 'wooProductId'>[]).map((product) => ({
   ...product,
   description: product.shortDescription || product.tagline || '',
-  wooProductId: wooLinks[product.id] || undefined,
+  wooProductId: product.purchaseChannel === 'woo' ? (wooLinks[product.id] || undefined) : undefined,
 }));
 
 export const products: Product[] = allProducts.filter((product) => product.published);
