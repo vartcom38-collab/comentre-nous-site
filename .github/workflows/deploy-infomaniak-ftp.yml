@@ -41,15 +41,23 @@ jobs:
           echo "${GITHUB_SHA}" > out/deploy-version.txt
           date -u +"%Y-%m-%dT%H:%M:%SZ" >> out/deploy-version.txt
 
+      - name: Install resilient FTP client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lftp
+
       - name: Deploy to Infomaniak by FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ng43h.ftp.infomaniak.com
-          username: ng43h_comentrenous
-          password: ${{ secrets.INFOMANIAK_FTP_PASSWORD }}
-          port: 21
-          local-dir: ./out/
-          server-dir: ./sites/comentrenous.marionbolomey.fr/
-          protocol: ftp
-          dangerous-clean-slate: false
-          state-name: .ftp-deploy-sync-state-v3.json
+        shell: bash
+        run: |
+          set -euo pipefail
+          lftp -u "ng43h_comentrenous","${INFOMANIAK_FTP_PASSWORD_VALUE}" ftp://ng43h.ftp.infomaniak.com <<'LFTP'
+          set ftp:passive-mode true
+          set ftp:ssl-allow no
+          set net:timeout 20
+          set net:max-retries 12
+          set net:reconnect-interval-base 5
+          set net:reconnect-interval-max 30
+          set xfer:clobber on
+          mirror -R --continue --verbose --parallel=2 ./out/ ./sites/comentrenous.marionbolomey.fr/
+          bye
+          LFTP
