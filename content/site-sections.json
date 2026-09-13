@@ -5,6 +5,32 @@
     {"id":"papeterie","title":"Papeterie du lien","href":"/papeterie-du-lien","tag":"Carnets · kits · imprimables","text":"Carnets, bujo, kits et jeux à imprimer pour mettre de la magie dans le quotidien.","tone":"lilac","icon":"☼","buttonLabel":"Découvrir"}
   ],
   "universeSection":{"eyebrow":"Choisir son chemin","title":"Tu arrives par quelle porte ?"},
+  "pages": {
+    "famille": {
+      "kicker":"Famille · émotions · quotidien",
+      "title":"Com’ en famille",
+      "intro":"Des outils pour se parler, s’écouter, accueillir les émotions et créer de vrais moments ensemble — sans mode d’emploi parfait.",
+      "blockTitle":"Parce que les mots changent les journées.",
+      "blockText":"Cartes de communication, jeux émotionnels, kits famille, petites ressources à imprimer : ici, on crée des supports pour les moments où les mots restent coincés, débordent, ou ont juste besoin d’un petit coup de pouce.",
+      "productsTitle":"Nos produits famille"
+    },
+    "entrepreneuses": {
+      "kicker":"Idées · intuition · communication",
+      "title":"Com’ des entrepreneuses",
+      "intro":"Des supports pour clarifier ton message, écouter ton intuition, créer du contenu et communiquer avec plus de justesse — même quand tu as douze idées et un café froid.",
+      "blockTitle":"Pour celles qui créent, doutent, osent, recommencent.",
+      "blockText":"On y retrouvera Com’ des Murmures, des carnets business, des outils de communication, des extensions visibilité et des ressources pour avancer dans son projet sans perdre son âme.",
+      "productsTitle":"Nos outils pour entrepreneuses"
+    },
+    "papeterie": {
+      "kicker":"Carnets · kits · imprimables",
+      "title":"La papeterie du lien",
+      "intro":"Carnets, kits, jeux à imprimer, bujo et pages créatives pour mettre un peu de magie dans le quotidien.",
+      "blockTitle":"Des pages pour une vie plus douce.",
+      "blockText":"Ici, on prépare les kits d’été, carnets à imprimer, pages de bujo, jeux papier et petits objets qui accompagnent les grands moments comme les mini chaos du quotidien.",
+      "productsTitle":"Nos incontournables papier"
+    }
+  },
   "needs":{"eyebrow":"Pas besoin de savoir par où commencer","title":"Dis-nous juste ce que tu cherches.","items":[
     {"label":"Aider mon enfant à parler","href":"/par-ou-commencer"},
     {"label":"Créer un moment en famille","href":"/par-ou-commencer"},
