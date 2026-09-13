@@ -92,6 +92,13 @@ function applyCartIntegration() {
   }
 }
 
+function productBadge(product: Product) {
+  if (product.badge && product.badge.trim()) return product.badge.trim();
+  if (product.new) return 'Nouveau';
+  if (product.deliveryType === 'digital') return 'À télécharger';
+  return '';
+}
+
 function applyHomepageProducts() {
   const eyebrow = document.querySelector<HTMLElement>('.products .section-head p');
   const title = document.querySelector<HTMLElement>('.products .section-head h2');
@@ -114,7 +121,7 @@ function applyHomepageProducts() {
 
   for (const product of selected) {
     const article = document.createElement('article');
-    article.className = 'product-card';
+    article.className = 'product-card product-card-enhanced';
 
     const visual = document.createElement('a');
     visual.className = 'product-visual';
@@ -138,30 +145,27 @@ function applyHomepageProducts() {
       visual.appendChild(span);
     }
 
-    if (product.badge && product.badge.trim()) {
+    const badgeLabel = productBadge(product);
+    if (badgeLabel) {
       const badge = document.createElement('em');
-      badge.textContent = product.badge;
-      badge.style.position = 'absolute';
-      badge.style.top = '12px';
-      badge.style.left = '12px';
-      badge.style.zIndex = '2';
-      badge.style.display = 'inline-flex';
-      badge.style.padding = '7px 10px';
-      badge.style.borderRadius = '999px';
-      badge.style.background = '#ff5d62';
-      badge.style.color = '#fff';
-      badge.style.fontSize = '10px';
-      badge.style.fontStyle = 'normal';
-      badge.style.fontWeight = '900';
-      badge.style.boxShadow = '0 6px 16px rgba(23,27,42,.14)';
+      badge.textContent = badgeLabel;
+      badge.className = 'product-badge';
       visual.appendChild(badge);
     }
+
+    const meta = document.createElement('p');
+    meta.className = 'product-meta';
+    meta.textContent = [product.universe, product.type, product.age].filter(Boolean).join(' · ');
 
     const heading = document.createElement('h3');
     const link = document.createElement('a');
     link.href = `/produits/${product.slug}/`;
     link.textContent = product.title;
     heading.appendChild(link);
+
+    const description = document.createElement('p');
+    description.className = 'product-home-description';
+    description.textContent = product.shortDescription || product.tagline || '';
 
     const bottom = document.createElement('div');
     bottom.className = 'product-bottom';
@@ -170,12 +174,30 @@ function applyHomepageProducts() {
 
     const button = document.createElement('a');
     button.href = `/produits/${product.slug}/`;
-    button.textContent = 'Voir le produit';
+    button.textContent = product.buyLabel || 'Voir le produit';
     button.setAttribute('aria-label', `Voir ${product.title}`);
 
     bottom.append(price, button);
-    article.append(visual, heading, bottom);
+    article.append(visual, meta, heading);
+    if (description.textContent) article.append(description);
+    article.append(bottom);
     grid.appendChild(article);
+  }
+
+  if (!document.getElementById('homepage-product-polish')) {
+    const style = document.createElement('style');
+    style.id = 'homepage-product-polish';
+    style.textContent = `
+      .home-page .product-card-enhanced{display:flex;flex-direction:column;min-height:100%;padding-bottom:.2rem}
+      .home-page .product-card-enhanced .product-visual{overflow:hidden}
+      .home-page .product-card-enhanced .product-visual img{transition:transform .35s ease}
+      .home-page .product-card-enhanced:hover .product-visual img{transform:scale(1.025)}
+      .home-page .product-badge{position:absolute;top:12px;left:12px;z-index:2;display:inline-flex;padding:7px 10px;border-radius:999px;background:#ff5d62;color:#fff;font-size:10px;font-style:normal;font-weight:900;box-shadow:0 6px 16px rgba(23,27,42,.14)}
+      .home-page .product-meta{margin:14px 0 4px;font-size:.68rem;line-height:1.4;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:#77717d}
+      .home-page .product-home-description{margin:.35rem 0 1rem;color:#5a5961;font-size:.88rem;line-height:1.55}
+      .home-page .product-card-enhanced .product-bottom{margin-top:auto}
+    `;
+    document.head.appendChild(style);
   }
 }
 
