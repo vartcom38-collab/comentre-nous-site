@@ -36,16 +36,20 @@ function bodyJson(): array {
     return is_array($data) ? $data : [];
 }
 
-function wooApi(string $baseUrl, string $key, string $secret, string $endpoint): array {
+function wooApi(string $baseUrl, string $key, string $secret, string $endpoint, string $method = 'GET', ?array $payload = null): array {
     $ch = curl_init($baseUrl . $endpoint);
-    curl_setopt_array($ch, [
+    $headers = ['Accept: application/json', 'Content-Type: application/json'];
+    $options = [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_TIMEOUT => 20,
         CURLOPT_CONNECTTIMEOUT => 8,
         CURLOPT_USERPWD => $key . ':' . $secret,
         CURLOPT_HTTPAUTH => CURLAUTH_BASIC,
-        CURLOPT_HTTPHEADER => ['Accept: application/json'],
-    ]);
+        CURLOPT_HTTPHEADER => $headers,
+        CURLOPT_CUSTOMREQUEST => $method,
+    ];
+    if ($payload !== null) $options[CURLOPT_POSTFIELDS] = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    curl_setopt_array($ch, $options);
     $body = curl_exec($ch);
     $status = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $error = curl_error($ch);
@@ -126,8 +130,130 @@ function requireCustomer(): int {
     return $id;
 }
 
+function orderProof(array $input, string $baseUrl, string $key, string $secret): array {
+    $orderId = (int)($input['order_id'] ?? 0);
+    $orderKey = trim((string)($input['order_key'] ?? ''));
+    $email = strtolower(trim((string)($input['email'] ?? '')));
+    if ($orderId <= 0 || $orderKey === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        http_response_code(400);
+        echo json_encode(['ok' => false, 'error' => 'Informations de commande incomplètes.']);
+        exit;
+    }
+    $result = wooApi($baseUrl, $key, $secret, '/wp-json/wc/v3/orders/' . $orderId);
+    if (!$result['ok'] || !is_array($result['data'])) {
+        http_response_code(404);
+        echo json_encode(['ok' => false, 'error' => 'Commande introuvable.']);
+        exit;
+    }
+    $order = (array)$result['data'];
+    $storedKey = (string)($order['order_key'] ?? '');
+    $billingEmail = strtolower(trim((string)($order['billing']['email'] ?? '')));
+    if ($storedKey === '' || !hash_equals($storedKey, $orderKey) || $billingEmail !== $email) {
+        http_response_code(403);
+        echo json_encode(['ok' => false, 'error' => 'Impossible de vérifier cette commande.']);
+        exit;
+    }
+    if (in_array((string)($order['status'] ?? ''), ['cancelled', 'failed', 'refunded', 'trash'], true)) {
+        http_response_code(409);
+        echo json_encode(['ok' => false, 'error' => 'Cette commande ne peut pas créer de compte client.']);
+        exit;
+    }
+    return [$order, $email];
+}
+
 $action = (string)($_GET['action'] ?? 'session');
 $method = (string)($_SERVER['REQUEST_METHOD'] ?? 'GET');
+
+if ($action === 'provision-from-order' && $method === 'POST') {
+    $input = bodyJson();
+    [$order, $email] = orderProof($input, $baseUrl, $key, $secret);
+    $customerId = (int)($order['customer_id'] ?? 0);
+    $created = false;
+
+    if ($customerId <= 0) {
+        $lookup = wooApi($baseUrl, $key, $secret, '/wp-json/wc/v3/customers?email=' . rawurlencode($email) . '&per_page=1');
+        if ($lookup['ok'] && is_array($lookup['data']) && !empty($lookup['data'][0]['id'])) {
+            $customerId = (int)$lookup['data'][0]['id'];
+        } else {
+            $billing = (array)($order['billing'] ?? []);
+            $shipping = (array)($order['shipping'] ?? []);
+            $temporaryPassword = bin2hex(random_bytes(20));
+            $create = wooApi($baseUrl, $key, $secret, '/wp-json/wc/v3/customers', 'POST', [
+                'email' => $email,
+                'first_name' => (string)($billing['first_name'] ?? ''),
+                'last_name' => (string)($billing['last_name'] ?? ''),
+                'password' => $temporaryPassword,
+                'billing' => $billing,
+                'shipping' => $shipping,
+                'meta_data' => [
+                    ['key' => '_comentre_auto_created', 'value' => '1'],
+                    ['key' => '_comentre_first_order_id', 'value' => (string)($order['id'] ?? '')],
+                ],
+            ]);
+            if (!$create['ok'] || empty($create['data']['id'])) {
+                http_response_code(502);
+                echo json_encode(['ok' => false, 'error' => 'Impossible de créer le compte client pour le moment.']);
+                exit;
+            }
+            $customerId = (int)$create['data']['id'];
+            $created = true;
+        }
+
+        $linkOrder = wooApi($baseUrl, $key, $secret, '/wp-json/wc/v3/orders/' . (int)$order['id'], 'PUT', ['customer_id' => $customerId]);
+        if (!$linkOrder['ok']) {
+            http_response_code(502);
+            echo json_encode(['ok' => false, 'error' => 'Le compte existe, mais la commande n’a pas pu être rattachée.']);
+            exit;
+        }
+    }
+
+    echo json_encode([
+        'ok' => true,
+        'created' => $created,
+        'customer_id' => $customerId,
+        'needs_password_setup' => true,
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+if ($action === 'set-first-password' && $method === 'POST') {
+    $input = bodyJson();
+    [$order, $email] = orderProof($input, $baseUrl, $key, $secret);
+    $password = (string)($input['password'] ?? '');
+    if (strlen($password) < 10) {
+        http_response_code(400);
+        echo json_encode(['ok' => false, 'error' => 'Choisis un mot de passe d’au moins 10 caractères.']);
+        exit;
+    }
+    $customerId = (int)($order['customer_id'] ?? 0);
+    if ($customerId <= 0) {
+        http_response_code(409);
+        echo json_encode(['ok' => false, 'error' => 'Le compte client doit d’abord être créé.']);
+        exit;
+    }
+    $customer = wooApi($baseUrl, $key, $secret, '/wp-json/wc/v3/customers/' . $customerId);
+    if (!$customer['ok'] || strtolower((string)($customer['data']['email'] ?? '')) !== $email) {
+        http_response_code(403);
+        echo json_encode(['ok' => false, 'error' => 'Ce compte ne correspond pas à la commande.']);
+        exit;
+    }
+    $updated = wooApi($baseUrl, $key, $secret, '/wp-json/wc/v3/customers/' . $customerId, 'PUT', [
+        'password' => $password,
+        'meta_data' => [
+            ['key' => '_comentre_password_ready', 'value' => '1'],
+        ],
+    ]);
+    if (!$updated['ok']) {
+        http_response_code(502);
+        echo json_encode(['ok' => false, 'error' => 'Impossible d’enregistrer le mot de passe pour le moment.']);
+        exit;
+    }
+    session_regenerate_id(true);
+    $_SESSION['customer_id'] = $customerId;
+    $_SESSION['customer_email'] = $email;
+    echo json_encode(['ok' => true, 'authenticated' => true, 'customer' => customerPayload((array)$updated['data'])], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
 
 if ($action === 'login' && $method === 'POST') {
     $input = bodyJson();
