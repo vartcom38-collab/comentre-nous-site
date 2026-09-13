@@ -1,0 +1,24 @@
+{
+  "page": {
+    "kicker": "Le podcast",
+    "title": "Com’ entre nous, le podcast",
+    "intro": "Des conversations vraies autour de la parentalité, des émotions, de l’entrepreneuriat et de tout ce qui nous traverse entre deux cafés froids.",
+    "themes": "Parentalité · Émotions · Communication · Famille · Entrepreneuriat · Créativité · Vie quotidienne · Coulisses"
+  },
+  "episodes": [
+    {
+      "id": "episode-01",
+      "number": 1,
+      "title": "Qui sommes-nous ?",
+      "description": "Notre rencontre, notre histoire, nos déclics, et pourquoi Com’entre Nous est né.",
+      "published": false,
+      "date": "",
+      "duration": "",
+      "spotifyUrl": "",
+      "appleUrl": "",
+      "youtubeUrl": "",
+      "externalUrl": "",
+      "image": ""
+    }
+  ]
+}
