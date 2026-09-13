@@ -7,8 +7,14 @@ import home from '../content/home.json';
 
 type Product = (typeof products)[number];
 
+function homepageLimit() {
+  const value = Number(home.homeProducts.limit || 4);
+  return Number.isFinite(value) && value > 0 ? Math.min(12, Math.floor(value)) : 4;
+}
+
 function sortedHomepageProducts(): Product[] {
   const published = (products as Product[]).filter((product) => product.published);
+  const limit = homepageLimit();
 
   if (home.homeProducts.mode === 'featured') {
     return [...published]
@@ -18,7 +24,7 @@ function sortedHomepageProducts(): Product[] {
         if (byUpdated !== 0) return byUpdated;
         return String(b.createdAt).localeCompare(String(a.createdAt));
       })
-      .slice(0, 4);
+      .slice(0, limit);
   }
 
   return [...published]
@@ -27,7 +33,7 @@ function sortedHomepageProducts(): Product[] {
       if (byCreated !== 0) return byCreated;
       return String(b.updatedAt || '').localeCompare(String(a.updatedAt || ''));
     })
-    .slice(0, 4);
+    .slice(0, limit);
 }
 
 function applyHeroContent() {
@@ -55,6 +61,22 @@ function applyHeroContent() {
     } else {
       title.textContent = rawTitle;
     }
+  }
+}
+
+function applyCartIntegration() {
+  const cart = document.querySelector<HTMLElement>('.header .cart');
+  if (!cart) return;
+
+  cart.setAttribute('href', '#panier');
+  cart.setAttribute('role', 'button');
+  cart.setAttribute('data-woo-cart-toggle', '1');
+  cart.setAttribute('aria-label', 'Ouvrir le panier');
+
+  const count = cart.querySelector<HTMLElement>('b');
+  if (count) {
+    count.setAttribute('data-woo-cart-count', '');
+    if (!count.textContent?.trim()) count.textContent = '0';
   }
 }
 
@@ -91,6 +113,8 @@ function applyHomepageProducts() {
       const img = document.createElement('img');
       img.src = product.image;
       img.alt = product.title;
+      img.loading = 'lazy';
+      img.decoding = 'async';
       img.style.width = '100%';
       img.style.height = '100%';
       img.style.objectFit = 'cover';
@@ -98,7 +122,7 @@ function applyHomepageProducts() {
       visual.appendChild(img);
     } else {
       const span = document.createElement('span');
-      span.textContent = product.tagline;
+      span.textContent = product.tagline || product.type || 'Découvrir le produit';
       visual.appendChild(span);
     }
 
@@ -130,7 +154,7 @@ function applyHomepageProducts() {
     const bottom = document.createElement('div');
     bottom.className = 'product-bottom';
     const price = document.createElement('strong');
-    price.textContent = product.price;
+    price.textContent = product.price || '';
 
     const button = document.createElement('a');
     button.href = `/produits/${product.slug}/`;
@@ -150,6 +174,10 @@ export default function HomeContentBridge() {
     if (pathname !== '/') return;
     applyHeroContent();
     applyHomepageProducts();
+    applyCartIntegration();
+
+    const timer = window.setTimeout(applyCartIntegration, 500);
+    return () => window.clearTimeout(timer);
   }, [pathname]);
 
   return null;
