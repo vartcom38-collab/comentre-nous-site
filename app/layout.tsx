@@ -20,6 +20,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <MobileMenu />
         <HomeContentBridge />
         {children}
+        <script src="/woo-cart.js" defer />
         <script src="/admin-delete-helper.js" defer />
         <script src="/admin-woo-product.js" defer />
       </body>
