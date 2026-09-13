@@ -5,6 +5,16 @@
     "intro": "Des conversations vraies autour de la parentalité, des émotions, de l’entrepreneuriat et de tout ce qui nous traverse entre deux cafés froids.",
     "themes": "Parentalité · Émotions · Communication · Famille · Entrepreneuriat · Créativité · Vie quotidienne · Coulisses"
   },
+  "homepage": {
+    "mode": "upcoming",
+    "kicker": "Com’ entre nous · le podcast",
+    "badge": "Prochainement",
+    "title": "Parce qu’on a toujours quelque chose à se raconter.",
+    "description": "Marion & Aurélie arrivent bientôt au micro pour des conversations vraies, simples et complices.",
+    "buttonLabel": "Découvrir l’espace podcast →",
+    "buttonHref": "/podcast",
+    "image": ""
+  },
   "episodes": [
     {
       "id": "episode-01",
