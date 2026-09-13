@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import MobileMenu from './MobileMenu';
 import HomeContentBridge from './HomeContentBridge';
+import HomeUniverseBridge from './HomeUniverseBridge';
 import './globals.css';
 import './font-fix.css';
 import './universe-polish.css';
@@ -20,11 +21,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         <MobileMenu />
         <HomeContentBridge />
+        <HomeUniverseBridge />
         {children}
         <script src="/woo-cart.js" defer />
         <script src="/admin-podcast-conflict-retry.js" defer />
         <script src="/admin-content-conflict-retry.js" defer />
         <script src="/admin-content-map.js" defer />
+        <script src="/admin-home-universes.js" defer />
         <script src="/admin-delete-helper.js" defer />
         <script src="/admin-sale-mode.js" defer />
         <script src="/admin-woo-sync-safe.js" defer />
