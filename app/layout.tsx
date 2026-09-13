@@ -24,6 +24,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <HomeUniverseBridge />
         {children}
         <script src="/woo-cart.js" defer />
+        <script src="/admin-github-write-queue.js" defer />
         <script src="/admin-podcast-conflict-retry.js" defer />
         <script src="/admin-content-conflict-retry.js" defer />
         <script src="/admin-content-map.js" defer />
