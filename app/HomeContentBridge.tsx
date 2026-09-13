@@ -9,14 +9,25 @@ type Product = (typeof products)[number];
 
 function sortedHomepageProducts(): Product[] {
   const published = (products as Product[]).filter((product) => product.published);
-  const selected = home.homeProducts.mode === 'featured'
-    ? published.filter((product) => product.featured)
-    : published.filter((product) => product.new);
 
-  const source = selected.length ? selected : published;
-  return [...source]
-    .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))
-    .slice(0, Math.max(1, Number(home.homeProducts.limit) || 4));
+  if (home.homeProducts.mode === 'featured') {
+    return [...published]
+      .filter((product) => product.featured)
+      .sort((a, b) => {
+        const byUpdated = String(b.updatedAt || b.createdAt).localeCompare(String(a.updatedAt || a.createdAt));
+        if (byUpdated !== 0) return byUpdated;
+        return String(b.createdAt).localeCompare(String(a.createdAt));
+      })
+      .slice(0, 4);
+  }
+
+  return [...published]
+    .sort((a, b) => {
+      const byCreated = String(b.createdAt).localeCompare(String(a.createdAt));
+      if (byCreated !== 0) return byCreated;
+      return String(b.updatedAt || '').localeCompare(String(a.updatedAt || ''));
+    })
+    .slice(0, 4);
 }
 
 function applyHeroContent() {
