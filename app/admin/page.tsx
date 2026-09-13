@@ -7,12 +7,20 @@ import initialHome from '../../content/home.json';
 
 type Product = (typeof initialProducts)[number];
 type HomeContent = typeof initialHome;
+type UniverseFilter = 'all' | 'famille' | 'entrepreneuses' | 'papeterie';
 
 const OWNER = 'vartcom38-collab';
 const REPO = 'comentre-nous-site';
 const BRANCH = 'main';
 const PRODUCTS_PATH = 'content/products.json';
 const HOME_PATH = 'content/home.json';
+
+const universes: Array<{id: UniverseFilter; label: string; subtitle: string; tone: string}> = [
+  { id: 'all', label: 'Tous les produits', subtitle: 'Vue globale de la boutique', tone: 'all' },
+  { id: 'famille', label: 'Com’ en famille', subtitle: 'Jeux, cartes, émotions & lien', tone: 'family' },
+  { id: 'entrepreneuses', label: 'Com’ des entrepreneuses', subtitle: 'Communication, clarté & business', tone: 'business' },
+  { id: 'papeterie', label: 'La papeterie', subtitle: 'Espace papeterie · Aurine', tone: 'paper' },
+];
 
 function encodeBase64(value: string) { return btoa(unescape(encodeURIComponent(value))); }
 function decodeBase64(value: string) { return decodeURIComponent(escape(atob(value.replace(/\n/g, '')))); }
@@ -32,12 +40,19 @@ async function saveJson(path: string, value: unknown, token: string, message: st
   });
 }
 
-function newProduct(): Product {
+function productUniverse(category: UniverseFilter) {
+  if (category === 'entrepreneuses') return { category: 'entrepreneuses', universe: "Com' des entrepreneuses", color: 'mint' };
+  if (category === 'papeterie') return { category: 'papeterie', universe: 'Papeterie', color: 'lilac' };
+  return { category: 'famille', universe: "Com' en famille", color: 'coral' };
+}
+
+function newProduct(category: UniverseFilter = 'famille'): Product {
   const stamp = Date.now();
   const day = new Date().toISOString().slice(0,10);
+  const defaults = productUniverse(category === 'all' ? 'famille' : category);
   return {
     id: `produit-${stamp}`, title: 'Nouveau produit', tagline: '', price: '', compareAtPrice: '', slug: `nouveau-produit-${stamp}`,
-    image: '', gallery: [], category: 'famille', universe: "Com' en famille", type: 'Cartes', color: 'coral', badge: '', age: '', format: '',
+    image: '', gallery: [], category: defaults.category, universe: defaults.universe, type: 'Cartes', color: defaults.color, badge: '', age: '', format: '',
     deliveryType: 'physical', stockStatus: 'draft', stockQuantity: 0, sku: '', shortDescription: '', longDescription: '', highlights: [], included: [], usage: '', care: '',
     buyLabel: 'Découvrir', buyUrl: '', seoTitle: '', seoDescription: '', published: false, featured: false, new: true, createdAt: day, updatedAt: day,
   } as Product;
@@ -50,9 +65,18 @@ export default function AdminPage() {
   const [status, setStatus] = useState('');
   const [busy, setBusy] = useState(false);
   const [tab, setTab] = useState<'products'|'home'>('products');
+  const [universeFilter, setUniverseFilter] = useState<UniverseFilter>('all');
 
   useEffect(() => { setToken(window.sessionStorage.getItem('comentre_admin_github_token') || ''); }, []);
   const publishedCount = useMemo(() => products.filter((p)=>p.published).length,[products]);
+  const filteredProducts = useMemo(() => products.map((product,index)=>({product,index})).filter(({product})=>universeFilter==='all'||product.category===universeFilter),[products,universeFilter]);
+  const universeCounts = useMemo(() => ({
+    all: products.length,
+    famille: products.filter(p=>p.category==='famille').length,
+    entrepreneuses: products.filter(p=>p.category==='entrepreneuses').length,
+    papeterie: products.filter(p=>p.category==='papeterie').length,
+  }),[products]);
+  const activeUniverse = universes.find(u=>u.id===universeFilter)!;
 
   async function connect() {
     if (!token.trim()) return;
@@ -64,9 +88,9 @@ export default function AdminPage() {
     } catch(error){ setStatus(`Connexion impossible : ${(error as Error).message}`);} finally{setBusy(false)}
   }
 
-  async function createProduct() {
+  async function createProduct(category: UniverseFilter = universeFilter) {
     if (!token) return setStatus('Connecte GitHub avant de créer un produit.');
-    const product = newProduct(); const next = [product,...products];
+    const product = newProduct(category); const next = [product,...products];
     setBusy(true); setStatus('Création de la fiche…');
     try { await saveJson(PRODUCTS_PATH,next,token,'Admin: create product'); setProducts(next); window.location.href=`/admin/produit/?id=${product.id}`; }
     catch(error){setStatus(`Erreur : ${(error as Error).message}`);setBusy(false)}
@@ -106,6 +130,7 @@ export default function AdminPage() {
     <aside className="side"><Link href="/" className="brand">Com’ entre nous</Link><span className="private">Espace privé</span>
       <button className={tab==='products'?'active':''} onClick={()=>setTab('products')}>Produits</button>
       <button className={tab==='home'?'active':''} onClick={()=>setTab('home')}>Page d’accueil</button>
+      <div className="side-universes"><span>Espaces produits</span>{universes.slice(1).map(u=><button key={u.id} className={tab==='products'&&universeFilter===u.id?'universe-active':''} onClick={()=>{setTab('products');setUniverseFilter(u.id)}}>{u.label}<small>{universeCounts[u.id]}</small></button>)}</div>
       <div className="stats"><b>{products.length}</b><span>fiches</span><b>{publishedCount}</b><span>publiées</span></div><Link href="/" className="back">← Voir le site</Link>
     </aside>
     <section className="main">
@@ -113,12 +138,17 @@ export default function AdminPage() {
       {status&&<div className="status">{status}</div>}
 
       {tab==='products'?<>
-        <div className="toolbar"><div><p>Catalogue</p><h2>Fiches produits</h2><span>Chaque produit a maintenant sa propre fiche complète avec aperçu, images, contenu, stock et SEO.</span></div><button className="create" onClick={createProduct} disabled={busy}>+ Créer un produit</button></div>
-        <div className="product-list">{products.map((p,index)=><article className="product-row" key={p.id}>
+        <div className="toolbar"><div><p>Catalogue</p><h2>Fiches produits</h2><span>Chaque univers a son espace de travail, tout en alimentant la même boutique publique.</span></div><button className="create" onClick={()=>createProduct()} disabled={busy}>+ Créer un produit</button></div>
+
+        <div className="universe-filter-grid">{universes.map(u=><button key={u.id} className={`universe-filter ${u.tone} ${universeFilter===u.id?'selected':''}`} onClick={()=>setUniverseFilter(u.id)}><div><strong>{u.label}</strong><span>{u.subtitle}</span></div><b>{universeCounts[u.id]}</b></button>)}</div>
+
+        <div className={`workspace-head ${activeUniverse.tone}`}><div><p>Espace actif</p><h3>{activeUniverse.label}</h3><span>{activeUniverse.subtitle}</span></div>{universeFilter!=='all'&&<button onClick={()=>createProduct(universeFilter)}>+ Nouveau dans cet univers</button>}</div>
+
+        {filteredProducts.length===0?<div className="empty-state"><h3>Aucun produit ici pour l’instant.</h3><p>Crée la première fiche de cet univers : elle sera automatiquement classée au bon endroit.</p><button className="create" onClick={()=>createProduct(universeFilter)}>+ Créer le premier produit</button></div>:<div className="product-list">{filteredProducts.map(({product:p,index})=><article className="product-row" key={p.id}>
           <div className={`thumb ${p.color}`}>{p.image?<img src={p.image} alt=""/>:<span>{p.type}</span>}</div>
           <div className="info"><div className="badges"><span className={p.published?'live':'draft'}>{p.published?'Publié':'Brouillon'}</span>{p.new&&<span>Nouveauté</span>}{p.featured&&<span>Coup de cœur</span>}</div><h3>{p.title}</h3><p>{p.tagline||p.shortDescription||'Aucune description courte.'}</p><small>{p.universe} · {p.type} · {p.price||'Prix à définir'}</small></div>
           <div className="actions"><Link className="primary" href={`/admin/produit/?id=${p.id}`}>Modifier la fiche</Link><button onClick={()=>window.open(`/produits/${p.slug}/`,'_blank')}>Aperçu</button><button onClick={()=>togglePublish(index)}>{p.published?'Retirer du site':'Mettre en ligne'}</button><button onClick={()=>duplicateProduct(index)}>Dupliquer</button><button className="danger" onClick={()=>deleteProduct(index)}>Supprimer</button></div>
-        </article>)}</div>
+        </article>)}</div>}
       </>:<>
         <div className="toolbar"><div><p>Accueil</p><h2>Contenu de la page d’accueil</h2></div><button className="create" onClick={saveHome} disabled={busy}>Enregistrer l’accueil</button></div>
         <div className="home-card"><h3>Hero</h3><label>Petite accroche<input value={home.hero.eyebrow} onChange={(e)=>setHome({...home,hero:{...home.hero,eyebrow:e.target.value}})}/></label><label>Titre<textarea rows={3} value={home.hero.title} onChange={(e)=>setHome({...home,hero:{...home.hero,title:e.target.value}})}/></label><label>Texte<textarea rows={4} value={home.hero.intro} onChange={(e)=>setHome({...home,hero:{...home.hero,intro:e.target.value}})}/></label><h3>Bloc produits</h3><label>Sur-titre<input value={home.homeProducts.eyebrow} onChange={(e)=>setHome({...home,homeProducts:{...home.homeProducts,eyebrow:e.target.value}})}/></label><label>Titre<input value={home.homeProducts.title} onChange={(e)=>setHome({...home,homeProducts:{...home.homeProducts,title:e.target.value}})}/></label><label>Affichage<select value={home.homeProducts.mode} onChange={(e)=>setHome({...home,homeProducts:{...home.homeProducts,mode:e.target.value}})}><option value="newest">Nouveautés automatiques</option><option value="featured">Coups de cœur sélectionnés</option></select></label><label>Nombre de produits<input type="number" min="1" max="8" value={home.homeProducts.limit} onChange={(e)=>setHome({...home,homeProducts:{...home.homeProducts,limit:Number(e.target.value)}})}/></label></div>
@@ -127,4 +157,4 @@ export default function AdminPage() {
   </main>
 }
 
-const css=`*{box-sizing:border-box}.admin-shell{min-height:100vh;display:grid;grid-template-columns:240px 1fr;background:#fff8f1;color:#111827;font-family:Comfortaa,system-ui,sans-serif}.side{position:sticky;top:0;height:100vh;background:#171b2a;color:white;padding:26px 18px;display:flex;flex-direction:column;gap:8px}.brand{font:700 31px/1 'Patrick Hand',cursive}.private{font-size:11px;color:#ffb7b3;text-transform:uppercase;letter-spacing:.14em;margin-bottom:24px}.side button{border:0;background:transparent;color:#d7dae4;padding:13px;text-align:left;border-radius:12px;font-weight:800;cursor:pointer}.side button.active{background:#ff5d62;color:white}.stats{margin-top:18px;border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:14px;display:grid;grid-template-columns:auto 1fr;gap:5px 10px}.back{margin-top:auto;font-size:13px;font-weight:800}.main{padding:32px clamp(18px,4vw,56px) 70px;min-width:0}.top{display:flex;justify-content:space-between;gap:18px;align-items:center}.top p,.toolbar p{margin:0;color:#ff5d62;text-transform:uppercase;letter-spacing:.12em;font-size:11px;font-weight:900}.top h1{margin:4px 0 0;font:700 clamp(36px,4vw,56px)/.95 'Patrick Hand',cursive}.connect{display:flex;gap:8px}.connect input{min-width:250px;border:1px solid #e3d8cf;border-radius:999px;padding:11px 14px}.connect button,.create{border:0;border-radius:999px;background:#171b2a;color:white;padding:12px 17px;font-weight:900;cursor:pointer}.status{margin:16px 0;padding:12px 15px;background:#dff7f2;border-radius:14px;font-size:13px}.toolbar{margin:28px 0 16px;display:flex;justify-content:space-between;align-items:end;gap:18px}.toolbar h2{margin:3px 0 5px;font:700 42px/1 'Patrick Hand',cursive}.toolbar span{font-size:13px;color:#616779}.product-list{display:grid;gap:12px}.product-row{background:white;border-radius:22px;padding:14px;display:grid;grid-template-columns:130px minmax(0,1fr) auto;gap:16px;align-items:center;box-shadow:0 12px 34px rgba(50,35,25,.06)}.thumb{height:105px;border-radius:16px;display:grid;place-items:center;overflow:hidden;font-family:'Patrick Hand',cursive;font-size:22px}.thumb img{width:100%;height:100%;object-fit:cover}.thumb.coral{background:#ffe0da}.thumb.mint{background:#d9f5ef}.thumb.lilac{background:#ead9ff}.thumb.yellow{background:#ffedb6}.thumb.blue{background:#dcecff}.info h3{margin:7px 0 4px;font-size:18px}.info p{margin:0 0 6px;color:#596071;font-size:13px}.info small{color:#848999}.badges{display:flex;gap:6px;flex-wrap:wrap}.badges span{font-size:10px;font-weight:900;background:#f1ece7;border-radius:999px;padding:5px 8px}.badges .live{background:#d9f6ef;color:#087f78}.badges .draft{background:#f1ece7;color:#777}.actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;max-width:380px}.actions a,.actions button{border:1px solid #e8ded5;background:#fff;border-radius:999px;padding:9px 12px;font-size:11px;font-weight:900;cursor:pointer}.actions .primary{background:#171b2a;color:white;border-color:#171b2a}.actions .danger{color:#b42318;background:#fff0ef}.home-card{max-width:850px;background:white;padding:24px;border-radius:24px;box-shadow:0 12px 34px rgba(50,35,25,.06)}.home-card h3{font:700 30px/1 'Patrick Hand',cursive;margin:10px 0 16px}.home-card label{display:grid;gap:6px;font-size:12px;font-weight:900;margin-bottom:14px}.home-card input,.home-card textarea,.home-card select{border:1px solid #e5ddd6;border-radius:12px;padding:11px 12px;background:#fffdf9;font:600 14px Comfortaa,system-ui,sans-serif}@media(max-width:900px){.admin-shell{grid-template-columns:1fr}.side{position:static;height:auto;flex-direction:row;align-items:center;overflow:auto}.private,.stats,.back{display:none}.brand{margin-right:auto}.main{padding:18px}.top{align-items:flex-start;flex-direction:column}.connect{width:100%}.connect input{min-width:0;flex:1}.product-row{grid-template-columns:90px 1fr}.thumb{height:85px}.actions{grid-column:1/-1;justify-content:flex-start;max-width:none}}@media(max-width:560px){.side{padding:12px}.brand{font-size:25px}.top h1{font-size:40px}.toolbar{align-items:flex-start;flex-direction:column}.product-row{grid-template-columns:1fr}.thumb{height:170px}.actions a,.actions button{flex:1;text-align:center}.connect{flex-direction:column}}`;
+const css=`*{box-sizing:border-box}.admin-shell{min-height:100vh;display:grid;grid-template-columns:240px 1fr;background:#fff8f1;color:#111827;font-family:Comfortaa,system-ui,sans-serif}.side{position:sticky;top:0;height:100vh;background:#171b2a;color:white;padding:26px 18px;display:flex;flex-direction:column;gap:8px}.brand{font:700 31px/1 'Patrick Hand',cursive}.private{font-size:11px;color:#ffb7b3;text-transform:uppercase;letter-spacing:.14em;margin-bottom:24px}.side button{border:0;background:transparent;color:#d7dae4;padding:13px;text-align:left;border-radius:12px;font-weight:800;cursor:pointer}.side button.active{background:#ff5d62;color:white}.side-universes{display:grid;gap:5px;margin-top:12px;padding-top:14px;border-top:1px solid rgba(255,255,255,.1)}.side-universes>span{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:#8f94a5;padding:0 10px 4px}.side-universes button{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:12px;padding:10px 12px}.side-universes button small{display:grid;place-items:center;min-width:22px;height:22px;border-radius:999px;background:rgba(255,255,255,.1);font-size:10px}.side-universes button.universe-active{background:#fff;color:#171b2a}.stats{margin-top:18px;border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:14px;display:grid;grid-template-columns:auto 1fr;gap:5px 10px}.back{margin-top:auto;font-size:13px;font-weight:800}.main{padding:32px clamp(18px,4vw,56px) 70px;min-width:0}.top{display:flex;justify-content:space-between;gap:18px;align-items:center}.top p,.toolbar p{margin:0;color:#ff5d62;text-transform:uppercase;letter-spacing:.12em;font-size:11px;font-weight:900}.top h1{margin:4px 0 0;font:700 clamp(36px,4vw,56px)/.95 'Patrick Hand',cursive}.connect{display:flex;gap:8px}.connect input{min-width:250px;border:1px solid #e3d8cf;border-radius:999px;padding:11px 14px}.connect button,.create{border:0;border-radius:999px;background:#171b2a;color:white;padding:12px 17px;font-weight:900;cursor:pointer}.status{margin:16px 0;padding:12px 15px;background:#dff7f2;border-radius:14px;font-size:13px}.toolbar{margin:28px 0 16px;display:flex;justify-content:space-between;align-items:end;gap:18px}.toolbar h2{margin:3px 0 5px;font:700 42px/1 'Patrick Hand',cursive}.toolbar span{font-size:13px;color:#616779}.universe-filter-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:16px}.universe-filter{border:2px solid transparent;border-radius:20px;padding:16px;text-align:left;display:flex;justify-content:space-between;gap:12px;align-items:flex-start;cursor:pointer;background:white;color:#171b2a;box-shadow:0 8px 24px rgba(50,35,25,.05)}.universe-filter div{display:grid;gap:5px}.universe-filter strong{font-size:14px}.universe-filter span{font-size:11px;line-height:1.4;color:#6b7280}.universe-filter b{display:grid;place-items:center;min-width:32px;height:32px;border-radius:999px;background:rgba(255,255,255,.75)}.universe-filter.family{background:#ffe6e1}.universe-filter.business{background:#dcf5ef}.universe-filter.paper{background:#eee2ff}.universe-filter.all{background:#fff}.universe-filter.selected{border-color:#171b2a;transform:translateY(-2px)}.workspace-head{display:flex;justify-content:space-between;align-items:center;gap:18px;padding:18px 20px;border-radius:20px;margin-bottom:12px}.workspace-head.all{background:#fff}.workspace-head.family{background:#fff0ed}.workspace-head.business{background:#e9faf6}.workspace-head.paper{background:#f4edff}.workspace-head p{margin:0 0 3px;color:#6b7280;text-transform:uppercase;font-size:10px;font-weight:900;letter-spacing:.1em}.workspace-head h3{margin:0;font:700 28px/1 'Patrick Hand',cursive}.workspace-head span{font-size:12px;color:#5f6675}.workspace-head button{border:0;border-radius:999px;background:#171b2a;color:#fff;padding:10px 14px;font-weight:900;cursor:pointer}.empty-state{background:white;border:1px dashed #dacfc6;border-radius:22px;padding:38px;text-align:center}.empty-state h3{font:700 30px/1 'Patrick Hand',cursive;margin:0 0 8px}.empty-state p{color:#6b7280;font-size:13px;margin:0 0 18px}.product-list{display:grid;gap:12px}.product-row{background:white;border-radius:22px;padding:14px;display:grid;grid-template-columns:130px minmax(0,1fr) auto;gap:16px;align-items:center;box-shadow:0 12px 34px rgba(50,35,25,.06)}.thumb{height:105px;border-radius:16px;display:grid;place-items:center;overflow:hidden;font-family:'Patrick Hand',cursive;font-size:22px}.thumb img{width:100%;height:100%;object-fit:cover}.thumb.coral{background:#ffe0da}.thumb.mint{background:#d9f5ef}.thumb.lilac{background:#ead9ff}.thumb.yellow{background:#ffedb6}.thumb.blue{background:#dcecff}.info h3{margin:7px 0 4px;font-size:18px}.info p{margin:0 0 6px;color:#596071;font-size:13px}.info small{color:#848999}.badges{display:flex;gap:6px;flex-wrap:wrap}.badges span{font-size:10px;font-weight:900;background:#f1ece7;border-radius:999px;padding:5px 8px}.badges .live{background:#d9f6ef;color:#087f78}.badges .draft{background:#f1ece7;color:#777}.actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;max-width:380px}.actions a,.actions button{border:1px solid #e8ded5;background:#fff;border-radius:999px;padding:9px 12px;font-size:11px;font-weight:900;cursor:pointer}.actions .primary{background:#171b2a;color:white;border-color:#171b2a}.actions .danger{color:#b42318;background:#fff0ef}.home-card{max-width:850px;background:white;padding:24px;border-radius:24px;box-shadow:0 12px 34px rgba(50,35,25,.06)}.home-card h3{font:700 30px/1 'Patrick Hand',cursive;margin:10px 0 16px}.home-card label{display:grid;gap:6px;font-size:12px;font-weight:900;margin-bottom:14px}.home-card input,.home-card textarea,.home-card select{border:1px solid #e5ddd6;border-radius:12px;padding:11px 12px;background:#fffdf9;font:600 14px Comfortaa,system-ui,sans-serif}@media(max-width:1100px){.universe-filter-grid{grid-template-columns:1fr 1fr}}@media(max-width:900px){.admin-shell{grid-template-columns:1fr}.side{position:static;height:auto;flex-direction:row;align-items:center;overflow:auto}.private,.stats,.back,.side-universes{display:none}.brand{margin-right:auto}.main{padding:18px}.top{align-items:flex-start;flex-direction:column}.connect{width:100%}.connect input{min-width:0;flex:1}.product-row{grid-template-columns:90px 1fr}.thumb{height:85px}.actions{grid-column:1/-1;justify-content:flex-start;max-width:none}}@media(max-width:560px){.side{padding:12px}.brand{font-size:25px}.top h1{font-size:40px}.toolbar{align-items:flex-start;flex-direction:column}.universe-filter-grid{grid-template-columns:1fr}.workspace-head{align-items:flex-start;flex-direction:column}.product-row{grid-template-columns:1fr}.thumb{height:170px}.actions a,.actions button{flex:1;text-align:center}.connect{flex-direction:column}}`;
