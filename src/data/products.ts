@@ -1,4 +1,7 @@
 import catalog from '../../content/products.json';
+import wooLinksJson from '../../content/woo-links.json';
+
+const wooLinks = wooLinksJson as Record<string, number>;
 
 export type Product = {
   id: string;
@@ -42,11 +45,13 @@ export type Product = {
   createdAt: string;
   updatedAt?: string;
   description: string;
+  wooProductId?: number;
 };
 
-export const allProducts: Product[] = (catalog as Omit<Product, 'description'>[]).map((product) => ({
+export const allProducts: Product[] = (catalog as Omit<Product, 'description' | 'wooProductId'>[]).map((product) => ({
   ...product,
   description: product.shortDescription || product.tagline || '',
+  wooProductId: wooLinks[product.id] || undefined,
 }));
 
 export const products: Product[] = allProducts.filter((product) => product.published);
