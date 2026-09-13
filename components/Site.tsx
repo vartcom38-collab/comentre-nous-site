@@ -97,7 +97,7 @@ export function UniverseCards() {
             <p className="tag">{item.tag}</p>
             <h3>{item.title}</h3>
             <p>{item.text}</p>
-            <b>Découvrir →</b>
+            <b>{item.buttonLabel || 'Découvrir'} →</b>
           </Link>
         ))}
       </div>
