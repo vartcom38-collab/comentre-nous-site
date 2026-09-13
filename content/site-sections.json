@@ -2,38 +2,38 @@
   "universes": [
     {
       "id": "famille",
-      "title": "Com' en famille",
+      "title": "Com’ en famille",
       "href": "/com-en-famille",
-      "tag": "Famille · émotions · quotidien",
-      "text": "Des jeux et des outils pour se parler, s'écouter et grandir ensemble.",
+      "tag": "Famille · émotions · lien",
+      "text": "Des jeux et des outils pour se parler, s’écouter et grandir ensemble.",
       "tone": "coral",
       "icon": "♡",
       "buttonLabel": "Découvrir"
     },
     {
       "id": "entrepreneuses",
-      "title": "Com' des entrepreneuses",
+      "title": "Com’ des entrepreneuses",
       "href": "/com-des-entrepreneuses",
-      "tag": "Idées · message · visibilité",
-      "text": "Des cartes et carnets pour clarifier tes idées, oser te montrer et créer avec justesse.",
+      "tag": "Idées · clarté · visibilité",
+      "text": "Des cartes et des carnets pour clarifier tes idées et créer avec plus de justesse.",
       "tone": "mint",
       "icon": "✦",
       "buttonLabel": "Découvrir"
     },
     {
       "id": "papeterie",
-      "title": "Papeterie du lien",
+      "title": "La papeterie",
       "href": "/papeterie-du-lien",
-      "tag": "Carnets · kits · imprimables",
-      "text": "Carnets, bujo, kits et jeux à imprimer pour mettre de la magie dans le quotidien.",
+      "tag": "Bujo · to-do · trackers",
+      "text": "Des carnets, kits et pages à imprimer pour organiser la vraie vie.",
       "tone": "lilac",
       "icon": "☼",
       "buttonLabel": "Découvrir"
     }
   ],
   "universeSection": {
-    "eyebrow": "Choisir son chemin",
-    "title": "Tu arrives par quelle porte ?"
+    "eyebrow": "Trois univers, un même fil",
+    "title": "Quel est ton univers ?"
   },
   "pages": {
     "famille": {
