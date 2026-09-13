@@ -4,233 +4,88 @@ import { ChangeEvent, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import initialProducts from '../../../content/products.json';
 
-type Product = (typeof initialProducts)[number];
+type Product = {
+  id:string; title:string; tagline:string; price:string; compareAtPrice:string; slug:string; image:string; gallery:string[];
+  category:string; universe:string; type:string; color:string; badge:string; age:string; format:string; deliveryType:string;
+  stockStatus:string; stockQuantity:number; sku:string; shortDescription:string; longDescription:string; highlights:string[];
+  included:string[]; usage:string; care:string; buyLabel:string; buyUrl:string; seoTitle:string; seoDescription:string;
+  published:boolean; featured:boolean; new:boolean; createdAt:string; updatedAt:string;
+};
 
 const OWNER = 'vartcom38-collab';
 const REPO = 'comentre-nous-site';
 const BRANCH = 'main';
 const PRODUCTS_PATH = 'content/products.json';
 
-function encodeBase64(value: string) {
-  return btoa(unescape(encodeURIComponent(value)));
-}
-function decodeBase64(value: string) {
-  return decodeURIComponent(escape(atob(value.replace(/\n/g, ''))));
-}
+function encodeBase64(value: string) { return btoa(unescape(encodeURIComponent(value))); }
+function decodeBase64(value: string) { return decodeURIComponent(escape(atob(value.replace(/\n/g, '')))); }
 async function github(path: string, token: string, init?: RequestInit) {
   const response = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/${path}`, {
     ...init,
-    headers: {
-      Accept: 'application/vnd.github+json',
-      'X-GitHub-Api-Version': '2022-11-28',
-      Authorization: `Bearer ${token}`,
-      ...(init?.headers || {}),
-    },
+    headers: { Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28',Authorization:`Bearer ${token}`,...(init?.headers||{}) },
   });
   if (!response.ok) throw new Error(`${response.status} ${response.statusText} — ${await response.text()}`);
   return response.json();
 }
 async function saveAll(products: Product[], token: string, message: string) {
   const current = await github(`contents/${PRODUCTS_PATH}?ref=${BRANCH}`, token);
-  return github(`contents/${PRODUCTS_PATH}`, token, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message, content: encodeBase64(`${JSON.stringify(products, null, 2)}\n`), sha: current.sha, branch: BRANCH }),
-  });
+  return github(`contents/${PRODUCTS_PATH}`, token, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({message,content:encodeBase64(`${JSON.stringify(products,null,2)}\n`),sha:current.sha,branch:BRANCH}) });
 }
 
 export default function ProductEditorPage() {
-  const [token, setToken] = useState('');
-  const [products, setProducts] = useState<Product[]>(initialProducts as Product[]);
-  const [productId, setProductId] = useState('');
-  const [status, setStatus] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [section, setSection] = useState<'general'|'content'|'images'|'sale'|'seo'>('general');
+  const [token,setToken]=useState('');
+  const [products,setProducts]=useState<Product[]>(initialProducts as Product[]);
+  const [productId,setProductId]=useState('');
+  const [status,setStatus]=useState('');
+  const [busy,setBusy]=useState(false);
+  const [section,setSection]=useState<'general'|'content'|'images'|'sale'|'seo'>('general');
 
-  useEffect(() => {
-    const savedToken = window.sessionStorage.getItem('comentre_admin_github_token') || '';
-    setToken(savedToken);
-    const id = new URLSearchParams(window.location.search).get('id') || '';
-    setProductId(id);
-    if (savedToken) {
-      github(`contents/${PRODUCTS_PATH}?ref=${BRANCH}`, savedToken)
-        .then((file) => setProducts(JSON.parse(decodeBase64(file.content))))
-        .catch((error) => setStatus(`Impossible de charger la fiche : ${error.message}`));
-    }
-  }, []);
+  useEffect(()=>{
+    const savedToken=window.sessionStorage.getItem('comentre_admin_github_token')||''; setToken(savedToken);
+    const id=new URLSearchParams(window.location.search).get('id')||''; setProductId(id);
+    if(savedToken){github(`contents/${PRODUCTS_PATH}?ref=${BRANCH}`,savedToken).then(file=>setProducts(JSON.parse(decodeBase64(file.content)))).catch(error=>setStatus(`Impossible de charger la fiche : ${error.message}`));}
+  },[]);
 
-  const index = useMemo(() => products.findIndex((p) => p.id === productId), [products, productId]);
-  const product = index >= 0 ? products[index] : undefined;
+  const index=useMemo(()=>products.findIndex(p=>p.id===productId),[products,productId]);
+  const product=index>=0?products[index]:undefined;
+  function patch(values:Partial<Product>){if(index<0)return;setProducts(current=>current.map((p,i)=>i===index?{...p,...values,updatedAt:new Date().toISOString().slice(0,10)}:p));}
 
-  function patch(values: Partial<Product>) {
-    if (index < 0) return;
-    setProducts((current) => current.map((p, i) => i === index ? { ...p, ...values, updatedAt: new Date().toISOString().slice(0, 10) } : p));
+  async function saveProduct(next?:Product,message='Admin: update product'){
+    if(!token||index<0)return setStatus('Reconnecte GitHub depuis l’admin.');setBusy(true);setStatus('Enregistrement…');
+    try{const list=next?products.map((p,i)=>i===index?next:p):products;await saveAll(list,token,message);setProducts(list);setStatus('Fiche enregistrée. Infomaniak va redéployer le site.');}
+    catch(error){setStatus(`Erreur : ${(error as Error).message}`)}finally{setBusy(false)}
+  }
+  async function publish(){if(!product)return;await saveProduct({...product,published:true,stockStatus:product.stockStatus==='draft'?'available':product.stockStatus,updatedAt:new Date().toISOString().slice(0,10)},'Admin: publish product')}
+  async function unpublish(){if(!product)return;await saveProduct({...product,published:false,updatedAt:new Date().toISOString().slice(0,10)},'Admin: unpublish product')}
+  async function remove(){if(!product||!token||!confirm('Supprimer définitivement cette fiche produit ?'))return;setBusy(true);try{await saveAll(products.filter((_,i)=>i!==index),token,'Admin: delete product');window.location.href='/admin/';}catch(error){setStatus(`Erreur : ${(error as Error).message}`);setBusy(false)}}
+
+  async function upload(event:ChangeEvent<HTMLInputElement>,gallery=false){
+    const files=Array.from(event.target.files||[]);if(!files.length||!token||!product)return;setBusy(true);setStatus('Envoi des images…');
+    try{const urls:string[]=[];for(const file of files){if(file.size>4*1024*1024)throw new Error(`${file.name} dépasse 4 Mo.`);const bytes=new Uint8Array(await file.arrayBuffer());let binary='';for(let i=0;i<bytes.byteLength;i+=1)binary+=String.fromCharCode(bytes[i]);const safeName=file.name.toLowerCase().replace(/[^a-z0-9.]+/g,'-');const path=`public/uploads/${Date.now()}-${safeName}`;await github(`contents/${path}`,token,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:`Admin: upload ${safeName}`,content:btoa(binary),branch:BRANCH})});urls.push(`/${path.replace('public/','')}`)}
+      if(gallery)patch({gallery:[...(product.gallery||[]),...urls]});else patch({image:urls[0]});setStatus('Image(s) envoyée(s). Clique ensuite sur “Enregistrer la fiche”.');
+    }catch(error){setStatus(`Erreur image : ${(error as Error).message}`)}finally{setBusy(false);event.target.value=''}
   }
 
-  async function saveProduct(next?: Product, message = 'Admin: update product') {
-    if (!token || index < 0) return setStatus('Reconnecte GitHub depuis l’admin.');
-    setBusy(true);
-    setStatus('Enregistrement…');
-    try {
-      const list = next ? products.map((p, i) => i === index ? next : p) : products;
-      await saveAll(list, token, message);
-      setProducts(list);
-      setStatus('Fiche enregistrée. Infomaniak va redéployer le site.');
-    } catch (error) {
-      setStatus(`Erreur : ${(error as Error).message}`);
-    } finally { setBusy(false); }
-  }
+  if(!productId)return <main style={{padding:40}}>Aucun produit sélectionné. <Link href="/admin/">Retour admin</Link></main>;
+  if(!product)return <main style={{padding:40}}>Chargement de la fiche… {status&&<p>{status}</p>}</main>;
+  const listField=(key:'highlights'|'included',value:string)=>patch({[key]:value.split('\n').map(v=>v.trim()).filter(Boolean)} as Partial<Product>);
 
-  async function publish() {
-    if (!product) return;
-    const next = { ...product, published: true, stockStatus: product.stockStatus === 'draft' ? 'available' : product.stockStatus, updatedAt: new Date().toISOString().slice(0, 10) };
-    await saveProduct(next, 'Admin: publish product');
-  }
-  async function unpublish() {
-    if (!product) return;
-    const next = { ...product, published: false, updatedAt: new Date().toISOString().slice(0, 10) };
-    await saveProduct(next, 'Admin: unpublish product');
-  }
-  async function remove() {
-    if (!product || !token || !confirm('Supprimer définitivement cette fiche produit ?')) return;
-    setBusy(true);
-    try {
-      await saveAll(products.filter((_, i) => i !== index), token, 'Admin: delete product');
-      window.location.href = '/admin/';
-    } catch (error) { setStatus(`Erreur : ${(error as Error).message}`); setBusy(false); }
-  }
-
-  async function upload(event: ChangeEvent<HTMLInputElement>, gallery = false) {
-    const files = Array.from(event.target.files || []);
-    if (!files.length || !token || !product) return;
-    setBusy(true);
-    setStatus('Envoi des images…');
-    try {
-      const urls: string[] = [];
-      for (const file of files) {
-        if (file.size > 4 * 1024 * 1024) throw new Error(`${file.name} dépasse 4 Mo.`);
-        const bytes = new Uint8Array(await file.arrayBuffer());
-        let binary = '';
-        for (let i = 0; i < bytes.byteLength; i += 1) binary += String.fromCharCode(bytes[i]);
-        const safeName = file.name.toLowerCase().replace(/[^a-z0-9.]+/g, '-');
-        const path = `public/uploads/${Date.now()}-${safeName}`;
-        await github(`contents/${path}`, token, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: `Admin: upload ${safeName}`, content: btoa(binary), branch: BRANCH }) });
-        urls.push(`/${path.replace('public/', '')}`);
-      }
-      const next = gallery ? { ...product, gallery: [...(product.gallery || []), ...urls] } : { ...product, image: urls[0] };
-      patch(gallery ? { gallery: next.gallery } : { image: next.image });
-      setStatus('Image(s) envoyée(s). Clique ensuite sur “Enregistrer la fiche”.');
-    } catch (error) { setStatus(`Erreur image : ${(error as Error).message}`); }
-    finally { setBusy(false); event.target.value = ''; }
-  }
-
-  if (!productId) return <main style={{padding:40}}>Aucun produit sélectionné. <Link href="/admin/">Retour admin</Link></main>;
-  if (!product) return <main style={{padding:40}}>Chargement de la fiche… {status && <p>{status}</p>}</main>;
-
-  const listField = (key: 'highlights'|'included', value: string) => patch({ [key]: value.split('\n').map((v) => v.trim()).filter(Boolean) } as Partial<Product>);
-
-  return (
-    <main className="product-editor-shell">
-      <style>{css}</style>
-      <header className="editor-topbar">
-        <div><Link href="/admin/">← Produits</Link><p>Fiche produit</p><h1>{product.title || 'Nouveau produit'}</h1></div>
-        <div className="top-actions">
-          <button className="light" onClick={() => window.open(`/produits/${product.slug}/`, '_blank')}>Aperçu site</button>
-          <button className="save" onClick={() => saveProduct()} disabled={busy}>Enregistrer la fiche</button>
-          {product.published ? <button className="warn" onClick={unpublish} disabled={busy}>Retirer du site</button> : <button className="publish" onClick={publish} disabled={busy}>Mettre en ligne</button>}
-        </div>
-      </header>
-
-      {status && <div className="status">{status}</div>}
-
-      <div className="editor-layout">
-        <aside className="tabs">
-          <button className={section==='general'?'active':''} onClick={()=>setSection('general')}>1. Informations</button>
-          <button className={section==='content'?'active':''} onClick={()=>setSection('content')}>2. Contenu</button>
-          <button className={section==='images'?'active':''} onClick={()=>setSection('images')}>3. Images</button>
-          <button className={section==='sale'?'active':''} onClick={()=>setSection('sale')}>4. Vente & stock</button>
-          <button className={section==='seo'?'active':''} onClick={()=>setSection('seo')}>5. SEO</button>
-          <div className="quick-status"><span className={product.published?'dot live':'dot'} />{product.published ? 'Publié' : 'Brouillon'}</div>
-        </aside>
-
-        <section className="form-card">
-          {section === 'general' && <>
-            <h2>Informations principales</h2>
-            <div className="grid two">
-              <label>Nom du produit<input value={product.title} onChange={(e)=>patch({title:e.target.value})}/></label>
-              <label>Slug / URL<input value={product.slug} onChange={(e)=>patch({slug:e.target.value})}/></label>
-              <label className="wide">Petite accroche<input value={product.tagline} onChange={(e)=>patch({tagline:e.target.value})}/></label>
-              <label>Univers<select value={product.category} onChange={(e)=>{const category=e.target.value; patch({category, universe: category==='famille'?"Com' en famille":category==='entrepreneuses'?"Com' des entrepreneuses":'Papeterie'} as Partial<Product>)}}><option value="famille">Com’ en famille</option><option value="entrepreneuses">Com’ des entrepreneuses</option><option value="papeterie">Papeterie</option></select></label>
-              <label>Type<select value={product.type} onChange={(e)=>patch({type:e.target.value})}><option>Cartes</option><option>Oracle</option><option>Carnet</option><option>Kit</option><option>Cadeau</option><option>Autre</option></select></label>
-              <label>Âge / public<input value={product.age || ''} onChange={(e)=>patch({age:e.target.value})}/></label>
-              <label>Format<input value={product.format || ''} onChange={(e)=>patch({format:e.target.value})}/></label>
-              <label>Badge<input value={product.badge || ''} placeholder="Nouveau, À imprimer…" onChange={(e)=>patch({badge:e.target.value})}/></label>
-              <label>Couleur<select value={product.color} onChange={(e)=>patch({color:e.target.value})}><option value="coral">Corail</option><option value="mint">Menthe</option><option value="lilac">Lilas</option><option value="yellow">Jaune</option><option value="blue">Bleu</option></select></label>
-            </div>
-            <div className="checks"><label><input type="checkbox" checked={product.new} onChange={(e)=>patch({new:e.target.checked})}/> Nouveauté</label><label><input type="checkbox" checked={product.featured} onChange={(e)=>patch({featured:e.target.checked})}/> Coup de cœur</label></div>
-          </>}
-
-          {section === 'content' && <>
-            <h2>Contenu de la fiche</h2>
-            <label>Description courte<textarea rows={3} value={product.shortDescription || ''} onChange={(e)=>patch({shortDescription:e.target.value})}/></label>
-            <label>Description complète<textarea rows={9} value={product.longDescription || ''} onChange={(e)=>patch({longDescription:e.target.value})}/></label>
-            <div className="grid two">
-              <label>Points forts — 1 par ligne<textarea rows={7} value={(product.highlights || []).join('\n')} onChange={(e)=>listField('highlights',e.target.value)}/></label>
-              <label>Ce qui est inclus — 1 par ligne<textarea rows={7} value={(product.included || []).join('\n')} onChange={(e)=>listField('included',e.target.value)}/></label>
-            </div>
-            <label>Comment l’utiliser<textarea rows={5} value={product.usage || ''} onChange={(e)=>patch({usage:e.target.value})}/></label>
-            <label>Informations complémentaires<textarea rows={4} value={product.care || ''} onChange={(e)=>patch({care:e.target.value})}/></label>
-          </>}
-
-          {section === 'images' && <>
-            <h2>Images du produit</h2>
-            <div className="image-panel">
-              <div className="main-image">{product.image ? <img src={product.image} alt=""/> : <span>Image principale</span>}</div>
-              <label className="upload">Choisir l’image principale<input type="file" accept="image/png,image/jpeg,image/webp" onChange={(e)=>upload(e,false)}/></label>
-            </div>
-            <h3>Galerie</h3>
-            <div className="gallery">{(product.gallery || []).map((url,i)=><div key={url+i}><img src={url} alt=""/><button onClick={()=>patch({gallery:(product.gallery||[]).filter((_,j)=>j!==i)})}>×</button></div>)}</div>
-            <label className="upload secondary-upload">+ Ajouter des photos à la galerie<input multiple type="file" accept="image/png,image/jpeg,image/webp" onChange={(e)=>upload(e,true)}/></label>
-          </>}
-
-          {section === 'sale' && <>
-            <h2>Vente & stock</h2>
-            <div className="grid two">
-              <label>Prix<input value={product.price} onChange={(e)=>patch({price:e.target.value})}/></label>
-              <label>Ancien prix / prix barré<input value={product.compareAtPrice || ''} onChange={(e)=>patch({compareAtPrice:e.target.value})}/></label>
-              <label>Type de produit<select value={product.deliveryType} onChange={(e)=>patch({deliveryType:e.target.value})}><option value="physical">Produit physique</option><option value="digital">Produit numérique</option></select></label>
-              <label>Statut du stock<select value={product.stockStatus} onChange={(e)=>patch({stockStatus:e.target.value})}><option value="draft">En préparation</option><option value="available">Disponible</option><option value="preorder">Précommande</option><option value="out">Rupture</option></select></label>
-              <label>Quantité en stock<input type="number" value={product.stockQuantity ?? 0} onChange={(e)=>patch({stockQuantity:Number(e.target.value)})}/></label>
-              <label>Référence SKU<input value={product.sku || ''} onChange={(e)=>patch({sku:e.target.value})}/></label>
-              <label>Texte du bouton<input value={product.buyLabel || ''} onChange={(e)=>patch({buyLabel:e.target.value})}/></label>
-              <label>Lien de paiement / achat<input value={product.buyUrl || ''} onChange={(e)=>patch({buyUrl:e.target.value})}/></label>
-            </div>
-          </>}
-
-          {section === 'seo' && <>
-            <h2>Référencement</h2>
-            <label>Titre Google<input value={product.seoTitle || ''} onChange={(e)=>patch({seoTitle:e.target.value})}/></label>
-            <label>Description Google<textarea rows={5} value={product.seoDescription || ''} onChange={(e)=>patch({seoDescription:e.target.value})}/></label>
-          </>}
-
-          <div className="bottom-actions"><button className="save" onClick={()=>saveProduct()} disabled={busy}>Enregistrer la fiche</button>{product.published ? <button className="warn" onClick={unpublish}>Retirer du site</button> : <button className="publish" onClick={publish}>Mettre en ligne</button>}<button className="delete" onClick={remove}>Supprimer la fiche</button></div>
-        </section>
-
-        <aside className="preview">
-          <p className="eyebrow">Aperçu</p>
-          <div className={`preview-cover ${product.color}`}>{product.image ? <img src={product.image} alt=""/> : <span>{product.type}</span>}</div>
-          <p className="meta">{product.universe} · {product.type}</p>
-          <h2>{product.title}</h2>
-          <p>{product.tagline}</p>
-          <strong className="price">{product.price}</strong>
-          {product.badge && <em>{product.badge}</em>}
-          <div className="preview-buttons"><button>Découvrir</button><button className="outline">Ajouter</button></div>
-        </aside>
-      </div>
-    </main>
-  );
+  return <main className="product-editor-shell"><style>{css}</style>
+    <header className="editor-topbar"><div><Link href="/admin/">← Produits</Link><p>Fiche produit</p><h1>{product.title||'Nouveau produit'}</h1></div><div className="top-actions"><button className="light" onClick={()=>window.open(`/produits/${product.slug}/`,'_blank')}>Aperçu site</button><button className="save" onClick={()=>saveProduct()} disabled={busy}>Enregistrer la fiche</button>{product.published?<button className="warn" onClick={unpublish} disabled={busy}>Retirer du site</button>:<button className="publish" onClick={publish} disabled={busy}>Mettre en ligne</button>}</div></header>
+    {status&&<div className="status">{status}</div>}
+    <div className="editor-layout">
+      <aside className="tabs"><button className={section==='general'?'active':''} onClick={()=>setSection('general')}>1. Informations</button><button className={section==='content'?'active':''} onClick={()=>setSection('content')}>2. Contenu</button><button className={section==='images'?'active':''} onClick={()=>setSection('images')}>3. Images</button><button className={section==='sale'?'active':''} onClick={()=>setSection('sale')}>4. Vente & stock</button><button className={section==='seo'?'active':''} onClick={()=>setSection('seo')}>5. SEO</button><div className="quick-status"><span className={product.published?'dot live':'dot'}/>{product.published?'Publié':'Brouillon'}</div></aside>
+      <section className="form-card">
+        {section==='general'&&<><h2>Informations principales</h2><div className="grid two"><label>Nom du produit<input value={product.title} onChange={e=>patch({title:e.target.value})}/></label><label>Slug / URL<input value={product.slug} onChange={e=>patch({slug:e.target.value})}/></label><label className="wide">Petite accroche<input value={product.tagline} onChange={e=>patch({tagline:e.target.value})}/></label><label>Univers<select value={product.category} onChange={e=>{const category=e.target.value;patch({category,universe:category==='famille'?"Com' en famille":category==='entrepreneuses'?"Com' des entrepreneuses":'Papeterie'})}}><option value="famille">Com’ en famille</option><option value="entrepreneuses">Com’ des entrepreneuses</option><option value="papeterie">Papeterie</option></select></label><label>Type<select value={product.type} onChange={e=>patch({type:e.target.value})}><option>Cartes</option><option>Oracle</option><option>Carnet</option><option>Kit</option><option>Cadeau</option><option>Autre</option></select></label><label>Âge / public<input value={product.age||''} onChange={e=>patch({age:e.target.value})}/></label><label>Format<input value={product.format||''} onChange={e=>patch({format:e.target.value})}/></label><label>Badge<input value={product.badge||''} placeholder="Nouveau, À imprimer…" onChange={e=>patch({badge:e.target.value})}/></label><label>Couleur<select value={product.color} onChange={e=>patch({color:e.target.value})}><option value="coral">Corail</option><option value="mint">Menthe</option><option value="lilac">Lilas</option><option value="yellow">Jaune</option><option value="blue">Bleu</option></select></label></div><div className="checks"><label><input type="checkbox" checked={product.new} onChange={e=>patch({new:e.target.checked})}/> Nouveauté</label><label><input type="checkbox" checked={product.featured} onChange={e=>patch({featured:e.target.checked})}/> Coup de cœur</label></div></>}
+        {section==='content'&&<><h2>Contenu de la fiche</h2><label>Description courte<textarea rows={3} value={product.shortDescription||''} onChange={e=>patch({shortDescription:e.target.value})}/></label><label>Description complète<textarea rows={9} value={product.longDescription||''} onChange={e=>patch({longDescription:e.target.value})}/></label><div className="grid two"><label>Points forts — 1 par ligne<textarea rows={7} value={(product.highlights||[]).join('\n')} onChange={e=>listField('highlights',e.target.value)}/></label><label>Ce qui est inclus — 1 par ligne<textarea rows={7} value={(product.included||[]).join('\n')} onChange={e=>listField('included',e.target.value)}/></label></div><label>Comment l’utiliser<textarea rows={5} value={product.usage||''} onChange={e=>patch({usage:e.target.value})}/></label><label>Informations complémentaires<textarea rows={4} value={product.care||''} onChange={e=>patch({care:e.target.value})}/></label></>}
+        {section==='images'&&<><h2>Images du produit</h2><div className="image-panel"><div className="main-image">{product.image?<img src={product.image} alt=""/>:<span>Image principale</span>}</div><label className="upload">Choisir l’image principale<input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>upload(e,false)}/></label></div><h3>Galerie</h3><div className="gallery">{(product.gallery||[]).map((url,i)=><div key={url+i}><img src={url} alt=""/><button onClick={()=>patch({gallery:(product.gallery||[]).filter((_,j)=>j!==i)})}>×</button></div>)}</div><label className="upload secondary-upload">+ Ajouter des photos à la galerie<input multiple type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>upload(e,true)}/></label></>}
+        {section==='sale'&&<><h2>Vente & stock</h2><div className="grid two"><label>Prix<input value={product.price} onChange={e=>patch({price:e.target.value})}/></label><label>Ancien prix / prix barré<input value={product.compareAtPrice||''} onChange={e=>patch({compareAtPrice:e.target.value})}/></label><label>Type de produit<select value={product.deliveryType} onChange={e=>patch({deliveryType:e.target.value})}><option value="physical">Produit physique</option><option value="digital">Produit numérique</option></select></label><label>Statut du stock<select value={product.stockStatus} onChange={e=>patch({stockStatus:e.target.value})}><option value="draft">En préparation</option><option value="available">Disponible</option><option value="preorder">Précommande</option><option value="out">Rupture</option></select></label><label>Quantité en stock<input type="number" value={product.stockQuantity??0} onChange={e=>patch({stockQuantity:Number(e.target.value)})}/></label><label>Référence SKU<input value={product.sku||''} onChange={e=>patch({sku:e.target.value})}/></label><label>Texte du bouton<input value={product.buyLabel||''} onChange={e=>patch({buyLabel:e.target.value})}/></label><label>Lien de paiement / achat<input value={product.buyUrl||''} onChange={e=>patch({buyUrl:e.target.value})}/></label></div></>}
+        {section==='seo'&&<><h2>Référencement</h2><label>Titre Google<input value={product.seoTitle||''} onChange={e=>patch({seoTitle:e.target.value})}/></label><label>Description Google<textarea rows={5} value={product.seoDescription||''} onChange={e=>patch({seoDescription:e.target.value})}/></label></>}
+        <div className="bottom-actions"><button className="save" onClick={()=>saveProduct()} disabled={busy}>Enregistrer la fiche</button>{product.published?<button className="warn" onClick={unpublish}>Retirer du site</button>:<button className="publish" onClick={publish}>Mettre en ligne</button>}<button className="delete" onClick={remove}>Supprimer la fiche</button></div>
+      </section>
+      <aside className="preview"><p className="eyebrow">Aperçu</p><div className={`preview-cover ${product.color}`}>{product.image?<img src={product.image} alt=""/>:<span>{product.type}</span>}</div><p className="meta">{product.universe} · {product.type}</p><h2>{product.title}</h2><p>{product.tagline}</p><strong className="price">{product.price}</strong>{product.badge&&<em>{product.badge}</em>}<div className="preview-buttons"><button>Découvrir</button><button className="outline">Ajouter</button></div></aside>
+    </div>
+  </main>
 }
 
-const css = `
-*{box-sizing:border-box}.product-editor-shell{min-height:100vh;background:#fff8f1;color:#111827;font-family:Comfortaa,system-ui,sans-serif;padding:24px}.editor-topbar{display:flex;justify-content:space-between;gap:24px;align-items:end;max-width:1500px;margin:0 auto 18px}.editor-topbar a{font-size:13px;font-weight:800}.editor-topbar p{margin:12px 0 2px;color:#ff5d62;text-transform:uppercase;letter-spacing:.12em;font-size:11px;font-weight:900}.editor-topbar h1{margin:0;font:700 clamp(34px,4vw,54px)/.95 'Patrick Hand',cursive}.top-actions,.bottom-actions{display:flex;gap:8px;flex-wrap:wrap}.top-actions button,.bottom-actions button,.upload{border:0;border-radius:999px;padding:12px 16px;font-weight:900;cursor:pointer}.save{background:#171b2a;color:#fff}.publish{background:#0fa399;color:#fff}.warn{background:#ffe5b9;color:#6b4d00}.light{background:#fff;border:1px solid #eadfd6!important}.delete{background:#fff0ef;color:#b42318}.status{max-width:1500px;margin:0 auto 16px;padding:12px 16px;border-radius:14px;background:#dff7f2;font-size:13px}.editor-layout{max-width:1500px;margin:auto;display:grid;grid-template-columns:190px minmax(0,1fr) 340px;gap:18px;align-items:start}.tabs{position:sticky;top:18px;background:#171b2a;padding:12px;border-radius:22px}.tabs button{width:100%;border:0;background:transparent;color:#d8dae2;text-align:left;padding:12px;border-radius:12px;font-weight:800;cursor:pointer}.tabs button.active{background:#ff5d62;color:#fff}.quick-status{margin:14px 8px 4px;color:#fff;font-size:12px;display:flex;gap:8px;align-items:center}.dot{width:9px;height:9px;border-radius:50%;background:#8b93a7}.dot.live{background:#34d399}.form-card{background:#fff;padding:26px;border-radius:26px;box-shadow:0 18px 50px rgba(50,35,25,.08)}.form-card h2{margin:0 0 20px;font:700 38px/1 'Patrick Hand',cursive}.form-card h3{margin-top:24px}.form-card label{display:grid;gap:7px;font-size:12px;font-weight:900;margin-bottom:14px}.form-card input,.form-card textarea,.form-card select{width:100%;border:1px solid #e5ddd6;border-radius:12px;padding:11px 12px;background:#fffdf9;font:600 14px/1.4 Comfortaa,system-ui,sans-serif}.grid.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.grid.two .wide{grid-column:1/-1}.checks{display:flex;gap:18px;flex-wrap:wrap;padding:12px 0}.checks label{display:flex;align-items:center;gap:7px;margin:0}.image-panel{display:grid;grid-template-columns:minmax(220px,420px) auto;align-items:end;gap:18px}.main-image{aspect-ratio:4/3;border-radius:20px;background:#f4eee8;display:grid;place-items:center;overflow:hidden}.main-image img,.gallery img,.preview-cover img{width:100%;height:100%;object-fit:cover}.upload{display:inline-flex!important;background:#171b2a;color:#fff;width:max-content}.upload input{display:none}.secondary-upload{background:#ffe1dd;color:#171b2a}.gallery{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}.gallery div{position:relative;aspect-ratio:1;border-radius:14px;overflow:hidden;background:#f1ebe5}.gallery button{position:absolute;right:6px;top:6px;width:26px;height:26px;border:0;border-radius:50%;background:#111827;color:white;cursor:pointer}.bottom-actions{margin-top:28px;padding-top:18px;border-top:1px solid #eee4dc}.preview{position:sticky;top:18px;background:#fff;padding:18px;border-radius:24px;box-shadow:0 18px 50px rgba(50,35,25,.08)}.preview .eyebrow{margin:0 0 10px;color:#ff5d62;font-size:11px;text-transform:uppercase;font-weight:900;letter-spacing:.12em}.preview-cover{aspect-ratio:4/3;border-radius:18px;overflow:hidden;display:grid;place-items:center;font-family:'Patrick Hand',cursive;font-size:28px}.preview-cover.coral{background:#ffe0da}.preview-cover.mint{background:#d9f5ef}.preview-cover.lilac{background:#ead9ff}.preview-cover.yellow{background:#ffedb6}.preview-cover.blue{background:#dcecff}.preview .meta{font-size:11px;text-transform:uppercase;font-weight:800;color:#74798a;margin:14px 0 4px}.preview h2{margin:0 0 8px;font:700 32px/1 'Patrick Hand',cursive}.preview p{font-size:13px;line-height:1.55}.price{display:block;font-size:20px;margin:12px 0}.preview em{display:inline-block;background:#ff5d62;color:#fff;border-radius:999px;padding:6px 10px;font-size:11px;font-style:normal}.preview-buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}.preview-buttons button{border:0;border-radius:999px;padding:10px;background:#171b2a;color:#fff;font-weight:900}.preview-buttons .outline{background:#fff;color:#171b2a;border:1px solid #171b2a}@media(max-width:1100px){.editor-layout{grid-template-columns:160px 1fr}.preview{grid-column:1/-1;position:static}.editor-topbar{align-items:flex-start;flex-direction:column}}@media(max-width:760px){.product-editor-shell{padding:12px}.editor-layout{grid-template-columns:1fr}.tabs{position:static;display:flex;overflow:auto}.tabs button{min-width:145px}.quick-status{display:none}.grid.two,.image-panel{grid-template-columns:1fr}.gallery{grid-template-columns:repeat(2,1fr)}.top-actions{width:100%}.top-actions button{flex:1}.preview{position:static}.form-card{padding:18px}.editor-topbar h1{font-size:38px}}
-`;
+const css=`*{box-sizing:border-box}.product-editor-shell{min-height:100vh;background:#fff8f1;color:#111827;font-family:Comfortaa,system-ui,sans-serif;padding:24px}.editor-topbar{display:flex;justify-content:space-between;gap:24px;align-items:end;max-width:1500px;margin:0 auto 18px}.editor-topbar a{font-size:13px;font-weight:800}.editor-topbar p{margin:12px 0 2px;color:#ff5d62;text-transform:uppercase;letter-spacing:.12em;font-size:11px;font-weight:900}.editor-topbar h1{margin:0;font:700 clamp(34px,4vw,54px)/.95 'Patrick Hand',cursive}.top-actions,.bottom-actions{display:flex;gap:8px;flex-wrap:wrap}.top-actions button,.bottom-actions button,.upload{border:0;border-radius:999px;padding:12px 16px;font-weight:900;cursor:pointer}.save{background:#171b2a;color:#fff}.publish{background:#0fa399;color:#fff}.warn{background:#ffe5b9;color:#6b4d00}.light{background:#fff;border:1px solid #eadfd6!important}.delete{background:#fff0ef;color:#b42318}.status{max-width:1500px;margin:0 auto 16px;padding:12px 16px;border-radius:14px;background:#dff7f2;font-size:13px}.editor-layout{max-width:1500px;margin:auto;display:grid;grid-template-columns:190px minmax(0,1fr) 340px;gap:18px;align-items:start}.tabs{position:sticky;top:18px;background:#171b2a;padding:12px;border-radius:22px}.tabs button{width:100%;border:0;background:transparent;color:#d8dae2;text-align:left;padding:12px;border-radius:12px;font-weight:800;cursor:pointer}.tabs button.active{background:#ff5d62;color:#fff}.quick-status{margin:14px 8px 4px;color:#fff;font-size:12px;display:flex;gap:8px;align-items:center}.dot{width:9px;height:9px;border-radius:50%;background:#8b93a7}.dot.live{background:#34d399}.form-card{background:#fff;padding:26px;border-radius:26px;box-shadow:0 18px 50px rgba(50,35,25,.08)}.form-card h2{margin:0 0 20px;font:700 38px/1 'Patrick Hand',cursive}.form-card h3{margin-top:24px}.form-card label{display:grid;gap:7px;font-size:12px;font-weight:900;margin-bottom:14px}.form-card input,.form-card textarea,.form-card select{width:100%;border:1px solid #e5ddd6;border-radius:12px;padding:11px 12px;background:#fffdf9;font:600 14px/1.4 Comfortaa,system-ui,sans-serif}.grid.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.grid.two .wide{grid-column:1/-1}.checks{display:flex;gap:18px;flex-wrap:wrap;padding:12px 0}.checks label{display:flex;align-items:center;gap:7px;margin:0}.image-panel{display:grid;grid-template-columns:minmax(220px,420px) auto;align-items:end;gap:18px}.main-image{aspect-ratio:4/3;border-radius:20px;background:#f4eee8;display:grid;place-items:center;overflow:hidden}.main-image img,.gallery img,.preview-cover img{width:100%;height:100%;object-fit:cover}.upload{display:inline-flex!important;background:#171b2a;color:#fff;width:max-content}.upload input{display:none}.secondary-upload{background:#ffe1dd;color:#171b2a}.gallery{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}.gallery div{position:relative;aspect-ratio:1;border-radius:14px;overflow:hidden;background:#f1ebe5}.gallery button{position:absolute;right:6px;top:6px;width:26px;height:26px;border:0;border-radius:50%;background:#111827;color:white;cursor:pointer}.bottom-actions{margin-top:28px;padding-top:18px;border-top:1px solid #eee4dc}.preview{position:sticky;top:18px;background:#fff;padding:18px;border-radius:24px;box-shadow:0 18px 50px rgba(50,35,25,.08)}.preview .eyebrow{margin:0 0 10px;color:#ff5d62;font-size:11px;text-transform:uppercase;font-weight:900;letter-spacing:.12em}.preview-cover{aspect-ratio:4/3;border-radius:18px;overflow:hidden;display:grid;place-items:center;font-family:'Patrick Hand',cursive;font-size:28px}.preview-cover.coral{background:#ffe0da}.preview-cover.mint{background:#d9f5ef}.preview-cover.lilac{background:#ead9ff}.preview-cover.yellow{background:#ffedb6}.preview-cover.blue{background:#dcecff}.preview .meta{font-size:11px;text-transform:uppercase;font-weight:800;color:#74798a;margin:14px 0 4px}.preview h2{margin:0 0 8px;font:700 32px/1 'Patrick Hand',cursive}.preview p{font-size:13px;line-height:1.55}.price{display:block;font-size:20px;margin:12px 0}.preview em{display:inline-block;background:#ff5d62;color:#fff;border-radius:999px;padding:6px 10px;font-size:11px;font-style:normal}.preview-buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}.preview-buttons button{border:0;border-radius:999px;padding:10px;background:#171b2a;color:#fff;font-weight:900}.preview-buttons .outline{background:#fff;color:#171b2a;border:1px solid #171b2a}@media(max-width:1100px){.editor-layout{grid-template-columns:160px 1fr}.preview{grid-column:1/-1;position:static}.editor-topbar{align-items:flex-start;flex-direction:column}}@media(max-width:760px){.product-editor-shell{padding:12px}.editor-layout{grid-template-columns:1fr}.tabs{position:static;display:flex;overflow:auto}.tabs button{min-width:145px}.quick-status{display:none}.grid.two,.image-panel{grid-template-columns:1fr}.gallery{grid-template-columns:repeat(2,1fr)}.top-actions{width:100%}.top-actions button{flex:1}.preview{position:static}.form-card{padding:18px}.editor-topbar h1{font-size:38px}}`;
