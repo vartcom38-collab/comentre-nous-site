@@ -61,6 +61,53 @@ function wooRequest(string $baseUrl, string $key, string $secret, string $endpoi
     return ['ok' => true, 'status' => $httpCode, 'data' => $data];
 }
 
+function storeRequest(string $baseUrl, string $endpoint, string $method = 'GET', ?array $payload = null, string $cartToken = ''): array {
+    $responseHeaders = [];
+    $headers = ['Accept: application/json', 'Content-Type: application/json'];
+    if ($cartToken !== '') $headers[] = 'Cart-Token: ' . $cartToken;
+    $ch = curl_init($baseUrl . $endpoint);
+    $options = [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 25,
+        CURLOPT_CONNECTTIMEOUT => 8,
+        CURLOPT_HTTPHEADER => $headers,
+        CURLOPT_CUSTOMREQUEST => $method,
+        CURLOPT_HEADERFUNCTION => static function ($curl, $headerLine) use (&$responseHeaders) {
+            $length = strlen($headerLine);
+            $parts = explode(':', $headerLine, 2);
+            if (count($parts) === 2) $responseHeaders[strtolower(trim($parts[0]))] = trim($parts[1]);
+            return $length;
+        },
+    ];
+    if ($payload !== null) $options[CURLOPT_POSTFIELDS] = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    curl_setopt_array($ch, $options);
+    $body = curl_exec($ch);
+    $httpCode = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $error = curl_error($ch);
+    curl_close($ch);
+    if ($body === false || $error) return ['ok' => false, 'status' => 502, 'error' => 'Cart connection failed'];
+    $data = json_decode($body, true);
+    if ($httpCode < 200 || $httpCode >= 300) {
+        return [
+            'ok' => false,
+            'status' => $httpCode,
+            'error' => is_array($data) ? ($data['message'] ?? 'Cart API returned an error') : 'Cart API returned an error',
+            'data' => $data,
+            'cart_token' => $responseHeaders['cart-token'] ?? $cartToken,
+        ];
+    }
+    return [
+        'ok' => true,
+        'status' => $httpCode,
+        'data' => $data,
+        'cart_token' => $responseHeaders['cart-token'] ?? $cartToken,
+    ];
+}
+
+function clientCartToken(): string {
+    return trim((string)($_SERVER['HTTP_X_CART_TOKEN'] ?? $_SERVER['HTTP_CART_TOKEN'] ?? ''));
+}
+
 function githubTokenIsAllowed(string $token): bool {
     if (!$token) return false;
     $ch = curl_init('https://api.github.com/repos/vartcom38-collab/comentre-nous-site/contents/content/products.json?ref=main');
@@ -150,13 +197,8 @@ function payloadFromInput(array $input, bool $forCreate = false): array {
         $price = cleanPrice($input['regular_price']);
         if ($price !== '') $payload['regular_price'] = $price;
     }
-    if (array_key_exists('sale_price', $input)) {
-        $salePrice = cleanPrice($input['sale_price']);
-        $payload['sale_price'] = $salePrice;
-    }
-    if (array_key_exists('stock_status', $input) && in_array($input['stock_status'], ['instock', 'outofstock', 'onbackorder'], true)) {
-        $payload['stock_status'] = $input['stock_status'];
-    }
+    if (array_key_exists('sale_price', $input)) $payload['sale_price'] = cleanPrice($input['sale_price']);
+    if (array_key_exists('stock_status', $input) && in_array($input['stock_status'], ['instock', 'outofstock', 'onbackorder'], true)) $payload['stock_status'] = $input['stock_status'];
     if (array_key_exists('stock_quantity', $input)) {
         $payload['manage_stock'] = true;
         $payload['stock_quantity'] = max(0, (int)$input['stock_quantity']);
@@ -166,14 +208,71 @@ function payloadFromInput(array $input, bool $forCreate = false): array {
         $payload['virtual'] = $isDigital;
         $payload['downloadable'] = $isDigital;
     }
-    if (!empty($input['image']) && preg_match('#^https?://#i', (string)$input['image'])) {
-        $payload['images'] = [['src' => (string)$input['image']]];
-    }
+    if (!empty($input['image']) && preg_match('#^https?://#i', (string)$input['image'])) $payload['images'] = [['src' => (string)$input['image']]];
     return $payload;
 }
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 $action = $_GET['action'] ?? 'ping';
+
+if ($method === 'GET' && $action === 'cart') {
+    $result = storeRequest($baseUrl, '/wp-json/wc/store/v1/cart', 'GET', null, clientCartToken());
+    if (!$result['ok']) {
+        http_response_code($result['status'] ?: 502);
+        echo json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        exit;
+    }
+    echo json_encode(['ok' => true, 'cart' => $result['data'], 'cart_token' => $result['cart_token']], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+if ($method === 'POST' && in_array($action, ['cart-add', 'cart-update', 'cart-remove'], true)) {
+    $input = jsonBody();
+    $token = clientCartToken();
+    if ($token === '') {
+        $initial = storeRequest($baseUrl, '/wp-json/wc/store/v1/cart');
+        if (!$initial['ok'] || empty($initial['cart_token'])) {
+            http_response_code(502);
+            echo json_encode(['ok' => false, 'error' => 'Impossible d’initialiser le panier']);
+            exit;
+        }
+        $token = (string)$initial['cart_token'];
+    }
+    if ($action === 'cart-add') {
+        $productId = (int)($input['id'] ?? 0);
+        $quantity = max(1, (int)($input['quantity'] ?? 1));
+        if ($productId <= 0) {
+            http_response_code(400);
+            echo json_encode(['ok' => false, 'error' => 'Produit invalide']);
+            exit;
+        }
+        $result = storeRequest($baseUrl, '/wp-json/wc/store/v1/cart/add-item', 'POST', ['id' => $productId, 'quantity' => $quantity], $token);
+    } elseif ($action === 'cart-update') {
+        $itemKey = trim((string)($input['key'] ?? ''));
+        $quantity = max(1, (int)($input['quantity'] ?? 1));
+        if ($itemKey === '') {
+            http_response_code(400);
+            echo json_encode(['ok' => false, 'error' => 'Ligne panier invalide']);
+            exit;
+        }
+        $result = storeRequest($baseUrl, '/wp-json/wc/store/v1/cart/update-item', 'POST', ['key' => $itemKey, 'quantity' => $quantity], $token);
+    } else {
+        $itemKey = trim((string)($input['key'] ?? ''));
+        if ($itemKey === '') {
+            http_response_code(400);
+            echo json_encode(['ok' => false, 'error' => 'Ligne panier invalide']);
+            exit;
+        }
+        $result = storeRequest($baseUrl, '/wp-json/wc/store/v1/cart/remove-item', 'POST', ['key' => $itemKey], $token);
+    }
+    if (!$result['ok']) {
+        http_response_code($result['status'] ?: 502);
+        echo json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        exit;
+    }
+    echo json_encode(['ok' => true, 'cart' => $result['data'], 'cart_token' => $result['cart_token']], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
 
 if ($method === 'GET') {
     if (!in_array($action, ['ping', 'products'], true)) {
@@ -193,11 +292,7 @@ if ($method === 'GET') {
     }
 
     if ($action === 'ping') {
-        echo json_encode([
-            'ok' => true,
-            'message' => 'WooCommerce connecté',
-            'store' => $baseUrl,
-        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        echo json_encode(['ok' => true, 'message' => 'WooCommerce connecté', 'store' => $baseUrl], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         exit;
     }
 
@@ -226,7 +321,6 @@ if ($method === 'POST') {
             exit;
         }
 
-        // Idempotence: if a managed product already exists for this local id, return it instead of duplicating it.
         $lookup = wooRequest($baseUrl, $key, $secret, '/wp-json/wc/v3/products?status=any&per_page=100');
         if ($lookup['ok']) {
             foreach ((array)$lookup['data'] as $existing) {
@@ -273,11 +367,7 @@ if ($method === 'POST') {
         $managed = findMeta($wooProduct, '_comentre_managed') === '1';
         if (!$managed || $managedLocalId !== $localId) {
             http_response_code(409);
-            echo json_encode([
-                'ok' => false,
-                'error' => 'Cette fiche WooCommerce existait avant la liaison. Synchronisation automatique bloquée pour protéger ses prix.',
-                'requires_confirmation' => true,
-            ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            echo json_encode(['ok' => false, 'error' => 'Cette fiche WooCommerce existait avant la liaison. Synchronisation automatique bloquée pour protéger ses prix.', 'requires_confirmation' => true], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
             exit;
         }
 
