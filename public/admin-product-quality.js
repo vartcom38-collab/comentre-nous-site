@@ -131,7 +131,6 @@
     if (!wrap || !strong || !bar) return;
     const shown = Number((strong.textContent || '').replace(/[^0-9]/g, ''));
     if (!Number.isFinite(shown)) return;
-    const reactBase = Number(wrap.getAttribute('data-react-base-score') || shown);
     if (!wrap.hasAttribute('data-react-base-score') || shown !== Number(wrap.getAttribute('data-quality-score') || -1)) {
       wrap.setAttribute('data-react-base-score', String(shown));
     }
@@ -154,11 +153,15 @@
     if (mode === 'woo') {
       const existing = previewButtons.querySelector('[data-quality-woo-preview]');
       if (!existing) {
+        if (!previewButtons.dataset.qualityOriginal) previewButtons.dataset.qualityOriginal = previewButtons.innerHTML;
         previewButtons.innerHTML = '<button type="button" class="woo-preview-button" data-quality-woo-preview>Ajouter au panier →</button>';
       }
     } else {
       const ours = previewButtons.querySelector('[data-quality-woo-preview]');
-      if (ours) window.setTimeout(() => location.reload(), 0);
+      if (ours) {
+        previewButtons.innerHTML = previewButtons.dataset.qualityOriginal || '<button disabled>Bientôt disponible</button>';
+        delete previewButtons.dataset.qualityOriginal;
+      }
     }
 
     const paymentPreview = document.querySelector('.payment-preview');
