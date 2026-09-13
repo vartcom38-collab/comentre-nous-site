@@ -1,0 +1,34 @@
+{
+  "universes": [
+    {
+      "id": "famille",
+      "title": "Com' en famille",
+      "href": "/com-en-famille",
+      "tag": "Famille · émotions · quotidien",
+      "text": "Des jeux et des outils pour se parler, s'écouter et grandir ensemble.",
+      "tone": "coral",
+      "icon": "♡",
+      "buttonLabel": "Découvrir"
+    },
+    {
+      "id": "entrepreneuses",
+      "title": "Com' des entrepreneuses",
+      "href": "/com-des-entrepreneuses",
+      "tag": "Idées · message · visibilité",
+      "text": "Des cartes et carnets pour clarifier tes idées, oser te montrer et créer avec justesse.",
+      "tone": "mint",
+      "icon": "✦",
+      "buttonLabel": "Découvrir"
+    },
+    {
+      "id": "papeterie",
+      "title": "Papeterie du lien",
+      "href": "/papeterie-du-lien",
+      "tag": "Carnets · kits · imprimables",
+      "text": "Carnets, bujo, kits et jeux à imprimer pour mettre de la magie dans le quotidien.",
+      "tone": "lilac",
+      "icon": "☼",
+      "buttonLabel": "Découvrir"
+    }
+  ]
+}
