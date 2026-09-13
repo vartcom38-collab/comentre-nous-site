@@ -23,7 +23,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <script src="/woo-cart.js" defer />
         <script src="/admin-delete-helper.js" defer />
         <script src="/admin-woo-product-v2.js" defer />
-        <script src="/admin-ecommerce-ui.js" defer />
       </body>
     </html>
   );
