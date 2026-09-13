@@ -1,34 +1,20 @@
 {
   "universes": [
-    {
-      "id": "famille",
-      "title": "Com' en famille",
-      "href": "/com-en-famille",
-      "tag": "Famille · émotions · quotidien",
-      "text": "Des jeux et des outils pour se parler, s'écouter et grandir ensemble.",
-      "tone": "coral",
-      "icon": "♡",
-      "buttonLabel": "Découvrir"
-    },
-    {
-      "id": "entrepreneuses",
-      "title": "Com' des entrepreneuses",
-      "href": "/com-des-entrepreneuses",
-      "tag": "Idées · message · visibilité",
-      "text": "Des cartes et carnets pour clarifier tes idées, oser te montrer et créer avec justesse.",
-      "tone": "mint",
-      "icon": "✦",
-      "buttonLabel": "Découvrir"
-    },
-    {
-      "id": "papeterie",
-      "title": "Papeterie du lien",
-      "href": "/papeterie-du-lien",
-      "tag": "Carnets · kits · imprimables",
-      "text": "Carnets, bujo, kits et jeux à imprimer pour mettre de la magie dans le quotidien.",
-      "tone": "lilac",
-      "icon": "☼",
-      "buttonLabel": "Découvrir"
-    }
-  ]
+    {"id":"famille","title":"Com' en famille","href":"/com-en-famille","tag":"Famille · émotions · quotidien","text":"Des jeux et des outils pour se parler, s'écouter et grandir ensemble.","tone":"coral","icon":"♡","buttonLabel":"Découvrir"},
+    {"id":"entrepreneuses","title":"Com' des entrepreneuses","href":"/com-des-entrepreneuses","tag":"Idées · message · visibilité","text":"Des cartes et carnets pour clarifier tes idées, oser te montrer et créer avec justesse.","tone":"mint","icon":"✦","buttonLabel":"Découvrir"},
+    {"id":"papeterie","title":"Papeterie du lien","href":"/papeterie-du-lien","tag":"Carnets · kits · imprimables","text":"Carnets, bujo, kits et jeux à imprimer pour mettre de la magie dans le quotidien.","tone":"lilac","icon":"☼","buttonLabel":"Découvrir"}
+  ],
+  "universeSection":{"eyebrow":"Choisir son chemin","title":"Tu arrives par quelle porte ?"},
+  "needs":{"eyebrow":"Pas besoin de savoir par où commencer","title":"Dis-nous juste ce que tu cherches.","items":[
+    {"label":"Aider mon enfant à parler","href":"/par-ou-commencer"},
+    {"label":"Créer un moment en famille","href":"/par-ou-commencer"},
+    {"label":"Occuper les enfants sans écran","href":"/par-ou-commencer"},
+    {"label":"Trouver des idées de contenu","href":"/par-ou-commencer"},
+    {"label":"Débloquer ma communication","href":"/par-ou-commencer"},
+    {"label":"M’offrir une pause créative","href":"/par-ou-commencer"}
+  ]},
+  "values":["Bienveillant, mais jamais gnangnan","Des outils qui servent vraiment","Une esthétique douce et vivante","Du lien dans la vraie vie"],
+  "podcastBand":{"label":"ON AIR","eyebrow":"Le podcast","title":"Com’ entre nous, même quand le café est froid.","text":"Des conversations vraies autour de la parentalité, des émotions, de l’entrepreneuriat et de tout ce qui nous traverse.","buttonLabel":"Écouter","href":"/podcast"},
+  "newsletter":{"eyebrow":"Petit cadeau","title":"Une ressource douce dans ta boîte mail.","text":"Des idées concrètes, des coulisses et des supports à imprimer. Pas de bruit inutile, promis.","placeholder":"Ton adresse email","buttonLabel":"Je m’inscris"},
+  "footer":{"tagline":"Des mots, des outils, des humains.","instagramLabel":"Instagram","instagramUrl":"","pinterestLabel":"Pinterest","pinterestUrl":"","spotifyLabel":"Spotify","spotifyUrl":""}
 }
