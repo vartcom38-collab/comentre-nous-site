@@ -13,7 +13,7 @@ export function Logo() {
 }
 
 export function Header() {
-  return <header className="site-header"><Logo /><nav aria-label="Navigation principale">{navItems.map((item) => <Link key={item.href} href={item.href}>{item.label}</Link>)}</nav><Link className="shop-pill" href="/boutique">Boutique</Link></header>;
+  return <header className="site-header"><Logo /><nav aria-label="Navigation principale">{navItems.map((item) => <Link key={item.href} href={item.href}>{item.label}</Link>)}</nav><div className="site-header-actions"><Link className="shop-pill" href="/boutique">Boutique</Link><button type="button" className="shop-pill cart-pill" data-woo-cart-toggle aria-label="Ouvrir le panier">Panier <span data-woo-cart-count>0</span></button></div></header>;
 }
 
 export function Footer() {
