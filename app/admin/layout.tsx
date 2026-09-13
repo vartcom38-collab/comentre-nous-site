@@ -260,10 +260,103 @@ const adminEnhancementsScript = `
 })();
 `;
 
+const unsavedChangesScript = `
+(() => {
+  let dirty = false;
+
+  const getBadge = () => {
+    let badge = document.querySelector('.admin-unsaved-status');
+    if (!badge) {
+      badge = document.createElement('div');
+      badge.className = 'admin-unsaved-status';
+      badge.innerHTML = '<span></span><b>Modifications non enregistrées</b>';
+      document.body.appendChild(badge);
+    }
+    return badge;
+  };
+
+  const render = () => {
+    const badge = getBadge();
+    badge.classList.toggle('visible', dirty);
+  };
+
+  const markDirty = (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement)) return;
+    if (target.closest('.connect')) return;
+    if (target.type === 'file') return;
+    dirty = true;
+    render();
+  };
+
+  const markSaved = () => {
+    dirty = false;
+    render();
+  };
+
+  const findSaveButton = () => {
+    const buttons = Array.from(document.querySelectorAll('button'));
+    return buttons.find((button) => {
+      const text = (button.textContent || '').trim();
+      return text === 'Enregistrer' || text === 'Enregistrer la fiche' || text === 'Enregistrer les modifications' || text === 'Enregistrer le podcast' || text === 'Enregistrer l’accueil';
+    });
+  };
+
+  document.addEventListener('input', markDirty, true);
+  document.addEventListener('change', markDirty, true);
+
+  document.addEventListener('click', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    const button = target.closest('button');
+    if (button) {
+      const text = (button.textContent || '').trim();
+      if (text.startsWith('Enregistrer') || text === 'Mettre en ligne' || text === 'Retirer du site') {
+        window.setTimeout(markSaved, 300);
+      }
+    }
+    const link = target.closest('a');
+    if (!link || !dirty) return;
+    if (link.target === '_blank') return;
+    const href = link.getAttribute('href') || '';
+    if (!href || href.startsWith('#')) return;
+    if (!window.confirm('Tu as des modifications non enregistrées. Quitter quand même ?')) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  }, true);
+
+  window.addEventListener('beforeunload', (event) => {
+    if (!dirty) return;
+    event.preventDefault();
+    event.returnValue = '';
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== 's') return;
+    event.preventDefault();
+    const saveButton = findSaveButton();
+    if (saveButton && !saveButton.disabled) saveButton.click();
+  });
+
+  const statusObserver = new MutationObserver(() => {
+    const statuses = Array.from(document.querySelectorAll('.status'));
+    const text = statuses.map((node) => node.textContent || '').join(' ').toLowerCase();
+    if (text.includes('enregistré') || text.includes('enregistrée') || text.includes('mis en ligne') || text.includes('retiré du site')) markSaved();
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    render();
+    statusObserver.observe(document.body, { childList: true, subtree: true, characterData: true });
+  });
+})();
+`;
+
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return <>
     <script dangerouslySetInnerHTML={{ __html: persistentTokenScript }} />
     <script dangerouslySetInnerHTML={{ __html: adminEnhancementsScript }} />
+    <script dangerouslySetInnerHTML={{ __html: unsavedChangesScript }} />
     <nav className="admin-global-nav">
       <Link href="/admin/">Tableau de bord</Link>
       <Link href="/admin/contenus/">Contenus du site</Link>
@@ -298,7 +391,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       .admin-badge-presets button:hover,.admin-ready-shortcut:hover,.admin-seo-helper:hover{border-color:#171b2a}
       .admin-ready-shortcut{margin-top:4px;background:#e8f7f3;border-color:#c5ebe3;color:#087f78}
       .admin-seo-helper{display:inline-flex;margin:-8px 0 18px;background:#fff0ee;border-color:#ffd5d1;color:#8f2018}
-      @media(max-width:650px){.admin-global-nav{padding:7px 8px}.admin-global-nav a{font-size:10px;padding:7px 9px}.admin-quick-access{left:10px;right:10px;bottom:10px}.admin-quick-access a{flex:1;justify-content:center;padding:11px 12px}.admin-deploy-status{left:10px;bottom:64px}.admin-preview-overlay{padding:8px}.admin-preview-modal{padding:14px;border-radius:18px}}
+      .admin-unsaved-status{position:fixed;left:18px;bottom:62px;z-index:100002;display:flex;align-items:center;gap:8px;border-radius:999px;padding:9px 13px;background:#fff7df;color:#6f5200;border:1px solid #f2d68b;box-shadow:0 12px 30px rgba(23,27,42,.12);font:800 10px Comfortaa,system-ui,sans-serif;opacity:0;transform:translateY(8px);pointer-events:none;transition:.2s}
+      .admin-unsaved-status.visible{opacity:1;transform:translateY(0)}
+      .admin-unsaved-status span{width:8px;height:8px;border-radius:50%;background:#f1a52b}
+      @media(max-width:650px){.admin-global-nav{padding:7px 8px}.admin-global-nav a{font-size:10px;padding:7px 9px}.admin-quick-access{left:10px;right:10px;bottom:10px}.admin-quick-access a{flex:1;justify-content:center;padding:11px 12px}.admin-deploy-status{left:10px;bottom:64px}.admin-unsaved-status{left:10px;bottom:104px}.admin-preview-overlay{padding:8px}.admin-preview-modal{padding:14px;border-radius:18px}}
     `}</style>
   </>;
 }
