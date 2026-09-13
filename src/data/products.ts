@@ -23,6 +23,12 @@ export type Product = {
   care?: string;
   buyLabel: string;
   buyUrl: string;
+  purchaseChannel?: 'none' | 'amazon' | 'stripe' | 'external';
+  amazonUrl?: string;
+  stripeUrl?: string;
+  externalUrl?: string;
+  paymentNote?: string;
+  workflowStatus?: 'draft' | 'ready' | 'published' | 'hidden' | 'archived';
   color: string;
   deliveryType?: string;
   stockStatus?: string;
@@ -51,4 +57,11 @@ export function getProduct(slug: string) {
 
 export function getAnyProduct(slug: string) {
   return allProducts.find((product) => product.slug === slug);
+}
+
+export function getPurchaseUrl(product: Product) {
+  if (product.purchaseChannel === 'amazon') return product.amazonUrl || product.buyUrl;
+  if (product.purchaseChannel === 'stripe') return product.stripeUrl || product.buyUrl;
+  if (product.purchaseChannel === 'external') return product.externalUrl || product.buyUrl;
+  return product.buyUrl;
 }
