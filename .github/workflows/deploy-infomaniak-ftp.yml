@@ -36,6 +36,11 @@ jobs:
       - name: Build static site
         run: npm run build
 
+      - name: Write deploy version marker
+        run: |
+          echo "${GITHUB_SHA}" > out/deploy-version.txt
+          date -u +"%Y-%m-%dT%H:%M:%SZ" >> out/deploy-version.txt
+
       - name: Deploy to Infomaniak by FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
@@ -47,4 +52,4 @@ jobs:
           server-dir: ./sites/comentrenous.marionbolomey.fr/
           protocol: ftp
           dangerous-clean-slate: false
-          state-name: .ftp-deploy-sync-state-v2.json
+          state-name: .ftp-deploy-sync-state-v3.json
