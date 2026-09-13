@@ -1,7 +1,19 @@
 import { LayoutShell, PageIntro, Newsletter } from '@/components/Site';
+import podcast from '../../content/podcast.json';
 
-const episodes = ['Qui sommes-nous ?', 'C’est quoi Com’entre Nous ?', 'Quand les mots restent coincés', 'Être parent sans mode d’emploi', 'Créer un projet à deux', 'Les émotions dans la vraie vie'];
+function episodeUrl(episode: (typeof podcast.episodes)[number]) {
+  return episode.spotifyUrl || episode.appleUrl || episode.youtubeUrl || episode.externalUrl || '#';
+}
 
 export default function PodcastPage() {
-  return <LayoutShell><main><PageIntro kicker="Le podcast" title="Com’ entre nous, le podcast" text="Des conversations vraies autour de la parentalité, des émotions, de l’entrepreneuriat et de tout ce qui nous traverse entre deux cafés froids." /><section className="content-card"><h2>Dernier épisode</h2><div className="episode-card"><p className="tag">Épisode 01</p><h3>Qui sommes-nous ?</h3><p>Notre rencontre, notre histoire, nos déclics, et pourquoi Com’entre Nous est né.</p><a className="dark-btn" href="#">Écouter →</a></div></section><section className="section"><div className="section-title"><h2>Tous les épisodes</h2></div><div className="steps">{episodes.map((episode, index) => <a href="#" key={episode}><span>{String(index + 1).padStart(2, '0')}</span><h3>{episode}</h3><p>Écouter l’épisode →</p></a>)}</div></section><section className="content-card"><h2>Les thèmes</h2><p>Parentalité · Émotions · Communication · Famille · Entrepreneuriat · Créativité · Vie quotidienne · Coulisses</p></section><Newsletter /></main></LayoutShell>;
+  const episodes = [...podcast.episodes].filter((episode) => episode.published).sort((a, b) => b.number - a.number);
+  const latest = episodes[0];
+
+  return <LayoutShell><main>
+    <PageIntro kicker={podcast.page.kicker} title={podcast.page.title} text={podcast.page.intro} />
+    <section className="content-card"><h2>Dernier épisode</h2>{latest ? <div className="episode-card">{latest.image && <img src={latest.image} alt="" style={{width:'100%',maxWidth:560,borderRadius:24,marginBottom:18}}/>}<p className="tag">Épisode {String(latest.number).padStart(2, '0')}{latest.duration ? ` · ${latest.duration}` : ''}</p><h3>{latest.title}</h3><p>{latest.description}</p><a className="dark-btn" href={episodeUrl(latest)} target="_blank" rel="noreferrer">Écouter →</a></div> : <p>Le premier épisode arrive bientôt.</p>}</section>
+    <section className="section"><div className="section-title"><h2>Tous les épisodes</h2></div>{episodes.length ? <div className="steps">{episodes.map((episode) => <a href={episodeUrl(episode)} target="_blank" rel="noreferrer" key={episode.id}><span>{String(episode.number).padStart(2, '0')}</span><h3>{episode.title}</h3><p>{episode.description || 'Écouter l’épisode →'}</p></a>)}</div> : <p>Aucun épisode publié pour le moment.</p>}</section>
+    <section className="content-card"><h2>Les thèmes</h2><p>{podcast.page.themes}</p></section>
+    <Newsletter />
+  </main></LayoutShell>;
 }
