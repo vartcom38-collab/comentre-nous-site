@@ -7,8 +7,32 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false, nocache: true },
 };
 
+const persistentTokenScript = `
+(() => {
+  const key = 'comentre_admin_github_token';
+  const syncToken = () => {
+    try {
+      const persistent = window.localStorage.getItem(key) || '';
+      const session = window.sessionStorage.getItem(key) || '';
+      if (persistent && !session) {
+        window.sessionStorage.setItem(key, persistent);
+      } else if (session && session !== persistent) {
+        window.localStorage.setItem(key, session);
+      }
+    } catch (_) {}
+  };
+  syncToken();
+  window.setInterval(syncToken, 1000);
+  window.addEventListener('pagehide', syncToken);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') syncToken();
+  });
+})();
+`;
+
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return <>
+    <script dangerouslySetInnerHTML={{ __html: persistentTokenScript }} />
     <nav className="admin-global-nav">
       <Link href="/admin/">Tableau de bord</Link>
       <Link href="/admin/contenus/">Contenus du site</Link>
