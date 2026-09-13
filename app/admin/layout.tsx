@@ -92,12 +92,26 @@ const adminEnhancementsScript = `
     }, 6000);
   };
 
-  const fieldValue = (labelStart) => {
+  const findField = (labelStart) => {
     const labels = Array.from(document.querySelectorAll('.form-card label'));
     const label = labels.find((node) => (node.textContent || '').trim().toLowerCase().startsWith(labelStart.toLowerCase()));
-    if (!label) return '';
-    const control = label.querySelector('input, textarea, select');
-    return control && 'value' in control ? String(control.value || '').trim() : '';
+    if (!label) return null;
+    return { label, control: label.querySelector('input, textarea, select') };
+  };
+
+  const fieldValue = (labelStart) => {
+    const field = findField(labelStart);
+    return field && field.control && 'value' in field.control ? String(field.control.value || '').trim() : '';
+  };
+
+  const setControlValue = (control, value) => {
+    if (!control) return;
+    const proto = control instanceof HTMLSelectElement ? HTMLSelectElement.prototype : control instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+    const descriptor = Object.getOwnPropertyDescriptor(proto, 'value');
+    if (descriptor && descriptor.set) descriptor.set.call(control, value);
+    else control.value = value;
+    control.dispatchEvent(new Event('input', { bubbles: true }));
+    control.dispatchEvent(new Event('change', { bubbles: true }));
   };
 
   const publicationMissing = () => {
@@ -159,6 +173,61 @@ const adminEnhancementsScript = `
     actions.insertBefore(button, actions.firstChild);
   };
 
+  const ensureBadgePresets = () => {
+    if (!document.querySelector('.product-editor-shell') || document.querySelector('.admin-badge-presets')) return;
+    const field = findField('Badge');
+    if (!field || !field.control) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'admin-badge-presets';
+    ['', 'À imprimer', 'Nouveau', 'Précommande', 'Édition limitée'].forEach((choice) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = choice || 'Aucun badge';
+      button.addEventListener('click', () => setControlValue(field.control, choice));
+      wrap.appendChild(button);
+    });
+    field.label.appendChild(wrap);
+  };
+
+  const ensureReadyShortcut = () => {
+    if (!document.querySelector('.product-editor-shell') || document.querySelector('.admin-ready-shortcut')) return;
+    const field = findField('État de travail');
+    if (!field || !(field.control instanceof HTMLSelectElement)) return;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'admin-ready-shortcut';
+    button.textContent = '✓ Marquer prêt à publier';
+    button.addEventListener('click', () => setControlValue(field.control, 'ready'));
+    field.label.appendChild(button);
+  };
+
+  const ensureSeoHelper = () => {
+    if (!document.querySelector('.product-editor-shell') || document.querySelector('.admin-seo-helper')) return;
+    const seoTitle = findField('Titre Google');
+    const seoDescription = findField('Description Google');
+    if (!seoTitle || !seoDescription || !seoTitle.control || !seoDescription.control) return;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'admin-seo-helper';
+    button.textContent = '✨ Remplir automatiquement le SEO';
+    button.addEventListener('click', () => {
+      const title = fieldValue('Nom du produit');
+      const short = fieldValue('Description courte');
+      const tagline = fieldValue('Petite accroche');
+      if (!String(seoTitle.control.value || '').trim()) setControlValue(seoTitle.control, title ? title + " — Com’ entre nous" : '');
+      if (!String(seoDescription.control.value || '').trim()) setControlValue(seoDescription.control, short || tagline || '');
+    });
+    const heading = Array.from(document.querySelectorAll('.form-card h2')).find((node) => (node.textContent || '').trim() === 'Référencement');
+    if (heading) heading.insertAdjacentElement('afterend', button);
+  };
+
+  const ensureProductHelpers = () => {
+    ensureDraftPreview();
+    ensureBadgePresets();
+    ensureReadyShortcut();
+    ensureSeoHelper();
+  };
+
   document.addEventListener('click', (event) => {
     const target = event.target;
     if (!(target instanceof HTMLElement)) return;
@@ -182,10 +251,10 @@ const adminEnhancementsScript = `
     }
   }, true);
 
-  const observer = new MutationObserver(() => ensureDraftPreview());
+  const observer = new MutationObserver(() => ensureProductHelpers());
   document.addEventListener('DOMContentLoaded', () => {
     initDeployStatus();
-    ensureDraftPreview();
+    ensureProductHelpers();
     observer.observe(document.body, { childList: true, subtree: true });
   });
 })();
@@ -224,6 +293,11 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       .admin-preview-close{position:sticky;top:0;float:right;z-index:2;border:0;border-radius:999px;background:#171b2a;color:#fff;padding:10px 14px;font-weight:900;cursor:pointer}
       .admin-preview-clone{position:static!important;max-width:720px!important;width:100%!important;margin:24px auto 0!important;box-shadow:none!important}
       .admin-preview-clone .preview-head{display:none!important}
+      .admin-badge-presets{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+      .admin-badge-presets button,.admin-ready-shortcut,.admin-seo-helper{border:1px solid #e4d9d1;border-radius:999px;background:#fff;color:#171b2a;padding:7px 10px;font:800 10px Comfortaa,system-ui,sans-serif;cursor:pointer}
+      .admin-badge-presets button:hover,.admin-ready-shortcut:hover,.admin-seo-helper:hover{border-color:#171b2a}
+      .admin-ready-shortcut{margin-top:4px;background:#e8f7f3;border-color:#c5ebe3;color:#087f78}
+      .admin-seo-helper{display:inline-flex;margin:-8px 0 18px;background:#fff0ee;border-color:#ffd5d1;color:#8f2018}
       @media(max-width:650px){.admin-global-nav{padding:7px 8px}.admin-global-nav a{font-size:10px;padding:7px 9px}.admin-quick-access{left:10px;right:10px;bottom:10px}.admin-quick-access a{flex:1;justify-content:center;padding:11px 12px}.admin-deploy-status{left:10px;bottom:64px}.admin-preview-overlay{padding:8px}.admin-preview-modal{padding:14px;border-radius:18px}}
     `}</style>
   </>;
