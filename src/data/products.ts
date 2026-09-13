@@ -1,68 +1,54 @@
+import catalog from '../../content/products.json';
+
 export type Product = {
+  id: string;
   slug: string;
   title: string;
-  universe: "Com' en famille" | "Com' des entrepreneuses" | 'Papeterie';
-  type: 'Cartes' | 'Oracle' | 'Carnet' | 'Kit' | 'Podcast' | 'Cadeau';
+  tagline: string;
+  universe: string;
+  category: string;
+  type: string;
   price: string;
+  compareAtPrice?: string;
+  image?: string;
+  gallery?: string[];
   badge?: string;
   age?: string;
-  description: string;
+  format?: string;
+  shortDescription?: string;
+  longDescription?: string;
+  highlights?: string[];
+  included?: string[];
+  usage?: string;
+  care?: string;
   buyLabel: string;
   buyUrl: string;
-  color: 'coral' | 'mint' | 'lilac' | 'yellow' | 'blue';
+  color: string;
+  deliveryType?: string;
+  stockStatus?: string;
+  stockQuantity?: number;
+  sku?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  published: boolean;
+  featured: boolean;
+  new: boolean;
+  createdAt: string;
+  updatedAt?: string;
+  description: string;
 };
 
-export const products: Product[] = [
-  {
-    slug: 'les-petits-liens',
-    title: 'Les Petits Liens',
-    universe: "Com' en famille",
-    type: 'Cartes',
-    price: '29,00 €',
-    badge: 'Nouveau',
-    age: '6–10 ans',
-    description: "Le jeu des émotions du quotidien pour ouvrir la parole sans pression.",
-    buyLabel: 'Voir',
-    buyUrl: '#',
-    color: 'yellow'
-  },
-  {
-    slug: 'oracle-com-des-murmures',
-    title: "L’Oracle Com’ des Murmures",
-    universe: "Com' des entrepreneuses",
-    type: 'Oracle',
-    price: '39,00 €',
-    badge: 'Coup de cœur',
-    description: 'Un oracle pour clarifier ton message, retrouver du sens et communiquer avec justesse.',
-    buyLabel: 'Voir',
-    buyUrl: '#',
-    color: 'lilac'
-  },
-  {
-    slug: 'mon-carnet-de-clarte',
-    title: 'Mon carnet de clarté',
-    universe: "Com' des entrepreneuses",
-    type: 'Carnet',
-    price: '12,90 €',
-    description: 'Un carnet pour remettre tes idées au clair quand tout part en post-it mental.',
-    buyLabel: 'Voir',
-    buyUrl: '#',
-    color: 'mint'
-  },
-  {
-    slug: 'mon-kit-ete',
-    title: "Mon kit d’été",
-    universe: 'Papeterie',
-    type: 'Kit',
-    price: '12,90 €',
-    badge: 'À imprimer',
-    description: 'Des activités, idées et petits rituels à glisser dans la valise.',
-    buyLabel: 'Voir',
-    buyUrl: '#',
-    color: 'coral'
-  }
-];
+export const allProducts: Product[] = (catalog as Omit<Product, 'description'>[]).map((product) => ({
+  ...product,
+  description: product.shortDescription || product.tagline || '',
+}));
+
+export const products: Product[] = allProducts.filter((product) => product.published);
 
 export function getProduct(slug: string) {
   return products.find((product) => product.slug === slug);
+}
+
+export function getAnyProduct(slug: string) {
+  return allProducts.find((product) => product.slug === slug);
 }
