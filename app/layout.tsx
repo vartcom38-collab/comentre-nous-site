@@ -4,6 +4,7 @@ import MobileMenu from './MobileMenu';
 import HomeContentBridge from './HomeContentBridge';
 import HomeUniverseBridge from './HomeUniverseBridge';
 import HomeNeedsBridge from './HomeNeedsBridge';
+import HomeFoundersBridge from './HomeFoundersBridge';
 import './globals.css';
 import './font-fix.css';
 import './universe-polish.css';
@@ -24,6 +25,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <HomeContentBridge />
         <HomeUniverseBridge />
         <HomeNeedsBridge />
+        <HomeFoundersBridge />
         {children}
         <script src="/woo-cart.js" defer />
         <script src="/admin-github-write-queue.js" defer />
