@@ -116,13 +116,13 @@
     "stripeUrl": "",
     "externalUrl": "",
     "paymentNote": "",
-    "workflowStatus": "draft",
+    "workflowStatus": "published",
     "seoTitle": "",
     "seoDescription": "",
-    "published": false,
+    "published": true,
     "featured": false,
     "new": false,
     "createdAt": "2026-09-12",
-    "updatedAt": "2026-09-12"
+    "updatedAt": "2026-09-13"
   }
 ]
