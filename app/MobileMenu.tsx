@@ -10,6 +10,7 @@ const links = [
   ['Le podcast', '/podcast'],
   ['Les petits cadeaux', '/les-petits-cadeaux'],
   ['À propos', '/a-propos'],
+  ['Mon compte', '/mon-espace'],
   ['Boutique', '/boutique'],
 ] as const;
 
@@ -30,7 +31,7 @@ export default function MobileMenu() {
         </Link>
 
         <div className="mobile-global-actions">
-          <Link href="/boutique" className="mobile-cart-link" aria-label="Boutique">♡</Link>
+          <Link href="/mon-espace" className="mobile-cart-link" aria-label="Mon compte">♡</Link>
           <button
             type="button"
             className={`mobile-menu-button ${open ? 'is-open' : ''}`}
