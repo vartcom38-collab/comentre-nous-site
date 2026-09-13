@@ -1,14 +1,14 @@
 [
   {
     "id": "les-petits-liens",
-    "title": "Les Petits Liens",
+    "title": "cartes",
     "tagline": "Jeu de cartes famille",
     "price": "29,00 €",
     "slug": "les-petits-liens",
     "image": "",
     "category": "famille",
-    "published": false,
-    "featured": false,
+    "published": true,
+    "featured": true,
     "new": false,
     "createdAt": "2026-09-12"
   },
