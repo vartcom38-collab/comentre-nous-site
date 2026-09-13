@@ -1,24 +1,11 @@
 'use client';
 
-import { ChangeEvent, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import initialProducts from '../../content/products.json';
 import initialHome from '../../content/home.json';
 
-type Product = {
-  id: string;
-  title: string;
-  tagline: string;
-  price: string;
-  slug: string;
-  image: string;
-  category: string;
-  published: boolean;
-  featured: boolean;
-  new: boolean;
-  createdAt: string;
-};
-
+type Product = (typeof initialProducts)[number];
 type HomeContent = typeof initialHome;
 
 const OWNER = 'vartcom38-collab';
@@ -27,61 +14,33 @@ const BRANCH = 'main';
 const PRODUCTS_PATH = 'content/products.json';
 const HOME_PATH = 'content/home.json';
 
-function encodeBase64(value: string) {
-  return btoa(unescape(encodeURIComponent(value)));
-}
-
-function decodeBase64(value: string) {
-  return decodeURIComponent(escape(atob(value.replace(/\n/g, ''))));
-}
-
+function encodeBase64(value: string) { return btoa(unescape(encodeURIComponent(value))); }
+function decodeBase64(value: string) { return decodeURIComponent(escape(atob(value.replace(/\n/g, '')))); }
 async function github(path: string, token: string, init?: RequestInit) {
   const response = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/${path}`, {
     ...init,
-    headers: {
-      Accept: 'application/vnd.github+json',
-      'X-GitHub-Api-Version': '2022-11-28',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(init?.headers || {}),
-    },
+    headers: { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(init?.headers || {}) },
   });
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(`${response.status} ${response.statusText}${body ? ` — ${body}` : ''}`);
-  }
+  if (!response.ok) throw new Error(`${response.status} ${response.statusText} — ${await response.text()}`);
   return response.json();
 }
-
 async function saveJson(path: string, value: unknown, token: string, message: string) {
   const current = await github(`contents/${path}?ref=${BRANCH}`, token);
   return github(`contents/${path}`, token, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      message,
-      content: encodeBase64(`${JSON.stringify(value, null, 2)}\n`),
-      sha: current.sha,
-      branch: BRANCH,
-    }),
+    method: 'PUT', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message, content: encodeBase64(`${JSON.stringify(value, null, 2)}\n`), sha: current.sha, branch: BRANCH }),
   });
 }
 
-function blankProduct(): Product {
-  const now = new Date();
-  const id = `produit-${now.getTime()}`;
+function newProduct(): Product {
+  const stamp = Date.now();
+  const day = new Date().toISOString().slice(0,10);
   return {
-    id,
-    title: 'Nouveau produit',
-    tagline: '',
-    price: '',
-    slug: id,
-    image: '',
-    category: 'famille',
-    published: false,
-    featured: false,
-    new: true,
-    createdAt: now.toISOString().slice(0, 10),
-  };
+    id: `produit-${stamp}`, title: 'Nouveau produit', tagline: '', price: '', compareAtPrice: '', slug: `nouveau-produit-${stamp}`,
+    image: '', gallery: [], category: 'famille', universe: "Com' en famille", type: 'Cartes', color: 'coral', badge: '', age: '', format: '',
+    deliveryType: 'physical', stockStatus: 'draft', stockQuantity: 0, sku: '', shortDescription: '', longDescription: '', highlights: [], included: [], usage: '', care: '',
+    buyLabel: 'Découvrir', buyUrl: '', seoTitle: '', seoDescription: '', published: false, featured: false, new: true, createdAt: day, updatedAt: day,
+  } as Product;
 }
 
 export default function AdminPage() {
@@ -90,184 +49,82 @@ export default function AdminPage() {
   const [home, setHome] = useState<HomeContent>(initialHome);
   const [status, setStatus] = useState('');
   const [busy, setBusy] = useState(false);
-  const [tab, setTab] = useState<'products' | 'home'>('products');
+  const [tab, setTab] = useState<'products'|'home'>('products');
 
-  useEffect(() => {
-    setToken(window.sessionStorage.getItem('comentre_admin_github_token') || '');
-  }, []);
-
-  const publishedCount = useMemo(() => products.filter((p) => p.published).length, [products]);
+  useEffect(() => { setToken(window.sessionStorage.getItem('comentre_admin_github_token') || ''); }, []);
+  const publishedCount = useMemo(() => products.filter((p)=>p.published).length,[products]);
 
   async function connect() {
     if (!token.trim()) return;
-    setBusy(true);
-    setStatus('Connexion à GitHub…');
+    setBusy(true); setStatus('Connexion…');
     try {
-      const [productsFile, homeFile] = await Promise.all([
-        github(`contents/${PRODUCTS_PATH}?ref=${BRANCH}`, token.trim()),
-        github(`contents/${HOME_PATH}?ref=${BRANCH}`, token.trim()),
-      ]);
-      setProducts(JSON.parse(decodeBase64(productsFile.content)));
-      setHome(JSON.parse(decodeBase64(homeFile.content)));
-      window.sessionStorage.setItem('comentre_admin_github_token', token.trim());
-      setStatus('Connecté. Les données du site sont à jour.');
-    } catch (error) {
-      setStatus(`Connexion impossible : ${(error as Error).message}`);
-    } finally {
-      setBusy(false);
-    }
+      const [pf,hf] = await Promise.all([github(`contents/${PRODUCTS_PATH}?ref=${BRANCH}`,token.trim()),github(`contents/${HOME_PATH}?ref=${BRANCH}`,token.trim())]);
+      setProducts(JSON.parse(decodeBase64(pf.content))); setHome(JSON.parse(decodeBase64(hf.content)));
+      window.sessionStorage.setItem('comentre_admin_github_token',token.trim()); setStatus('Connecté. Les données sont à jour.');
+    } catch(error){ setStatus(`Connexion impossible : ${(error as Error).message}`);} finally{setBusy(false)}
   }
 
-  function updateProduct(index: number, patch: Partial<Product>) {
-    setProducts((current) => current.map((product, i) => i === index ? { ...product, ...patch } : product));
+  async function createProduct() {
+    if (!token) return setStatus('Connecte GitHub avant de créer un produit.');
+    const product = newProduct(); const next = [product,...products];
+    setBusy(true); setStatus('Création de la fiche…');
+    try { await saveJson(PRODUCTS_PATH,next,token,'Admin: create product'); setProducts(next); window.location.href=`/admin/produit/?id=${product.id}`; }
+    catch(error){setStatus(`Erreur : ${(error as Error).message}`);setBusy(false)}
   }
 
-  async function saveProducts() {
-    if (!token) return setStatus('Connecte d’abord ton compte GitHub.');
+  async function togglePublish(index:number) {
+    if(!token) return setStatus('Connecte GitHub.');
+    const next=products.map((p,i)=>i===index?{...p,published:!p.published,updatedAt:new Date().toISOString().slice(0,10)}:p);
     setBusy(true);
-    setStatus('Enregistrement des produits…');
-    try {
-      await saveJson(PRODUCTS_PATH, products, token, 'Admin: update products');
-      setStatus('Produits enregistrés. Infomaniak va redéployer le site automatiquement.');
-    } catch (error) {
-      setStatus(`Erreur : ${(error as Error).message}`);
-    } finally {
-      setBusy(false);
-    }
+    try{await saveJson(PRODUCTS_PATH,next,token,next[index].published?'Admin: publish product':'Admin: unpublish product');setProducts(next);setStatus(next[index].published?'Produit mis en ligne.':'Produit retiré du site.');}
+    catch(error){setStatus(`Erreur : ${(error as Error).message}`)}finally{setBusy(false)}
   }
 
-  async function saveHome() {
-    if (!token) return setStatus('Connecte d’abord ton compte GitHub.');
-    setBusy(true);
-    setStatus('Enregistrement de la page d’accueil…');
-    try {
-      await saveJson(HOME_PATH, home, token, 'Admin: update homepage content');
-      setStatus('Accueil enregistré. Infomaniak va redéployer le site automatiquement.');
-    } catch (error) {
-      setStatus(`Erreur : ${(error as Error).message}`);
-    } finally {
-      setBusy(false);
-    }
+  async function duplicateProduct(index:number){
+    if(!token)return setStatus('Connecte GitHub.');
+    const source=products[index]; const stamp=Date.now();
+    const copy={...source,id:`${source.id}-copie-${stamp}`,slug:`${source.slug}-copie-${stamp}`,title:`${source.title} — copie`,published:false,featured:false,new:false,createdAt:new Date().toISOString().slice(0,10),updatedAt:new Date().toISOString().slice(0,10)};
+    const next=[copy,...products]; setBusy(true);
+    try{await saveJson(PRODUCTS_PATH,next,token,'Admin: duplicate product');setProducts(next);setStatus('Fiche dupliquée.');}
+    catch(error){setStatus(`Erreur : ${(error as Error).message}`)}finally{setBusy(false)}
   }
 
-  async function uploadImage(index: number, event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (!file || !token) {
-      if (!token) setStatus('Connecte GitHub avant d’envoyer une image.');
-      return;
-    }
-    if (file.size > 4 * 1024 * 1024) {
-      setStatus('Image trop lourde : 4 Mo maximum pour cet espace admin.');
-      return;
-    }
-    setBusy(true);
-    setStatus('Envoi de l’image…');
-    try {
-      const bytes = new Uint8Array(await file.arrayBuffer());
-      let binary = '';
-      for (let i = 0; i < bytes.byteLength; i += 1) binary += String.fromCharCode(bytes[i]);
-      const base64 = btoa(binary);
-      const safeName = file.name.toLowerCase().replace(/[^a-z0-9.]+/g, '-');
-      const path = `public/uploads/${Date.now()}-${safeName}`;
-      await github(`contents/${path}`, token, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: `Admin: upload ${safeName}`,
-          content: base64,
-          branch: BRANCH,
-        }),
-      });
-      updateProduct(index, { image: `/${path.replace('public/', '')}` });
-      setStatus('Image envoyée. Pense à enregistrer les produits.');
-    } catch (error) {
-      setStatus(`Erreur image : ${(error as Error).message}`);
-    } finally {
-      setBusy(false);
-      event.target.value = '';
-    }
+  async function deleteProduct(index:number){
+    if(!token||!confirm('Supprimer cette fiche produit ?'))return;
+    const next=products.filter((_,i)=>i!==index);setBusy(true);
+    try{await saveJson(PRODUCTS_PATH,next,token,'Admin: delete product');setProducts(next);setStatus('Fiche supprimée.');}
+    catch(error){setStatus(`Erreur : ${(error as Error).message}`)}finally{setBusy(false)}
   }
 
-  return (
-    <main className="admin-shell">
-      <style>{css}</style>
-      <aside className="admin-side">
-        <Link href="/" className="admin-logo">Com’ entre nous</Link>
-        <p className="admin-private">Espace privé</p>
-        <button className={tab === 'products' ? 'active' : ''} onClick={() => setTab('products')}>Produits</button>
-        <button className={tab === 'home' ? 'active' : ''} onClick={() => setTab('home')}>Page d’accueil</button>
-        <div className="stats"><strong>{products.length}</strong><span>produits</span><strong>{publishedCount}</strong><span>publiés</span></div>
-        <Link href="/" className="back">← Voir le site</Link>
-      </aside>
+  async function saveHome(){
+    if(!token)return setStatus('Connecte GitHub.');setBusy(true);
+    try{await saveJson(HOME_PATH,home,token,'Admin: update homepage');setStatus('Accueil enregistré.');}
+    catch(error){setStatus(`Erreur : ${(error as Error).message}`)}finally{setBusy(false)}
+  }
 
-      <section className="admin-main">
-        <header className="admin-top">
-          <div><p>Administration</p><h1>Le petit atelier du site</h1></div>
-          <div className="connect-box">
-            <input type="password" value={token} onChange={(e) => setToken(e.target.value)} placeholder="Jeton GitHub" aria-label="Jeton GitHub" />
-            <button onClick={connect} disabled={busy}>Connecter</button>
-          </div>
-        </header>
+  return <main className="admin-shell"><style>{css}</style>
+    <aside className="side"><Link href="/" className="brand">Com’ entre nous</Link><span className="private">Espace privé</span>
+      <button className={tab==='products'?'active':''} onClick={()=>setTab('products')}>Produits</button>
+      <button className={tab==='home'?'active':''} onClick={()=>setTab('home')}>Page d’accueil</button>
+      <div className="stats"><b>{products.length}</b><span>fiches</span><b>{publishedCount}</b><span>publiées</span></div><Link href="/" className="back">← Voir le site</Link>
+    </aside>
+    <section className="main">
+      <header className="top"><div><p>Administration</p><h1>Le petit atelier du site</h1></div><div className="connect"><input type="password" value={token} onChange={(e)=>setToken(e.target.value)} placeholder="Jeton GitHub"/><button onClick={connect} disabled={busy}>Connecter</button></div></header>
+      {status&&<div className="status">{status}</div>}
 
-        <div className="notice">Le jeton GitHub reste seulement dans cet onglet. Il n’est jamais écrit dans le site ni dans le dépôt. Pour modifier le site, utilise un jeton GitHub finement limité à ce dépôt avec le droit <b>Contents: Read and write</b>.</div>
-        {status && <div className="status">{status}</div>}
-
-        {tab === 'products' ? (
-          <>
-            <div className="toolbar">
-              <div><p>Catalogue</p><h2>Produits</h2></div>
-              <div className="toolbar-actions">
-                <button className="secondary" onClick={() => setProducts((current) => [blankProduct(), ...current])}>+ Nouveau produit</button>
-                <button className="save" onClick={saveProducts} disabled={busy}>Enregistrer</button>
-              </div>
-            </div>
-
-            <div className="product-list">
-              {products.map((product, index) => (
-                <article className="editor-card" key={product.id}>
-                  <div className="editor-image">
-                    {product.image ? <img src={product.image} alt="" /> : <span>Aucune image</span>}
-                    <label>Changer l’image<input type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => uploadImage(index, e)} /></label>
-                  </div>
-                  <div className="fields">
-                    <div className="field wide"><label>Nom</label><input value={product.title} onChange={(e) => updateProduct(index, { title: e.target.value })} /></div>
-                    <div className="field"><label>Petit texte</label><input value={product.tagline} onChange={(e) => updateProduct(index, { tagline: e.target.value })} /></div>
-                    <div className="field"><label>Prix</label><input value={product.price} onChange={(e) => updateProduct(index, { price: e.target.value })} /></div>
-                    <div className="field"><label>Slug</label><input value={product.slug} onChange={(e) => updateProduct(index, { slug: e.target.value })} /></div>
-                    <div className="field"><label>Catégorie</label><select value={product.category} onChange={(e) => updateProduct(index, { category: e.target.value })}><option value="famille">Com’ en famille</option><option value="entrepreneuses">Com’ des entrepreneuses</option><option value="papeterie">Papeterie</option></select></div>
-                    <div className="checks wide">
-                      <label><input type="checkbox" checked={product.published} onChange={(e) => updateProduct(index, { published: e.target.checked })} /> Publié</label>
-                      <label><input type="checkbox" checked={product.new} onChange={(e) => updateProduct(index, { new: e.target.checked })} /> Nouveauté</label>
-                      <label><input type="checkbox" checked={product.featured} onChange={(e) => updateProduct(index, { featured: e.target.checked })} /> Coup de cœur</label>
-                    </div>
-                  </div>
-                  <button className="delete" onClick={() => setProducts((current) => current.filter((_, i) => i !== index))}>Supprimer</button>
-                </article>
-              ))}
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="toolbar"><div><p>Accueil</p><h2>Textes principaux</h2></div><button className="save" onClick={saveHome} disabled={busy}>Enregistrer</button></div>
-            <div className="home-editor">
-              <h3>Hero</h3>
-              <label>Petite accroche<input value={home.hero.eyebrow} onChange={(e) => setHome({ ...home, hero: { ...home.hero, eyebrow: e.target.value } })} /></label>
-              <label>Titre<textarea rows={3} value={home.hero.title} onChange={(e) => setHome({ ...home, hero: { ...home.hero, title: e.target.value } })} /></label>
-              <label>Texte<textarea rows={4} value={home.hero.intro} onChange={(e) => setHome({ ...home, hero: { ...home.hero, intro: e.target.value } })} /></label>
-
-              <h3>Bloc produits de l’accueil</h3>
-              <label>Sur-titre<input value={home.homeProducts.eyebrow} onChange={(e) => setHome({ ...home, homeProducts: { ...home.homeProducts, eyebrow: e.target.value } })} /></label>
-              <label>Titre<input value={home.homeProducts.title} onChange={(e) => setHome({ ...home, homeProducts: { ...home.homeProducts, title: e.target.value } })} /></label>
-              <label>Mode<select value={home.homeProducts.mode} onChange={(e) => setHome({ ...home, homeProducts: { ...home.homeProducts, mode: e.target.value } })}><option value="newest">Dernières nouveautés automatiquement</option><option value="featured">Coups de cœur sélectionnés</option></select></label>
-              <label>Nombre de produits<input type="number" min="1" max="8" value={home.homeProducts.limit} onChange={(e) => setHome({ ...home, homeProducts: { ...home.homeProducts, limit: Number(e.target.value) } })} /></label>
-            </div>
-          </>
-        )}
-      </section>
-    </main>
-  );
+      {tab==='products'?<>
+        <div className="toolbar"><div><p>Catalogue</p><h2>Fiches produits</h2><span>Chaque produit a maintenant sa propre fiche complète avec aperçu, images, contenu, stock et SEO.</span></div><button className="create" onClick={createProduct} disabled={busy}>+ Créer un produit</button></div>
+        <div className="product-list">{products.map((p,index)=><article className="product-row" key={p.id}>
+          <div className={`thumb ${p.color}`}>{p.image?<img src={p.image} alt=""/>:<span>{p.type}</span>}</div>
+          <div className="info"><div className="badges"><span className={p.published?'live':'draft'}>{p.published?'Publié':'Brouillon'}</span>{p.new&&<span>Nouveauté</span>}{p.featured&&<span>Coup de cœur</span>}</div><h3>{p.title}</h3><p>{p.tagline||p.shortDescription||'Aucune description courte.'}</p><small>{p.universe} · {p.type} · {p.price||'Prix à définir'}</small></div>
+          <div className="actions"><Link className="primary" href={`/admin/produit/?id=${p.id}`}>Modifier la fiche</Link><button onClick={()=>window.open(`/produits/${p.slug}/`,'_blank')}>Aperçu</button><button onClick={()=>togglePublish(index)}>{p.published?'Retirer du site':'Mettre en ligne'}</button><button onClick={()=>duplicateProduct(index)}>Dupliquer</button><button className="danger" onClick={()=>deleteProduct(index)}>Supprimer</button></div>
+        </article>)}</div>
+      </>:<>
+        <div className="toolbar"><div><p>Accueil</p><h2>Contenu de la page d’accueil</h2></div><button className="create" onClick={saveHome} disabled={busy}>Enregistrer l’accueil</button></div>
+        <div className="home-card"><h3>Hero</h3><label>Petite accroche<input value={home.hero.eyebrow} onChange={(e)=>setHome({...home,hero:{...home.hero,eyebrow:e.target.value}})}/></label><label>Titre<textarea rows={3} value={home.hero.title} onChange={(e)=>setHome({...home,hero:{...home.hero,title:e.target.value}})}/></label><label>Texte<textarea rows={4} value={home.hero.intro} onChange={(e)=>setHome({...home,hero:{...home.hero,intro:e.target.value}})}/></label><h3>Bloc produits</h3><label>Sur-titre<input value={home.homeProducts.eyebrow} onChange={(e)=>setHome({...home,homeProducts:{...home.homeProducts,eyebrow:e.target.value}})}/></label><label>Titre<input value={home.homeProducts.title} onChange={(e)=>setHome({...home,homeProducts:{...home.homeProducts,title:e.target.value}})}/></label><label>Affichage<select value={home.homeProducts.mode} onChange={(e)=>setHome({...home,homeProducts:{...home.homeProducts,mode:e.target.value}})}><option value="newest">Nouveautés automatiques</option><option value="featured">Coups de cœur sélectionnés</option></select></label><label>Nombre de produits<input type="number" min="1" max="8" value={home.homeProducts.limit} onChange={(e)=>setHome({...home,homeProducts:{...home.homeProducts,limit:Number(e.target.value)}})}/></label></div>
+      </>}
+    </section>
+  </main>
 }
 
-const css = `
-*{box-sizing:border-box}.admin-shell{min-height:100vh;display:grid;grid-template-columns:260px 1fr;background:#fff9f2;color:#101827;font-family:Comfortaa,system-ui,sans-serif}.admin-side{position:sticky;top:0;height:100vh;padding:28px 20px;background:#171b2a;color:white;display:flex;flex-direction:column;gap:8px}.admin-logo{font-family:'Patrick Hand',cursive;font-size:30px;font-weight:800;margin-bottom:2px}.admin-private{margin:0 0 28px;color:#ffb2ae;font-size:12px;text-transform:uppercase;letter-spacing:.14em}.admin-side button{border:0;background:transparent;color:#d8dae2;text-align:left;padding:13px 14px;border-radius:14px;font:700 14px/1.2 inherit;cursor:pointer}.admin-side button.active{background:#ff5d62;color:white}.stats{margin-top:22px;padding:16px;border:1px solid rgba(255,255,255,.12);border-radius:18px;display:grid;grid-template-columns:auto 1fr;gap:5px 10px;color:#cfd2dd}.stats strong{font-size:18px;color:white}.back{margin-top:auto;color:#fff;font-weight:700;font-size:13px}.admin-main{padding:34px clamp(20px,4vw,60px) 70px;min-width:0}.admin-top{display:flex;justify-content:space-between;align-items:center;gap:24px;margin-bottom:20px}.admin-top p,.toolbar p{margin:0;color:#ff5d62;text-transform:uppercase;letter-spacing:.12em;font-size:11px;font-weight:800}.admin-top h1{margin:4px 0 0;font:700 clamp(34px,4vw,54px)/.95 'Patrick Hand',cursive}.connect-box{display:flex;gap:8px}.connect-box input{min-width:260px}.connect-box button,.save,.secondary{border:0;border-radius:999px;padding:12px 18px;font-weight:800;cursor:pointer}.connect-box button,.save{background:#171b2a;color:white}.secondary{background:#ffe0dd;color:#171b2a}.notice,.status{padding:14px 16px;border-radius:16px;margin:10px 0 16px;font-size:13px;line-height:1.5}.notice{background:#fff;border:1px solid #f1ded5}.status{background:#dff7f2}.toolbar{display:flex;align-items:end;justify-content:space-between;gap:18px;margin:26px 0 16px}.toolbar h2{margin:2px 0 0;font:700 38px/1 'Patrick Hand',cursive}.toolbar-actions{display:flex;gap:8px}.product-list{display:grid;gap:14px}.editor-card{position:relative;display:grid;grid-template-columns:170px 1fr auto;gap:18px;padding:16px;background:white;border:1px solid #f1e4da;border-radius:24px;box-shadow:0 14px 38px rgba(42,28,18,.06)}.editor-image{min-height:150px;border-radius:18px;overflow:hidden;background:#f7eee7;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:#736d68;font-size:12px}.editor-image img{width:100%;height:120px;object-fit:cover}.editor-image label{cursor:pointer;font-weight:800;color:#101827}.editor-image input{display:none}.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 12px}.field,.home-editor label{display:grid;gap:6px;font-size:12px;font-weight:800}.field.wide,.checks.wide{grid-column:1/-1}.field input,.field select,.home-editor input,.home-editor textarea,.home-editor select,.connect-box input{width:100%;border:1px solid #ded7d0;background:#fffdf9;border-radius:12px;padding:11px 12px;font:600 13px/1.3 inherit;color:#101827}.checks{display:flex;flex-wrap:wrap;gap:16px;align-items:center}.checks label{font-size:12px;font-weight:800}.delete{align-self:start;border:0;background:#fff0ef;color:#c23a3a;border-radius:999px;padding:9px 12px;font-weight:800;cursor:pointer}.home-editor{max-width:820px;padding:22px;background:white;border:1px solid #f1e4da;border-radius:24px;display:grid;gap:14px}.home-editor h3{font:700 28px/1 'Patrick Hand',cursive;margin:10px 0 0}.home-editor h3:first-child{margin-top:0}@media(max-width:900px){.admin-shell{grid-template-columns:1fr}.admin-side{position:static;height:auto;display:grid;grid-template-columns:1fr 1fr}.admin-logo,.admin-private,.stats,.back{grid-column:1/-1}.admin-main{padding:22px 14px 60px}.admin-top{align-items:flex-start;flex-direction:column}.connect-box{width:100%}.connect-box input{min-width:0;flex:1}.editor-card{grid-template-columns:1fr}.editor-image{min-height:180px}.editor-image img{height:160px}.fields{grid-template-columns:1fr}.delete{justify-self:start}.toolbar{align-items:flex-start;flex-direction:column}.toolbar-actions{width:100%;flex-wrap:wrap}}@media(max-width:560px){.admin-side{grid-template-columns:1fr}.connect-box{flex-direction:column}.connect-box button{width:100%}.toolbar-actions button{flex:1}.checks{display:grid;gap:9px}}
-`;
+const css=`*{box-sizing:border-box}.admin-shell{min-height:100vh;display:grid;grid-template-columns:240px 1fr;background:#fff8f1;color:#111827;font-family:Comfortaa,system-ui,sans-serif}.side{position:sticky;top:0;height:100vh;background:#171b2a;color:white;padding:26px 18px;display:flex;flex-direction:column;gap:8px}.brand{font:700 31px/1 'Patrick Hand',cursive}.private{font-size:11px;color:#ffb7b3;text-transform:uppercase;letter-spacing:.14em;margin-bottom:24px}.side button{border:0;background:transparent;color:#d7dae4;padding:13px;text-align:left;border-radius:12px;font-weight:800;cursor:pointer}.side button.active{background:#ff5d62;color:white}.stats{margin-top:18px;border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:14px;display:grid;grid-template-columns:auto 1fr;gap:5px 10px}.back{margin-top:auto;font-size:13px;font-weight:800}.main{padding:32px clamp(18px,4vw,56px) 70px;min-width:0}.top{display:flex;justify-content:space-between;gap:18px;align-items:center}.top p,.toolbar p{margin:0;color:#ff5d62;text-transform:uppercase;letter-spacing:.12em;font-size:11px;font-weight:900}.top h1{margin:4px 0 0;font:700 clamp(36px,4vw,56px)/.95 'Patrick Hand',cursive}.connect{display:flex;gap:8px}.connect input{min-width:250px;border:1px solid #e3d8cf;border-radius:999px;padding:11px 14px}.connect button,.create{border:0;border-radius:999px;background:#171b2a;color:white;padding:12px 17px;font-weight:900;cursor:pointer}.status{margin:16px 0;padding:12px 15px;background:#dff7f2;border-radius:14px;font-size:13px}.toolbar{margin:28px 0 16px;display:flex;justify-content:space-between;align-items:end;gap:18px}.toolbar h2{margin:3px 0 5px;font:700 42px/1 'Patrick Hand',cursive}.toolbar span{font-size:13px;color:#616779}.product-list{display:grid;gap:12px}.product-row{background:white;border-radius:22px;padding:14px;display:grid;grid-template-columns:130px minmax(0,1fr) auto;gap:16px;align-items:center;box-shadow:0 12px 34px rgba(50,35,25,.06)}.thumb{height:105px;border-radius:16px;display:grid;place-items:center;overflow:hidden;font-family:'Patrick Hand',cursive;font-size:22px}.thumb img{width:100%;height:100%;object-fit:cover}.thumb.coral{background:#ffe0da}.thumb.mint{background:#d9f5ef}.thumb.lilac{background:#ead9ff}.thumb.yellow{background:#ffedb6}.thumb.blue{background:#dcecff}.info h3{margin:7px 0 4px;font-size:18px}.info p{margin:0 0 6px;color:#596071;font-size:13px}.info small{color:#848999}.badges{display:flex;gap:6px;flex-wrap:wrap}.badges span{font-size:10px;font-weight:900;background:#f1ece7;border-radius:999px;padding:5px 8px}.badges .live{background:#d9f6ef;color:#087f78}.badges .draft{background:#f1ece7;color:#777}.actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;max-width:380px}.actions a,.actions button{border:1px solid #e8ded5;background:#fff;border-radius:999px;padding:9px 12px;font-size:11px;font-weight:900;cursor:pointer}.actions .primary{background:#171b2a;color:white;border-color:#171b2a}.actions .danger{color:#b42318;background:#fff0ef}.home-card{max-width:850px;background:white;padding:24px;border-radius:24px;box-shadow:0 12px 34px rgba(50,35,25,.06)}.home-card h3{font:700 30px/1 'Patrick Hand',cursive;margin:10px 0 16px}.home-card label{display:grid;gap:6px;font-size:12px;font-weight:900;margin-bottom:14px}.home-card input,.home-card textarea,.home-card select{border:1px solid #e5ddd6;border-radius:12px;padding:11px 12px;background:#fffdf9;font:600 14px Comfortaa,system-ui,sans-serif}@media(max-width:900px){.admin-shell{grid-template-columns:1fr}.side{position:static;height:auto;flex-direction:row;align-items:center;overflow:auto}.private,.stats,.back{display:none}.brand{margin-right:auto}.main{padding:18px}.top{align-items:flex-start;flex-direction:column}.connect{width:100%}.connect input{min-width:0;flex:1}.product-row{grid-template-columns:90px 1fr}.thumb{height:85px}.actions{grid-column:1/-1;justify-content:flex-start;max-width:none}}@media(max-width:560px){.side{padding:12px}.brand{font-size:25px}.top h1{font-size:40px}.toolbar{align-items:flex-start;flex-direction:column}.product-row{grid-template-columns:1fr}.thumb{height:170px}.actions a,.actions button{flex:1;text-align:center}.connect{flex-direction:column}}`;
