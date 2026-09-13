@@ -85,6 +85,8 @@ function applyHomepageProducts() {
     const visual = document.createElement('a');
     visual.className = 'product-visual';
     visual.href = `/produits/${product.slug}/`;
+    visual.style.position = 'relative';
+
     if (product.image) {
       const img = document.createElement('img');
       img.src = product.image;
@@ -98,6 +100,25 @@ function applyHomepageProducts() {
       const span = document.createElement('span');
       span.textContent = product.tagline;
       visual.appendChild(span);
+    }
+
+    if (product.badge && product.badge.trim()) {
+      const badge = document.createElement('em');
+      badge.textContent = product.badge;
+      badge.style.position = 'absolute';
+      badge.style.top = '12px';
+      badge.style.left = '12px';
+      badge.style.zIndex = '2';
+      badge.style.display = 'inline-flex';
+      badge.style.padding = '7px 10px';
+      badge.style.borderRadius = '999px';
+      badge.style.background = '#ff5d62';
+      badge.style.color = '#fff';
+      badge.style.fontSize = '10px';
+      badge.style.fontStyle = 'normal';
+      badge.style.fontWeight = '900';
+      badge.style.boxShadow = '0 6px 16px rgba(23,27,42,.14)';
+      visual.appendChild(badge);
     }
 
     const heading = document.createElement('h3');
