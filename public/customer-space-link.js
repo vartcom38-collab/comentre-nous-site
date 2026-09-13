@@ -1,10 +1,16 @@
 (() => {
   if (location.pathname !== '/' && location.pathname !== '') return;
 
-  const update = () => {
-    const link = document.querySelector('.home-page .actions a[aria-label="Compte"]');
+  const ACCOUNT_PATH = '/mon-espace/';
+
+  function findLink() {
+    return document.querySelector('.home-page .actions a[aria-label="Compte"], .home-page .actions a[aria-label="Se connecter à son espace cliente"]');
+  }
+
+  function update() {
+    const link = findLink();
     if (!link) return;
-    link.setAttribute('href', '/mon-espace/');
+    link.setAttribute('href', ACCOUNT_PATH);
     link.setAttribute('title', 'Se connecter à son espace');
     link.setAttribute('aria-label', 'Se connecter à son espace cliente');
     link.classList.remove('icon-link');
@@ -21,9 +27,20 @@
       `;
       document.head.appendChild(style);
     }
-  };
+  }
+
+  document.addEventListener('click', (event) => {
+    const target = event.target instanceof Element ? event.target : null;
+    const link = target?.closest('.home-page .actions a[aria-label="Compte"], .home-page .actions a[aria-label="Se connecter à son espace cliente"], .home-page .customer-login-link');
+    if (!link) return;
+    event.preventDefault();
+    event.stopPropagation();
+    window.location.assign(ACCOUNT_PATH);
+  }, true);
 
   document.addEventListener('DOMContentLoaded', update);
+  window.addEventListener('load', update);
   window.setTimeout(update, 100);
   window.setTimeout(update, 400);
+  window.setTimeout(update, 1200);
 })();
