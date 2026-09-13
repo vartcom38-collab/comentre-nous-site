@@ -1,0 +1,21 @@
+.home-page .footer > p {
+  display: none;
+}
+
+.home-page .footer {
+  grid-template-columns: auto 1fr;
+}
+
+.home-page .footer nav {
+  justify-self: end;
+}
+
+@media (max-width: 720px) {
+  .home-page .footer {
+    grid-template-columns: 1fr;
+  }
+
+  .home-page .footer nav {
+    justify-self: center;
+  }
+}
