@@ -13,7 +13,7 @@ export function Logo() {
 }
 
 export function Header() {
-  return <header className="site-header"><Logo /><nav aria-label="Navigation principale">{navItems.map((item) => <Link key={item.href} href={item.href}>{item.label}</Link>)}</nav><div className="site-header-actions"><Link className="shop-pill" href="/mon-espace">Mon compte</Link><Link className="shop-pill" href="/boutique">Boutique</Link><button type="button" className="shop-pill cart-pill" data-woo-cart-toggle aria-label="Ouvrir le panier">Panier <span data-woo-cart-count>0</span></button></div></header>;
+  return <header className="site-header"><Logo /><nav aria-label="Navigation principale">{navItems.map((item) => <Link key={item.href} href={item.href}>{item.label}</Link>)}</nav><div className="site-header-actions"><Link className="shop-pill account-pill" href="/mon-espace" aria-label="Se connecter à son espace cliente">Se connecter</Link><Link className="shop-pill" href="/boutique">Boutique</Link><button type="button" className="shop-pill cart-pill" data-woo-cart-toggle aria-label="Ouvrir le panier">Panier <span data-woo-cart-count>0</span></button></div></header>;
 }
 
 export function Footer() {
@@ -26,7 +26,7 @@ export function Footer() {
   return (
     <footer className="footer">
       <div className="footer-brand"><Logo /><p>{footer.tagline}</p></div>
-      <div className="footer-links">{navItems.map((item) => <Link key={item.href} href={item.href}>{item.label}</Link>)}<Link href="/mon-espace">Mon compte</Link><Link href="/mentions-legales">Mentions légales</Link><Link href="/contact">Contact</Link><Link href="/faq">FAQ</Link></div>
+      <div className="footer-links">{navItems.map((item) => <Link key={item.href} href={item.href}>{item.label}</Link>)}<Link href="/mon-espace">Se connecter</Link><Link href="/mentions-legales">Mentions légales</Link><Link href="/contact">Contact</Link><Link href="/faq">FAQ</Link></div>
       <div className="socials">{socialLinks.map((item) => item.url ? <a key={item.label} href={item.url} target="_blank" rel="noreferrer">{item.label}</a> : <span key={item.label}>{item.label}</span>)}</div>
     </footer>
   );
