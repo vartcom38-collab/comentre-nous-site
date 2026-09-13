@@ -24,11 +24,22 @@ export default function HomeFoundersBridge(){
         <a class="home-founders-link" href="/a-propos">Faire connaissance avec nous →</a>
       </div>
       <div class="home-founders-side">
-        <img class="home-founders-photo" src="/uploads/marion-aurelie-home.jpg" alt="Marion et Aurélie, fondatrices de Com’ entre nous" />
+        <img class="home-founders-photo" alt="Marion et Aurélie, fondatrices de Com’ entre nous" />
         <span class="home-founders-star" aria-hidden="true">✦</span>
       </div>
     `;
     podcast.parentElement.insertBefore(section,podcast);
+
+    const photo=section.querySelector<HTMLImageElement>('.home-founders-photo');
+    if(photo){
+      fetch('/uploads/marion-aurelie-home-data.txt',{cache:'no-store'})
+        .then(response=>{
+          if(!response.ok) throw new Error(`Photo data ${response.status}`);
+          return response.text();
+        })
+        .then(data=>{photo.src=`data:image/jpeg;base64,${data.trim()}`;})
+        .catch(()=>{photo.style.display='none';});
+    }
 
     if(!document.getElementById('home-founders-style')){
       const style=document.createElement('style');
