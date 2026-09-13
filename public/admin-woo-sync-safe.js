@@ -74,7 +74,7 @@
         await sleep(450 + attempt * 300);
       }
     }
-    throw lastError || new Error('Impossible d’enregistrer la liaison WooCommerce.');
+    throw lastError || new Error('Impossible d’enregistrer la liaison boutique.');
   }
 
   async function woo(action, payload) {
@@ -120,30 +120,53 @@
     };
   }
 
-  async function waitForSavedProduct(previousStatus) {
-    for (let i = 0; i < 60; i += 1) {
-      await sleep(500);
-      const status = (document.querySelector('.status')?.textContent || '').trim();
-      if (/^Erreur\s*:/i.test(status)) throw new Error(status);
-      const id = new URLSearchParams(location.search).get('id') || '';
-      if (id && status !== previousStatus && /fiche enregistrée|mis en ligne|retiré du site/i.test(status)) {
-        const productsFile = await loadJson(PRODUCTS_PATH);
-        const product = (productsFile.data || []).find((item) => item.id === id);
-        if (product) return product;
-      }
-    }
-    throw new Error('La fiche a bien été enregistrée, mais la synchronisation boutique a expiré.');
+  function waitForSaveCycle() {
+    return new Promise((resolve, reject) => {
+      const startedAt = Date.now();
+      let sawSaving = false;
+      const timer = window.setInterval(async () => {
+        const status = (document.querySelector('.status')?.textContent || '').trim();
+        if (/^Erreur\s*:/i.test(status)) {
+          window.clearInterval(timer);
+          reject(new Error(status));
+          return;
+        }
+        if (/création de la fiche|enregistrement/i.test(status)) sawSaving = true;
+        if (/fiche enregistrée|mis en ligne|retiré du site/i.test(status) && (sawSaving || Date.now() - startedAt > 700)) {
+          window.clearInterval(timer);
+          try {
+            const id = new URLSearchParams(location.search).get('id') || '';
+            if (!id) throw new Error('La fiche n’a pas encore d’identifiant après l’enregistrement.');
+            const productsFile = await loadJson(PRODUCTS_PATH);
+            const product = (productsFile.data || []).find((item) => item.id === id);
+            if (!product) throw new Error('La fiche enregistrée n’a pas été retrouvée.');
+            resolve(product);
+          } catch (error) {
+            reject(error);
+          }
+          return;
+        }
+        if (Date.now() - startedAt > 30000) {
+          window.clearInterval(timer);
+          reject(new Error('La synchronisation boutique a expiré. Réessaie simplement d’enregistrer.'));
+        }
+      }, 250);
+    });
   }
 
-  async function syncAfterSave(previousStatus) {
+  async function syncAfterSave() {
     if (running) return;
     running = true;
     try {
-      const product = await waitForSavedProduct(previousStatus);
+      const product = await waitForSaveCycle();
       if (product.purchaseChannel !== 'woo') return;
-      notice('Connexion à la boutique…', 'working');
+      if (!product.title || product.title === 'Nouveau produit') throw new Error('Donne un vrai nom au produit avant la synchronisation.');
+      if (!product.price) throw new Error('Ajoute un prix avant la synchronisation.');
+
+      notice('Synchronisation avec la boutique…', 'working');
       const linksFile = await loadJson(LINKS_PATH);
       const wooId = Number((linksFile.data || {})[product.id] || 0);
+
       if (wooId) {
         try {
           await woo('update-managed-product', { id: wooId, ...productPayload(product) });
@@ -157,7 +180,7 @@
         const createdId = Number(result.product && result.product.id);
         if (!createdId) throw new Error('La boutique n’a pas renvoyé d’identifiant produit.');
         await updateLinks(product.id, createdId);
-        notice(`Produit créé automatiquement dans la boutique ✓ (#${createdId})`);
+        notice('Produit créé automatiquement dans la boutique ✓');
       }
     } catch (error) {
       notice(`Boutique : ${error.message || error}`, 'error');
@@ -169,12 +192,11 @@
   document.addEventListener('click', (event) => {
     const target = event.target instanceof Element ? event.target : null;
     const button = target?.closest('button');
-    if (!button) return;
+    if (!button || button.disabled) return;
     const text = (button.textContent || '').trim();
     if (!['Enregistrer', 'Enregistrer la fiche', 'Mettre en ligne', 'Retirer du site'].some((label) => text === label || text.startsWith(label))) return;
     const saleSelect = Array.from(document.querySelectorAll('.form-card label')).find((label) => /canal de vente|mode de vente/i.test((label.textContent || '').trim()))?.querySelector('select');
     if (!saleSelect || saleSelect.value !== 'woo') return;
-    const previousStatus = (document.querySelector('.status')?.textContent || '').trim();
-    window.setTimeout(() => syncAfterSave(previousStatus), 50);
+    window.setTimeout(syncAfterSave, 20);
   }, true);
 })();
