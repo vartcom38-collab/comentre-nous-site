@@ -1,44 +1,55 @@
 (() => {
   if (!location.pathname.startsWith('/admin/produit')) return;
 
-  function textOf(el) {
-    return (el && el.textContent || '').replace(/\s+/g, ' ').trim();
-  }
+  const textOf = (el) => (el && el.textContent || '').replace(/\s+/g, ' ').trim();
 
   function enhanceSaleSection() {
-    const headings = [...document.querySelectorAll('.form-card h2')];
-    const heading = headings.find((node) => /Vente, stock & paiement/i.test(textOf(node)));
+    const heading = [...document.querySelectorAll('.form-card h2')].find((node) => /Vente, stock & paiement/i.test(textOf(node)));
     if (!heading) return;
-
     const card = heading.closest('.form-card');
     if (!card) return;
 
     const help = card.querySelector('.payment-help');
-    if (help && help.dataset.wooCopy !== '1') {
-      help.dataset.wooCopy = '1';
-      help.innerHTML = '<b>Tu gères tout ici.</b> Renseigne le prix, le stock, le SKU et le type de produit dans cette fiche. À l’enregistrement, ces informations sont envoyées automatiquement au produit WooCommerce créé ou relié. Les moyens de paiement, commandes, taxes, livraison et e-mails restent gérés par WooCommerce avec ta configuration existante.';
-    }
+    if (help) help.innerHTML = '<b>Tu gères tout ici.</b> Choisis <b>WooCommerce</b> pour vendre directement sur le site avec le paiement, les commandes et la livraison déjà configurés. Choisis <b>Amazon</b> quand le produit doit être acheté directement sur Amazon.';
 
     const labels = [...card.querySelectorAll('label')];
+    const channelLabel = labels.find((label) => /Canal de vente|Mode de vente/i.test(textOf(label)));
+    const channel = channelLabel?.querySelector('select');
+    if (channel) {
+      if (!Array.from(channel.options).some((option) => option.value === 'woo')) {
+        const option = document.createElement('option');
+        option.value = 'woo';
+        option.textContent = 'WooCommerce — vente sur le site';
+        channel.insertBefore(option, channel.options[1] || null);
+      }
+      const textNode = [...channelLabel.childNodes].find((node) => node.nodeType === Node.TEXT_NODE);
+      if (textNode) textNode.textContent = 'Mode de vente';
+    }
+
     labels.forEach((label) => {
       const text = textOf(label);
-      if (/^(Canal de vente|Texte du bouton|Lien Amazon|Lien Stripe Payment Link|Lien d’achat externe|Note interne sur le paiement \/ l’envoi)/i.test(text)) {
-        label.style.display = 'none';
-        label.setAttribute('data-legacy-payment-field', 'hidden');
-      }
+      if (/^(Lien Stripe Payment Link|Lien d’achat externe)/i.test(text)) label.style.display = 'none';
+      if (/^Texte du bouton/i.test(text)) label.style.display = channel?.value === 'amazon' ? '' : 'none';
+      if (/^Note interne sur le paiement \/ l’envoi/i.test(text)) label.style.display = '';
     });
 
     const preview = card.querySelector('.payment-preview');
-    if (preview) preview.style.display = 'none';
+    if (preview) preview.style.display = channel?.value === 'amazon' ? '' : 'none';
 
-    if (!card.querySelector('[data-woo-payment-note]')) {
-      const note = document.createElement('div');
-      note.setAttribute('data-woo-payment-note', '1');
+    let note = card.querySelector('[data-sale-mode-note]');
+    if (!note) {
+      note = document.createElement('div');
+      note.setAttribute('data-sale-mode-note', '1');
       note.className = 'woo-payment-note-admin';
-      note.innerHTML = '<strong>Paiement WooCommerce actif</strong><span>Aucun lien Stripe, Amazon ou autre n’est à saisir ici. Pour un nouveau produit, la fiche WooCommerce est créée automatiquement au premier enregistrement.</span>';
       const actions = card.querySelector('.bottom-actions');
       card.insertBefore(note, actions || null);
     }
+    const mode = channel?.value || 'none';
+    note.innerHTML = mode === 'woo'
+      ? '<strong>WooCommerce actif</strong><span>À l’enregistrement, le produit WooCommerce est créé automatiquement s’il n’existe pas encore. Prix, stock, SKU et type de produit viennent de cette fiche. WooCommerce garde ta configuration de paiement, commandes, taxes, livraison et e-mails.</span>'
+      : mode === 'amazon'
+        ? '<strong>Vente Amazon</strong><span>Aucun produit WooCommerce ne sera créé pour cette fiche. Le bouton client utilisera simplement le lien Amazon renseigné ci-dessus.</span>'
+        : '<strong>Choisis le mode de vente</strong><span>WooCommerce pour vendre sur le site, Amazon pour envoyer directement la cliente vers Amazon.</span>';
   }
 
   const style = document.createElement('style');
@@ -48,5 +59,8 @@
   const observer = new MutationObserver(enhanceSaleSection);
   observer.observe(document.documentElement, { childList: true, subtree: true });
   document.addEventListener('DOMContentLoaded', enhanceSaleSection);
+  document.addEventListener('change', (event) => {
+    if (event.target instanceof HTMLSelectElement) setTimeout(enhanceSaleSection, 0);
+  });
   setTimeout(enhanceSaleSection, 400);
 })();
