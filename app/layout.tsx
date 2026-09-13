@@ -20,6 +20,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <MobileMenu />
         <HomeContentBridge />
         {children}
+        <script src="/admin-delete-helper.js" defer />
       </body>
     </html>
   );
