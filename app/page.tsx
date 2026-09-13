@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
 import { heroScene } from './heroScene';
 
 const nav = [
@@ -73,21 +72,6 @@ function UniverseVisual({ item }: { item: Universe }) {
 }
 
 export default function HomePage() {
-  const [cartCount, setCartCount] = useState(0);
-
-  useEffect(() => {
-    const saved = window.localStorage.getItem('comentre_cart_count');
-    setCartCount(saved ? Number(saved) || 0 : 0);
-  }, []);
-
-  function addToCart() {
-    setCartCount((current) => {
-      const next = current + 1;
-      window.localStorage.setItem('comentre_cart_count', String(next));
-      return next;
-    });
-  }
-
   return (
     <main className="home-page">
       <style>{styles}</style>
@@ -103,10 +87,10 @@ export default function HomePage() {
 
         <div className="actions">
           <Link href="/boutique" aria-label="Recherche" className="icon-link">⌕</Link>
-          <Link href="/a-propos" aria-label="Compte" className="icon-link">♡</Link>
-          <Link href="/boutique" className="cart" aria-label={`Panier ${cartCount} article${cartCount > 1 ? 's' : ''}`}>
-            <span>Panier</span><b>{cartCount}</b>
-          </Link>
+          <Link href="/mon-espace" aria-label="Se connecter à son espace cliente" className="customer-login-link">Se connecter</Link>
+          <button type="button" className="cart" data-woo-cart-toggle aria-label="Ouvrir le panier">
+            <span>Panier</span><b data-woo-cart-count>0</b>
+          </button>
         </div>
       </header>
 
@@ -167,7 +151,7 @@ export default function HomePage() {
               <h3><Link href={href}>{title}</Link></h3>
               <div className="product-bottom">
                 <strong>{price}</strong>
-                <button type="button" onClick={addToCart}>Ajouter</button>
+                <Link href={href}>Voir le produit</Link>
               </div>
             </article>
           ))}
@@ -186,7 +170,7 @@ export default function HomePage() {
       <footer className="footer">
         <div className="footer-brand"><img src="/logo-comentre-nous.svg?v=transparent-final-20260907" alt="Com’ entre nous" /></div>
         <p>Des mots, des outils, des humains.</p>
-        <nav><Link href="/mentions-legales">Mentions légales</Link><Link href="/contact">Contact</Link><Link href="/faq">FAQ</Link></nav>
+        <nav><Link href="/mon-espace">Mon espace</Link><Link href="/mentions-legales">Mentions légales</Link><Link href="/contact">Contact</Link><Link href="/faq">FAQ</Link></nav>
       </footer>
     </main>
   );
@@ -247,7 +231,9 @@ button { font: inherit; }
 .nav a:hover:after { transform: scaleX(1); }
 .actions { display: flex; align-items: center; gap: .65rem; }
 .icon-link { display: grid; place-items: center; width: 2.3rem; height: 2.3rem; border-radius: 999px; font: 700 1.8rem/1 var(--hand); }
-.cart { display: inline-flex; align-items: center; gap: .52rem; min-height: 2.65rem; padding: .65rem .92rem; border: 2px solid var(--ink); border-radius: 999px; background: #fff; font-weight: 800; }
+.customer-login-link { display: inline-flex; align-items: center; justify-content: center; min-height: 2.65rem; padding: .65rem .92rem; border: 1.5px solid var(--ink); border-radius: 999px; background: #fff; font-size: .78rem; font-weight: 800; white-space: nowrap; }
+.customer-login-link:hover { background: #fff1ef; }
+.cart { display: inline-flex; align-items: center; gap: .52rem; min-height: 2.65rem; padding: .65rem .92rem; border: 2px solid var(--ink); border-radius: 999px; background: #fff; color: var(--ink); font-weight: 800; cursor: pointer; }
 .cart b { display: grid; place-items: center; min-width: 1.35rem; height: 1.35rem; border-radius: 999px; background: var(--coral); color: white; font-size: .72rem; }
 .hero {
   width: min(1540px, 100%);
@@ -387,8 +373,8 @@ mark { display: inline-block; color: inherit; background: linear-gradient(90deg,
 .product-card { padding: .65rem; border-radius: 1.35rem; background: rgba(255,255,255,.72); box-shadow: 0 18px 44px rgba(48,30,18,.08); }
 .product-visual { display: grid; place-items: center; min-height: 170px; border-radius: 1rem; background: linear-gradient(135deg, var(--pink), #fff5e8); color: var(--muted); text-align: center; font-weight: 700; }
 .product-card h3 { margin: .85rem .25rem .45rem; font-size: .92rem; }
-.product-bottom { display: flex; align-items: center; justify-content: space-between; padding: .25rem; }
-.product-bottom button { border: 0; border-radius: 999px; background: var(--coral); color: #fff; padding: .65rem .8rem; font-weight: 800; cursor: pointer; }
+.product-bottom { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .25rem; }
+.product-bottom a { border-radius: 999px; background: var(--coral); color: #fff; padding: .65rem .8rem; font-size: .76rem; font-weight: 800; white-space: nowrap; }
 .podcast { width: min(1360px, calc(100% - 2rem)); margin: 0 auto 3.2rem; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 2rem; padding: clamp(1.6rem, 3vw, 2.5rem); border-radius: 2.2rem; background: linear-gradient(135deg, #ffdcd7, #fff3ec); box-shadow: var(--shadow); }
 .podcast p:last-child { max-width: 620px; line-height: 1.65; color: #202636; }
 .footer { width: min(1360px, calc(100% - 2rem)); margin: 0 auto; padding: 2.5rem 0 3rem; display: grid; grid-template-columns: auto 1fr auto; align-items: end; gap: 1.5rem; }
@@ -410,7 +396,7 @@ mark { display: inline-block; color: inherit; background: linear-gradient(90deg,
   .header { position: relative; padding: .75rem 1rem; }
   .logo { width: 96px; min-width: 96px; }
   .actions { gap: .3rem; }
-  .icon-link { display: none; }
+  .icon-link, .customer-login-link { display: none; }
   .cart span { display: none; }
   .hero { padding: 2rem 1rem 1.2rem; gap: 1.2rem; }
   .eyebrow { font-size: 1.08rem; }
