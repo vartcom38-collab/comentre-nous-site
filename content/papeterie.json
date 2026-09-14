@@ -1,12 +1,13 @@
 {
   "hero": {
     "eyebrow": "La papeterie",
-    "title": "Des outils doux pour s’organiser, créer et profiter du quotidien",
-    "intro": "Des journaux, des recharges, des to-do lists et des pages à imprimer pour t’accompagner dans une organisation plus sereine, plus créative et plus alignée avec ce qui compte vraiment.",
-    "buttonLabel": "Découvrir la papeterie"
+    "title": "Des outils pour s’organiser, créer et profiter du quotidien",
+    "intro": "Des bujos, des recharges, des to-do lists et des pages à imprimer pour t’accompagner dans une organisation plus sereine, plus créative et plus alignée avec ce qui compte vraiment.",
+    "buttonLabel": "Découvrir la papeterie",
+    "image": ""
   },
   "tabs": [
-    { "id": "journaux", "label": "Journaux", "icon": "▣", "description": "Carnets et journaux pour poser tes idées et garder une trace de ce qui compte.", "visible": true, "order": 1 },
+    { "id": "bujo", "label": "Bullet journal / Bujo", "icon": "▣", "description": "Bullet journals et bujos pour organiser tes idées, tes semaines et garder une trace de ce qui compte.", "visible": true, "order": 1 },
     { "id": "recharges", "label": "Recharges", "icon": "▤", "description": "Pages et fiches à glisser, imprimer ou renouveler au fil de tes besoins.", "visible": true, "order": 2 },
     { "id": "organisation", "label": "Organisation", "icon": "▦", "description": "To-do, habitudes, semaines et petits outils pour alléger la charge mentale.", "visible": true, "order": 3 },
     { "id": "coffrets", "label": "Coffrets", "icon": "□", "description": "Des ensembles pensés pour offrir ou démarrer avec tout ce qu’il faut.", "visible": true, "order": 4 }
