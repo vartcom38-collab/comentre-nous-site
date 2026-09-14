@@ -37,8 +37,6 @@ for (const asset of assets) {
   console.log(`Downloaded ${asset.name} (${bytes.length} bytes)`);
 }
 
-// One-time full-resolution founders portrait. It is copied into the static export
-// and uploaded to Infomaniak as a normal binary JPEG.
 const foundersUrl = 'https://pikaso.cdnpk.net/private/production/5442437369/3587832354.jpg?token=exp=1789776000~hmac=d1d47e2c94d3062cff280fa2a66bd4cd1321f99ca8b706fb2ce6b15d921bd7c4';
 const foundersResponse = await fetch(foundersUrl);
 if (!foundersResponse.ok) {
@@ -50,7 +48,6 @@ await mkdir(uploadsDir, { recursive: true });
 await writeFile(path.join(uploadsDir, 'marion-aurelie-founders-hq.jpg'), foundersBytes);
 console.log(`Downloaded marion-aurelie-founders-hq.jpg (${foundersBytes.length} bytes)`);
 
-// High-resolution hero visual for Com' en famille.
 const familyHeroUrl = 'https://pikaso.cdnpk.net/private/production/5442987590/3588110698.png?token=exp=1789776000~hmac=5ff677654f204d5036862879c9f0337facf4385e4a6daa631049b06a210c0db7';
 const familyHeroResponse = await fetch(familyHeroUrl);
 if (!familyHeroResponse.ok) {
@@ -60,7 +57,6 @@ const familyHeroBytes = Buffer.from(await familyHeroResponse.arrayBuffer());
 await writeFile(path.join(uploadsDir, 'family-hero-com-en-famille.png'), familyHeroBytes);
 console.log(`Downloaded family-hero-com-en-famille.png (${familyHeroBytes.length} bytes)`);
 
-// Illustrated Com' en famille characters used beside the “les mots créent des liens” block.
 const familyCharactersUrl = 'https://pikaso.cdnpk.net/private/production/5443150074/3588191483.png?token=exp=1789776000~hmac=5eb85a2459e11164cd38bd912486f8242b39c73ef7950db5ca13d17e227aa5f8';
 const familyCharactersResponse = await fetch(familyCharactersUrl);
 if (!familyCharactersResponse.ok) {
@@ -69,3 +65,12 @@ if (!familyCharactersResponse.ok) {
 const familyCharactersBytes = Buffer.from(await familyCharactersResponse.arrayBuffer());
 await writeFile(path.join(uploadsDir, 'family-characters-link.png'), familyCharactersBytes);
 console.log(`Downloaded family-characters-link.png (${familyCharactersBytes.length} bytes)`);
+
+const entrepreneurHeroUrl = 'https://pikaso.cdnpk.net/private/production/5443742005/3588487672.png?token=exp=1789776000~hmac=079b1d92a0f0192ee443ded06f349ed5deffa40dad9df51d7250a35e29646e61';
+const entrepreneurHeroResponse = await fetch(entrepreneurHeroUrl);
+if (!entrepreneurHeroResponse.ok) {
+  throw new Error(`Unable to fetch entrepreneurs hero: ${entrepreneurHeroResponse.status} ${entrepreneurHeroResponse.statusText}`);
+}
+const entrepreneurHeroBytes = Buffer.from(await entrepreneurHeroResponse.arrayBuffer());
+await writeFile(path.join(uploadsDir, 'entrepreneurs-hero-com-murmure.png'), entrepreneurHeroBytes);
+console.log(`Downloaded entrepreneurs-hero-com-murmure.png (${entrepreneurHeroBytes.length} bytes)`);
