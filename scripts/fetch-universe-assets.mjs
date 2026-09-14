@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile, readFile } from 'node:fs/promises';
 import path from 'node:path';
 
 const assets = [
@@ -36,3 +36,17 @@ for (const asset of assets) {
   await writeFile(path.join(publicDir, asset.name), bytes);
   console.log(`Downloaded ${asset.name} (${bytes.length} bytes)`);
 }
+
+// Rebuild the founders portrait from repository-safe base64 chunks.
+const foundersChunkDir = path.join(process.cwd(), 'assets', 'founders-photo');
+const foundersBase64 = (
+  await Promise.all(
+    ['hq0.txt', 'hq1.txt', 'hq2.txt'].map((name) =>
+      readFile(path.join(foundersChunkDir, name), 'utf8')
+    )
+  )
+).join('').replace(/\s+/g, '');
+const foundersBytes = Buffer.from(foundersBase64, 'base64');
+await mkdir(path.join(publicDir, 'uploads'), { recursive: true });
+await writeFile(path.join(publicDir, 'uploads', 'marion-aurelie-home-hd.webp'), foundersBytes);
+console.log(`Built marion-aurelie-home-hd.webp (${foundersBytes.length} bytes)`);
