@@ -22,7 +22,7 @@ export default function FamilyPage() {
             </div>
           </div>
           <div className="family-hero-visual">
-            <img src="/universe-family-hd.png" alt="Un moment complice en famille" />
+            <img src="/uploads/family-hero-com-en-famille.png?v=1" alt="Un moment complice en famille autour de cartes d’émotions" />
             <span className="family-note">Des petits outils<br />pour de grands échanges ♡</span>
             <div className="family-bubble"><span>Écouter</span><span>Exprimer</span><span>Partager</span><span>Grandir</span></div>
           </div>
