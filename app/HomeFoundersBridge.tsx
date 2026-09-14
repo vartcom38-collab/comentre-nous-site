@@ -24,7 +24,7 @@ export default function HomeFoundersBridge(){
         <a class="home-founders-link" href="/a-propos">Faire connaissance avec nous →</a>
       </div>
       <div class="home-founders-side">
-        <img class="home-founders-photo" src="/uploads/marion-aurelie-home-sharp.jpg?v=5" alt="Marion et Aurélie, fondatrices de Com’ entre nous" />
+        <img class="home-founders-photo" src="/uploads/marion-aurelie-home-final.jpg?v=6" alt="Marion et Aurélie, fondatrices de Com’ entre nous" />
         <span class="home-founders-star" aria-hidden="true">✦</span>
       </div>
     `;
