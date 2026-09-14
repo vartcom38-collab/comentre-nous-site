@@ -59,3 +59,13 @@ if (!familyHeroResponse.ok) {
 const familyHeroBytes = Buffer.from(await familyHeroResponse.arrayBuffer());
 await writeFile(path.join(uploadsDir, 'family-hero-com-en-famille.png'), familyHeroBytes);
 console.log(`Downloaded family-hero-com-en-famille.png (${familyHeroBytes.length} bytes)`);
+
+// Illustrated Com' en famille characters used beside the “les mots créent des liens” block.
+const familyCharactersUrl = 'https://pikaso.cdnpk.net/private/production/5443150074/3588191483.png?token=exp=1789776000~hmac=5eb85a2459e11164cd38bd912486f8242b39c73ef7950db5ca13d17e227aa5f8';
+const familyCharactersResponse = await fetch(familyCharactersUrl);
+if (!familyCharactersResponse.ok) {
+  throw new Error(`Unable to fetch family characters: ${familyCharactersResponse.status} ${familyCharactersResponse.statusText}`);
+}
+const familyCharactersBytes = Buffer.from(await familyCharactersResponse.arrayBuffer());
+await writeFile(path.join(uploadsDir, 'family-characters-link.png'), familyCharactersBytes);
+console.log(`Downloaded family-characters-link.png (${familyCharactersBytes.length} bytes)`);
