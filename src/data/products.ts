@@ -3,6 +3,20 @@ import wooLinksJson from '../../content/woo-links.json';
 
 const wooLinks = wooLinksJson as Record<string, number>;
 
+export type PurchaseOption = {
+  id: string;
+  label: string;
+  kind: 'digital' | 'physical' | 'external';
+  channel: 'woo' | 'amazon' | 'stripe' | 'external';
+  price?: string;
+  compareAtPrice?: string;
+  buttonLabel?: string;
+  url?: string;
+  format?: string;
+  note?: string;
+  downloadKey?: string;
+};
+
 export type Product = {
   id: string;
   slug: string;
@@ -30,6 +44,7 @@ export type Product = {
   amazonUrl?: string;
   stripeUrl?: string;
   externalUrl?: string;
+  purchaseOptions?: PurchaseOption[];
   paymentNote?: string;
   workflowStatus?: 'draft' | 'ready' | 'published' | 'hidden' | 'archived';
   color: string;
@@ -50,6 +65,7 @@ export type Product = {
 
 export const allProducts: Product[] = (catalog as Omit<Product, 'description' | 'wooProductId'>[]).map((product) => ({
   ...product,
+  purchaseOptions: Array.isArray(product.purchaseOptions) ? product.purchaseOptions : [],
   description: product.shortDescription || product.tagline || '',
   wooProductId: product.purchaseChannel === 'woo' ? (wooLinks[product.id] || undefined) : undefined,
 }));
@@ -69,4 +85,23 @@ export function getPurchaseUrl(product: Product) {
   if (product.purchaseChannel === 'stripe') return product.stripeUrl || product.buyUrl;
   if (product.purchaseChannel === 'external') return product.externalUrl || product.buyUrl;
   return product.buyUrl;
+}
+
+export function getPurchaseOptions(product: Product): PurchaseOption[] {
+  if (product.purchaseOptions?.length) return product.purchaseOptions;
+
+  const legacyUrl = getPurchaseUrl(product);
+  if (!legacyUrl || !product.purchaseChannel || product.purchaseChannel === 'none') return [];
+
+  return [{
+    id: `${product.id}-legacy`,
+    label: product.deliveryType === 'digital' ? 'Version numérique' : 'Version papier',
+    kind: product.deliveryType === 'digital' ? 'digital' : 'physical',
+    channel: product.purchaseChannel === 'woo' ? 'woo' : product.purchaseChannel,
+    price: product.price,
+    compareAtPrice: product.compareAtPrice,
+    buttonLabel: product.buyLabel || 'Acheter',
+    url: legacyUrl,
+    format: product.format,
+  }];
 }
