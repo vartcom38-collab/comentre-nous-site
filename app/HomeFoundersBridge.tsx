@@ -24,7 +24,7 @@ export default function HomeFoundersBridge(){
         <a class="home-founders-link" href="/a-propos">Faire connaissance avec nous →</a>
       </div>
       <div class="home-founders-side">
-        <img class="home-founders-photo" src="/uploads/marion-aurelie-home-final.jpg?v=2" alt="Marion et Aurélie, fondatrices de Com’ entre nous" />
+        <img class="home-founders-photo" src="/uploads/marion-aurelie-home-final.jpg?v=3" alt="Marion et Aurélie, fondatrices de Com’ entre nous" />
         <span class="home-founders-star" aria-hidden="true">✦</span>
       </div>
     `;
@@ -43,11 +43,10 @@ export default function HomeFoundersBridge(){
         .home-page .home-founders-text{max-width:680px;margin:1.2rem 0 1.6rem;color:#343846;font-size:clamp(.96rem,1.1vw,1.08rem);line-height:1.75}
         .home-page .home-founders-link{display:inline-flex;align-items:center;min-height:3rem;padding:.82rem 1.18rem;border:2px solid var(--ink);border-radius:999px;background:rgba(255,255,255,.72);font-weight:800;transition:transform .18s ease,background .18s ease}
         .home-page .home-founders-link:hover{transform:translateY(-2px);background:#fff}
-        .home-page .home-founders-side{position:relative;min-height:330px;border-radius:2rem;overflow:hidden;background:#fff;box-shadow:0 18px 45px rgba(48,30,18,.12);transform:rotate(.45deg)}
-        .home-page .home-founders-photo{display:block;width:100%;height:100%;min-height:330px;object-fit:cover;object-position:center;transition:transform .35s ease}
-        .home-page .home-founders-block:hover .home-founders-photo{transform:scale(1.018)}
+        .home-page .home-founders-side{position:relative;min-height:330px;border-radius:2rem;overflow:hidden;background:#fff;box-shadow:0 18px 45px rgba(48,30,18,.12);aspect-ratio:4/3}
+        .home-page .home-founders-photo{display:block;width:100%;height:100%;object-fit:cover;object-position:center;image-rendering:auto;backface-visibility:hidden}
         .home-page .home-founders-star{position:absolute;right:1.1rem;top:.9rem;display:grid;place-items:center;width:2.7rem;height:2.7rem;border-radius:999px;background:rgba(255,255,255,.88);font-size:1.55rem;box-shadow:0 8px 24px rgba(48,30,18,.12);transform:rotate(10deg)}
-        @media(max-width:820px){.home-page .home-founders-block{grid-template-columns:1fr}.home-page .home-founders-side{min-height:0;aspect-ratio:4/3}.home-page .home-founders-photo{min-height:0;aspect-ratio:4/3}.home-page .home-founders-note h2{font-size:3.5rem}}
+        @media(max-width:820px){.home-page .home-founders-block{grid-template-columns:1fr}.home-page .home-founders-side{min-height:0;aspect-ratio:4/3}.home-page .home-founders-note h2{font-size:3.5rem}}
       `;
       document.head.appendChild(style);
     }
