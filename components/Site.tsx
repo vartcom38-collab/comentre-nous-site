@@ -6,14 +6,28 @@ import { products, Product } from '@/src/data/products';
 
 export function Logo() {
   return (
-    <Link className="logo" href="/" aria-label="Accueil Com' entre nous">
-      <span>Com’</span><span>entre</span><span>nous</span><i>♥</i>
+    <Link className="shared-logo" href="/" aria-label="Accueil Com' entre nous">
+      <img src="/logo-comentre-nous.svg?v=transparent-final-20260907" alt="Com’ entre nous" />
     </Link>
   );
 }
 
 export function Header() {
-  return <header className="site-header"><Logo /><nav aria-label="Navigation principale">{navItems.map((item) => <Link key={item.href} href={item.href}>{item.label}</Link>)}</nav><div className="site-header-actions"><Link className="shop-pill account-pill" href="/mon-espace" aria-label="Se connecter à son espace cliente">Se connecter</Link><Link className="shop-pill" href="/boutique">Boutique</Link><button type="button" className="shop-pill cart-pill" data-woo-cart-toggle aria-label="Ouvrir le panier">Panier <span data-woo-cart-count>0</span></button></div></header>;
+  return (
+    <header className="shared-header">
+      <Logo />
+      <nav className="shared-nav" aria-label="Navigation principale">
+        {navItems.map((item) => <Link key={item.href} href={item.href}>{item.label}</Link>)}
+      </nav>
+      <div className="shared-actions">
+        <Link href="/boutique" aria-label="Recherche" className="shared-search">⌕</Link>
+        <Link className="shared-login" href="/mon-espace" aria-label="Se connecter à son espace cliente">Se connecter</Link>
+        <button type="button" className="shared-cart" data-woo-cart-toggle aria-label="Ouvrir le panier">
+          <span>Panier</span><b data-woo-cart-count>0</b>
+        </button>
+      </div>
+    </header>
+  );
 }
 
 export function Footer() {
@@ -24,10 +38,19 @@ export function Footer() {
     { label: footer.spotifyLabel, url: footer.spotifyUrl },
   ];
   return (
-    <footer className="footer">
-      <div className="footer-brand"><Logo /><p>{footer.tagline}</p></div>
-      <div className="footer-links">{navItems.map((item) => <Link key={item.href} href={item.href}>{item.label}</Link>)}<Link href="/mon-espace">Se connecter</Link><Link href="/mentions-legales">Mentions légales</Link><Link href="/contact">Contact</Link><Link href="/faq">FAQ</Link></div>
-      <div className="socials">{socialLinks.map((item) => item.url ? <a key={item.label} href={item.url} target="_blank" rel="noreferrer">{item.label}</a> : <span key={item.label}>{item.label}</span>)}</div>
+    <footer className="shared-footer">
+      <div className="shared-footer-brand">
+        <Link href="/" aria-label="Accueil Com’ entre nous"><img src="/logo-comentre-nous.svg?v=transparent-final-20260907" alt="Com’ entre nous" /></Link>
+        <p>{footer.tagline}</p>
+      </div>
+      <div className="shared-footer-links">
+        {navItems.map((item) => <Link key={item.href} href={item.href}>{item.label}</Link>)}
+        <Link href="/mon-espace">Se connecter</Link>
+        <Link href="/mentions-legales">Mentions légales</Link>
+        <Link href="/contact">Contact</Link>
+        <Link href="/faq">FAQ</Link>
+      </div>
+      <div className="shared-socials">{socialLinks.map((item) => item.url ? <a key={item.label} href={item.url} target="_blank" rel="noreferrer">{item.label}</a> : <span key={item.label}>{item.label}</span>)}</div>
     </footer>
   );
 }
