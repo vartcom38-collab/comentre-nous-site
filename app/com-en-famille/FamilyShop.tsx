@@ -12,6 +12,13 @@ function priceValue(value: string) {
   return Number.isFinite(number) ? number : 0;
 }
 
+function stockLabel(product: Product) {
+  if (product.stockStatus === 'available') return 'Disponible';
+  if (product.stockStatus === 'preorder') return 'Précommande';
+  if (product.stockStatus === 'out') return 'Rupture';
+  return '';
+}
+
 export default function FamilyShop({ items }: { items: Product[] }) {
   const [sort, setSort] = useState<SortKey>('newest');
   const [type, setType] = useState('Tous');
@@ -31,9 +38,9 @@ export default function FamilyShop({ items }: { items: Product[] }) {
     <section className="family-shop" id="collection">
       <div className="family-shop-head">
         <div>
-          <p className="family-eyebrow">La collection</p>
-          <h2>Les outils Com’ en famille</h2>
-          <p>Cette sélection se remplit automatiquement avec les fiches produits publiées dans l’univers Com’ en famille.</p>
+          <p className="family-eyebrow">La boutique Com’ en famille</p>
+          <h2>Des outils à choisir selon votre quotidien.</h2>
+          <p>Cartes, carnets, kits et supports : seules les fiches produits publiées dans l’univers Com’ en famille apparaissent ici.</p>
         </div>
         <div className="family-sort">
           <label htmlFor="family-sort">Trier par</label>
@@ -56,28 +63,44 @@ export default function FamilyShop({ items }: { items: Product[] }) {
 
       {visible.length ? (
         <div className="family-product-grid">
-          {visible.map((product) => (
-            <article className="family-product-card" key={product.id}>
-              <Link href={`/produits/${product.slug}`} className={`family-product-image ${product.color || ''}`}>
-                {product.image ? <img src={product.image} alt={product.title} /> : <span className="family-product-placeholder">♡</span>}
-                {product.new ? <em>Nouveau</em> : null}
-              </Link>
-              <div className="family-product-copy">
-                <p>{product.type}{product.age ? ` · ${product.age}` : ''}</p>
-                <h3><Link href={`/produits/${product.slug}`}>{product.title}</Link></h3>
-                <div className="family-product-bottom">
-                  <strong>{product.price || 'Prix à venir'}</strong>
-                  <Link href={`/produits/${product.slug}`}>Voir la fiche →</Link>
+          {visible.map((product) => {
+            const availability = stockLabel(product);
+            return (
+              <article className="family-product-card" key={product.id}>
+                <Link href={`/produits/${product.slug}`} className={`family-product-image ${product.color || ''}`}>
+                  {product.image ? <img src={product.image} alt={product.title} /> : <span className="family-product-placeholder"><small>{product.type}</small><b>{product.title}</b><i>♡</i></span>}
+                  <div className="family-product-badges">
+                    {product.badge ? <em>{product.badge}</em> : product.new ? <em>Nouveau</em> : null}
+                    {availability ? <span>{availability}</span> : null}
+                  </div>
+                </Link>
+
+                <div className="family-product-copy">
+                  <p className="family-product-meta">{product.type}{product.age ? ` · ${product.age}` : ''}</p>
+                  <h3><Link href={`/produits/${product.slug}`}>{product.title}</Link></h3>
+                  {(product.shortDescription || product.tagline) ? <p className="family-product-description">{product.shortDescription || product.tagline}</p> : null}
+
+                  <div className="family-product-price-row">
+                    <div className="family-product-price">
+                      <strong>{product.price || 'Prix à venir'}</strong>
+                      {product.compareAtPrice ? <del>{product.compareAtPrice}</del> : null}
+                    </div>
+                    {product.format ? <span className="family-product-format">{product.format}</span> : null}
+                  </div>
+
+                  <Link href={`/produits/${product.slug}`} className="family-product-cta">
+                    Découvrir la fiche <span>→</span>
+                  </Link>
                 </div>
-              </div>
-            </article>
-          ))}
+              </article>
+            );
+          })}
         </div>
       ) : (
         <div className="family-empty-shop">
           <span>♡</span>
           <h3>Les prochains outils arrivent ici.</h3>
-          <p>Dès qu’une fiche produit Com’ en famille est publiée, elle apparaît automatiquement dans cette collection.</p>
+          <p>Dès qu’une fiche produit Com’ en famille est publiée, elle apparaît automatiquement dans cette boutique.</p>
         </div>
       )}
     </section>
