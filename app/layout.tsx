@@ -30,6 +30,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <HomeFoundersBridge />
         {children}
         <script src="/woo-cart.js" defer />
+        <script src="/family-character-bridge.js" defer />
         <script src="/admin-github-write-queue.js" defer />
         <script src="/admin-podcast-conflict-retry.js" defer />
         <script src="/admin-content-conflict-retry.js" defer />
