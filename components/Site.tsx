@@ -41,7 +41,6 @@ export function Footer() {
     <footer className="shared-footer">
       <div className="shared-footer-brand">
         <Link href="/" aria-label="Accueil Com’ entre nous"><img src="/logo-comentre-nous.svg?v=transparent-final-20260907" alt="Com’ entre nous" /></Link>
-        <p>{footer.tagline}</p>
       </div>
       <div className="shared-footer-links">
         {navItems.map((item) => <Link key={item.href} href={item.href}>{item.label}</Link>)}
