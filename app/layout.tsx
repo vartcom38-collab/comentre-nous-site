@@ -11,6 +11,7 @@ import './universe-polish.css';
 import './site-responsive.css';
 import './mobile-menu.css';
 import './footer-cleanup.css';
+import './shared-shell.css';
 
 export const metadata: Metadata = {
   title: "Com' entre nous — Des outils pour créer du lien",
