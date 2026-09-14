@@ -24,7 +24,12 @@ export default function HomeFoundersBridge(){
         <a class="home-founders-link" href="/a-propos">Faire connaissance avec nous →</a>
       </div>
       <div class="home-founders-side">
-        <img class="home-founders-photo" src="/uploads/marion-aurelie-home-net.jpg?v=7" alt="Marion et Aurélie, fondatrices de Com’ entre nous" />
+        <svg class="home-founders-filter" aria-hidden="true" width="0" height="0">
+          <filter id="home-founders-sharpen" x="-10%" y="-10%" width="120%" height="120%">
+            <feConvolveMatrix order="3" kernelMatrix="0 -0.35 0 -0.35 2.4 -0.35 0 -0.35 0" divisor="1" preserveAlpha="true"/>
+          </filter>
+        </svg>
+        <img class="home-founders-photo" src="/uploads/marion-aurelie-home-final.jpg?v=8" alt="Marion et Aurélie, fondatrices de Com’ entre nous" />
         <span class="home-founders-star" aria-hidden="true">✦</span>
       </div>
     `;
@@ -44,7 +49,8 @@ export default function HomeFoundersBridge(){
         .home-page .home-founders-link{display:inline-flex;align-items:center;min-height:3rem;padding:.82rem 1.18rem;border:2px solid var(--ink);border-radius:999px;background:rgba(255,255,255,.72);font-weight:800;transition:transform .18s ease,background .18s ease}
         .home-page .home-founders-link:hover{transform:translateY(-2px);background:#fff}
         .home-page .home-founders-side{position:relative;min-height:330px;border-radius:2rem;overflow:hidden;background:#fff;box-shadow:0 18px 45px rgba(48,30,18,.12);aspect-ratio:4/3}
-        .home-page .home-founders-photo{display:block;width:100%;height:100%;object-fit:cover;object-position:center;image-rendering:auto;backface-visibility:hidden}
+        .home-page .home-founders-filter{position:absolute;pointer-events:none}
+        .home-page .home-founders-photo{display:block;width:100%;height:100%;object-fit:cover;object-position:center;image-rendering:auto;backface-visibility:hidden;filter:url(#home-founders-sharpen) contrast(1.03) saturate(1.02)}
         .home-page .home-founders-star{position:absolute;right:1.1rem;top:.9rem;display:grid;place-items:center;width:2.7rem;height:2.7rem;border-radius:999px;background:rgba(255,255,255,.88);font-size:1.55rem;box-shadow:0 8px 24px rgba(48,30,18,.12);transform:rotate(10deg)}
         @media(max-width:820px){.home-page .home-founders-block{grid-template-columns:1fr}.home-page .home-founders-side{min-height:0;aspect-ratio:4/3}.home-page .home-founders-note h2{font-size:3.5rem}}
       `;
