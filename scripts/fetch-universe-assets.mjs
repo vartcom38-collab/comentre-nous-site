@@ -49,3 +49,13 @@ const uploadsDir = path.join(publicDir, 'uploads');
 await mkdir(uploadsDir, { recursive: true });
 await writeFile(path.join(uploadsDir, 'marion-aurelie-founders-hq.jpg'), foundersBytes);
 console.log(`Downloaded marion-aurelie-founders-hq.jpg (${foundersBytes.length} bytes)`);
+
+// High-resolution hero visual for Com' en famille.
+const familyHeroUrl = 'https://pikaso.cdnpk.net/private/production/5442987590/3588110698.png?token=exp=1789776000~hmac=5ff677654f204d5036862879c9f0337facf4385e4a6daa631049b06a210c0db7';
+const familyHeroResponse = await fetch(familyHeroUrl);
+if (!familyHeroResponse.ok) {
+  throw new Error(`Unable to fetch family hero: ${familyHeroResponse.status} ${familyHeroResponse.statusText}`);
+}
+const familyHeroBytes = Buffer.from(await familyHeroResponse.arrayBuffer());
+await writeFile(path.join(uploadsDir, 'family-hero-com-en-famille.png'), familyHeroBytes);
+console.log(`Downloaded family-hero-com-en-famille.png (${familyHeroBytes.length} bytes)`);
