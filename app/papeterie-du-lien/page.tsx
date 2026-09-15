@@ -15,7 +15,7 @@ export default function PaperPage(){
         <a href="#collection" className="paper-primary">{paper.hero.buttonLabel} →</a>
       </div>
       <div className="paper-photo">
-        <img src="/api/papeterie-hero" alt="Papeterie Com’ entre nous : bujo, carnet et fournitures créatives"/>
+        <img src="/papeterie-hero.webp" alt="Papeterie Com’ entre nous : bujo, carnet et fournitures créatives"/>
       </div>
     </section>
 
