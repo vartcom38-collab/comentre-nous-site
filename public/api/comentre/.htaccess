@@ -1,0 +1,5 @@
+<FilesMatch "^(_runtime|_bootstrap)\.php$">
+  Require all denied
+</FilesMatch>
+
+Options -Indexes
