@@ -21,9 +21,8 @@ $address2 = cleanText($address['address2'] ?? '', 190);
 $postalCode = cleanText($address['postalCode'] ?? '', 30);
 $city = cleanText($address['city'] ?? '', 120);
 $region = cleanText($address['region'] ?? '', 120);
-$country = cleanText($address['country'] ?? '', 120);
-$countryCode = strtoupper(cleanText($address['countryCode'] ?? '', 2));
-$shippingMethod = cleanText($data['shippingMethod'] ?? 'standard', 120);
+$country = cleanText($address['country'] ?? 'France', 100);
+$shippingMethod = cleanText($data['shippingMethod'] ?? 'standard', 100);
 $currency = strtoupper(cleanText($data['currency'] ?? 'EUR', 3));
 $customerNote = cleanText($data['customerNote'] ?? '', 2000);
 
@@ -37,13 +36,13 @@ foreach ($items as $item) {
     if (!is_array($item)) respond(['ok' => false, 'error' => 'invalid_item'], 422);
     $productId = cleanText($item['productId'] ?? '', 120);
     $title = cleanText($item['title'] ?? '', 255);
-    $sku = cleanText($item['sku'] ?? '', 120);
+    $productType = cleanText($item['productType'] ?? '', 120);
     $quantity = max(1, min(99, (int)($item['quantity'] ?? 1)));
     $unitPrice = round((float)($item['unitPrice'] ?? 0), 2);
     if ($productId === '' || $title === '' || $unitPrice < 0) respond(['ok' => false, 'error' => 'invalid_item'], 422);
     $lineTotal = round($unitPrice * $quantity, 2);
     $subtotal += $lineTotal;
-    $normalizedItems[] = compact('productId','title','sku','quantity','unitPrice','lineTotal');
+    $normalizedItems[] = compact('productId','title','productType','quantity','unitPrice','lineTotal');
 }
 
 $shippingAmount = max(0, round((float)($data['shippingAmount'] ?? 0), 2));
@@ -52,15 +51,15 @@ $orderNumber = 'PAP-' . date('ymd') . '-' . strtoupper(bin2hex(random_bytes(3)))
 
 try {
     $pdo->beginTransaction();
-    $stmt = $pdo->prepare('INSERT INTO orders (order_number, customer_email, customer_first_name, customer_last_name, customer_phone, shipping_address1, shipping_address2, shipping_postal_code, shipping_city, shipping_region, shipping_country, shipping_country_code, shipping_method, shipping_amount, subtotal_amount, total_amount, currency, customer_note, fulfillment_owner) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
-    $stmt->execute([$orderNumber,$email,$firstName,$lastName,$phone ?: null,$address1,$address2 ?: null,$postalCode,$city,$region ?: null,$country,$countryCode ?: null,$shippingMethod,$shippingAmount,$subtotal,$total,$currency,$customerNote ?: null,'aurelie']);
+    $stmt = $pdo->prepare('INSERT INTO orders (order_number, customer_email, customer_first_name, customer_last_name, customer_phone, shipping_address1, shipping_address2, shipping_postcode, shipping_city, shipping_region, shipping_country, shipping_method, shipping_amount, subtotal_amount, total_amount, currency, customer_note, fulfillment_owner) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
+    $stmt->execute([$orderNumber,$email,$firstName,$lastName,$phone ?: null,$address1,$address2 ?: null,$postalCode,$city,$region ?: null,$country,$shippingMethod,$shippingAmount,$subtotal,$total,$currency,$customerNote ?: null,'aurelie']);
     $orderId = (int)$pdo->lastInsertId();
 
-    $itemStmt = $pdo->prepare('INSERT INTO order_items (order_id, product_id, product_title, sku, quantity, unit_price, line_total, fulfillment_owner) VALUES (?,?,?,?,?,?,?,?)');
+    $itemStmt = $pdo->prepare('INSERT INTO order_items (order_id, product_id, product_title, product_type, quantity, unit_price, line_total, fulfillment_owner, fulfillment_type) VALUES (?,?,?,?,?,?,?,?,?)');
     foreach ($normalizedItems as $item) {
-        $itemStmt->execute([$orderId,$item['productId'],$item['title'],$item['sku'] ?: null,$item['quantity'],$item['unitPrice'],$item['lineTotal'],'aurelie']);
+        $itemStmt->execute([$orderId,$item['productId'],$item['title'],$item['productType'] ?: null,$item['quantity'],$item['unitPrice'],$item['lineTotal'],'aurelie','aurelie']);
     }
-    $pdo->prepare('INSERT INTO order_status_history (order_id,status,note) VALUES (?,?,?)')->execute([$orderId,'new','Commande créée']);
+    $pdo->prepare('INSERT INTO order_status_history (order_id,status,message,visible_to_customer) VALUES (?,?,?,1)')->execute([$orderId,'new','Commande créée']);
     $pdo->commit();
 
     if (!empty($config['aurelie_order_email'])) {
