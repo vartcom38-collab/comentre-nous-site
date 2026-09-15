@@ -1,0 +1,61 @@
+CREATE TABLE IF NOT EXISTS orders (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  order_number VARCHAR(40) NOT NULL UNIQUE,
+  customer_email VARCHAR(190) NOT NULL,
+  customer_first_name VARCHAR(120) NOT NULL,
+  customer_last_name VARCHAR(120) NOT NULL,
+  customer_phone VARCHAR(50) NULL,
+  shipping_address1 VARCHAR(190) NOT NULL,
+  shipping_address2 VARCHAR(190) NULL,
+  shipping_postal_code VARCHAR(30) NOT NULL,
+  shipping_city VARCHAR(120) NOT NULL,
+  shipping_region VARCHAR(120) NULL,
+  shipping_country VARCHAR(120) NOT NULL,
+  shipping_country_code CHAR(2) NULL,
+  shipping_method VARCHAR(120) NOT NULL,
+  shipping_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  subtotal_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  total_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  currency CHAR(3) NOT NULL DEFAULT 'EUR',
+  status ENUM('new','preparing','ready','shipped','cancelled') NOT NULL DEFAULT 'new',
+  payment_status ENUM('pending','paid','failed','refunded') NOT NULL DEFAULT 'pending',
+  fulfillment_owner VARCHAR(40) NOT NULL DEFAULT 'aurelie',
+  carrier VARCHAR(120) NULL,
+  tracking_number VARCHAR(190) NULL,
+  tracking_url VARCHAR(500) NULL,
+  customer_note TEXT NULL,
+  internal_note TEXT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  shipped_at DATETIME NULL,
+  INDEX idx_orders_email (customer_email),
+  INDEX idx_orders_status (status),
+  INDEX idx_orders_owner (fulfillment_owner),
+  INDEX idx_orders_created (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS order_items (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  order_id BIGINT UNSIGNED NOT NULL,
+  product_id VARCHAR(120) NOT NULL,
+  product_title VARCHAR(255) NOT NULL,
+  sku VARCHAR(120) NULL,
+  quantity INT UNSIGNED NOT NULL DEFAULT 1,
+  unit_price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  line_total DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  fulfillment_owner VARCHAR(40) NOT NULL DEFAULT 'aurelie',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_order_items_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+  INDEX idx_items_order (order_id),
+  INDEX idx_items_owner (fulfillment_owner)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS order_status_history (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  order_id BIGINT UNSIGNED NOT NULL,
+  status VARCHAR(40) NOT NULL,
+  note VARCHAR(500) NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_status_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+  INDEX idx_status_order (order_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
