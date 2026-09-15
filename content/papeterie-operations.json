@@ -1,0 +1,32 @@
+{
+  "store": {
+    "name": "La Papeterie Com’ entre nous",
+    "manager": "Aurélie",
+    "contactEmail": "",
+    "contactPhone": "",
+    "orderPrefix": "PAP",
+    "active": true
+  },
+  "fulfillment": {
+    "owner": "aurelie",
+    "preparationDays": 3,
+    "defaultCarrier": "La Poste / Colissimo",
+    "trackingEnabled": true,
+    "customerTrackingMessage": "Ta commande est en préparation. Tu recevras ton numéro de suivi dès son expédition."
+  },
+  "shipping": {
+    "currency": "EUR",
+    "franceEnabled": true,
+    "franceFlatRate": 5.9,
+    "freeShippingThreshold": 60,
+    "europeEnabled": false,
+    "europeFlatRate": 12.9,
+    "pickupEnabled": false,
+    "pickupLabel": "Retrait sur place"
+  },
+  "returns": {
+    "enabled": true,
+    "delayDays": 14,
+    "instructions": "Contacte-nous avant tout retour afin que nous puissions t’indiquer la marche à suivre."
+  }
+}
