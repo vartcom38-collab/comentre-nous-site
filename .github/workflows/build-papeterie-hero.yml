@@ -1,0 +1,38 @@
+name: Build Papeterie hero
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'src/data/papeterieHeroHQ0.txt'
+      - 'src/data/papeterieHeroHQ1.txt'
+      - 'scripts/build-papeterie-hero.mjs'
+      - '.github/workflows/build-papeterie-hero.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  build-hero:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Generate HQ hero asset
+        run: node scripts/build-papeterie-hero.mjs
+
+      - name: Commit generated hero
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/uploads/papeterie-hero.webp content/papeterie.json
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Build: commit HQ Papeterie hero asset"
+            git push origin main
+          fi
