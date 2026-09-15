@@ -1,3 +1,4 @@
+/* Papeterie hero: keep the real image visible; no legacy API/background override. */
 .paper-page .paper-photo{
   position:relative;
   overflow:hidden;
