@@ -6,7 +6,7 @@ import PaperShop from './PaperShop';
 
 export default function PaperPage(){
   const items=products.filter(product=>product.universe==='Papeterie');
-  const heroImage=typeof paper.hero.image==='string'?paper.hero.image:'';
+  const heroImage='/uploads/papeterie-hero.webp?v=20260915-1';
   return <LayoutShell><main className="paper-page"><style>{styles}</style>
     <section className="paper-hero">
       <div className="paper-hero-copy">
@@ -16,7 +16,7 @@ export default function PaperPage(){
         <a href="#collection" className="paper-primary">{paper.hero.buttonLabel} →</a>
       </div>
       <div className="paper-photo">
-        {heroImage?<img src={heroImage} alt="Papeterie Com’ entre nous : bujo, carnet et fournitures créatives"/>:<div className="paper-photo-empty"><span>PHOTO PAPETERIE</span><b>Ajoute la photo depuis l’admin Papeterie</b><small>Elle s’affichera ici automatiquement après enregistrement.</small></div>}
+        <img src={heroImage} alt="Papeterie Com’ entre nous : bujo, carnet et fournitures créatives"/>
       </div>
     </section>
 
