@@ -1,15 +1,11 @@
-.paper-page .paper-photo::before{
-  content:'';
-  position:absolute;
-  inset:0;
-  background-image:url('/api/papeterie-hero');
-  background-size:cover;
-  background-position:center;
-  background-repeat:no-repeat;
-  z-index:2;
+.paper-page .paper-photo{
+  position:relative;
+  overflow:hidden;
 }
-.paper-page .paper-photo>img,
-.paper-page .paper-photo-empty,
-.paper-page .paper-photo-note{
-  display:none!important;
+.paper-page .paper-photo>img{
+  display:block!important;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center;
 }
