@@ -14,6 +14,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       INFOMANIAK_FTP_PASSWORD_VALUE: ${{ secrets.INFOMANIAK_FTP_PASSWORD }}
+      COMENTRE_DB_PASSWORD_VALUE: ${{ secrets.COMENTRE_DB_PASSWORD }}
+      COMENTRE_ORDERS_ADMIN_KEY_VALUE: ${{ secrets.COMENTRE_ORDERS_ADMIN_KEY }}
+      AURELIE_ORDER_EMAIL_VALUE: ${{ secrets.AURELIE_ORDER_EMAIL }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -35,6 +38,33 @@ jobs:
 
       - name: Build static site
         run: npm run build
+
+      - name: Write secure orders runtime config when secrets are available
+        shell: bash
+        run: |
+          mkdir -p out/api/comentre
+          rm -f out/api/comentre/_runtime.php
+          if [ -n "$COMENTRE_DB_PASSWORD_VALUE" ] && [ -n "$COMENTRE_ORDERS_ADMIN_KEY_VALUE" ]; then
+            cat > out/api/comentre/_runtime.php <<PHP
+          <?php
+          return [
+            'db_host' => 'ng43h.myd.infomaniak.com',
+            'db_port' => 3306,
+            'db_name' => 'ng43h__comentrenous',
+            'db_user' => 'ng43h_comentreno',
+            'db_password' => '${COMENTRE_DB_PASSWORD_VALUE}',
+            'admin_key' => '${COMENTRE_ORDERS_ADMIN_KEY_VALUE}',
+            'aurelie_order_email' => '${AURELIE_ORDER_EMAIL_VALUE}',
+            'allowed_origins' => [
+              'https://comentrenous.marionbolomey.fr',
+              'https://cometrenous.marionbolomey.fr'
+            ],
+          ];
+          PHP
+            echo "Orders runtime config created."
+          else
+            echo "Orders backend not activated yet: COMENTRE_DB_PASSWORD and/or COMENTRE_ORDERS_ADMIN_KEY missing."
+          fi
 
       - name: Write deploy version marker
         run: |
