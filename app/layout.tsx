@@ -5,6 +5,7 @@ import HomeContentBridge from './HomeContentBridge';
 import HomeUniverseBridge from './HomeUniverseBridge';
 import HomeNeedsBridge from './HomeNeedsBridge';
 import HomeFoundersBridge from './HomeFoundersBridge';
+import SeasonalDecor from './SeasonalDecor';
 import './globals.css';
 import './font-fix.css';
 import './universe-polish.css';
@@ -15,6 +16,7 @@ import './shared-shell.css';
 import './family-polish.css';
 import './family-shop-polish.css';
 import './papeterie-hero.css';
+import './seasonal-decor.css';
 
 export const metadata: Metadata = {
   title: "Com' entre nous — Des outils pour créer du lien",
@@ -30,6 +32,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <HomeUniverseBridge />
         <HomeNeedsBridge />
         <HomeFoundersBridge />
+        <SeasonalDecor />
         {children}
         <script src="/woo-cart.js" defer />
         <script src="/family-character-bridge.js" defer />
