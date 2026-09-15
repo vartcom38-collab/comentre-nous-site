@@ -8,10 +8,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') respond(['ok' => false, 'error' => 'me
 
 $status = cleanText($_GET['status'] ?? '', 40);
 $params = [];
-$sql = 'SELECT id, order_number, customer_email, customer_first_name, customer_last_name, customer_phone, shipping_address1, shipping_address2, shipping_postal_code, shipping_city, shipping_region, shipping_country, shipping_country_code, shipping_method, shipping_amount, subtotal_amount, total_amount, currency, status, payment_status, fulfillment_owner, carrier, tracking_number, tracking_url, customer_note, internal_note, created_at, updated_at, shipped_at FROM orders WHERE fulfillment_owner = ?';
+$sql = 'SELECT id, order_number, customer_email, customer_first_name, customer_last_name, customer_phone, shipping_address1, shipping_address2, shipping_postcode AS shipping_postal_code, shipping_city, shipping_region, shipping_country, shipping_method, shipping_amount, subtotal_amount, total_amount, currency, order_status AS status, payment_status, fulfillment_owner, carrier, tracking_number, tracking_url, customer_note, internal_note, created_at, updated_at, shipped_at FROM orders WHERE fulfillment_owner = ?';
 $params[] = 'aurelie';
 if ($status !== '') {
-    $sql .= ' AND status = ?';
+    $sql .= ' AND order_status = ?';
     $params[] = $status;
 }
 $sql .= ' ORDER BY created_at DESC LIMIT 200';
@@ -22,7 +22,7 @@ $orders = $stmt->fetchAll();
 if ($orders) {
     $ids = array_map(fn($o) => (int)$o['id'], $orders);
     $placeholders = implode(',', array_fill(0, count($ids), '?'));
-    $itemStmt = $pdo->prepare("SELECT order_id, product_id, product_title, sku, quantity, unit_price, line_total FROM order_items WHERE order_id IN ($placeholders) ORDER BY id ASC");
+    $itemStmt = $pdo->prepare("SELECT order_id, product_id, product_title, NULL AS sku, quantity, unit_price, line_total FROM order_items WHERE order_id IN ($placeholders) ORDER BY id ASC");
     $itemStmt->execute($ids);
     $itemsByOrder = [];
     foreach ($itemStmt->fetchAll() as $item) $itemsByOrder[(int)$item['order_id']][] = $item;
