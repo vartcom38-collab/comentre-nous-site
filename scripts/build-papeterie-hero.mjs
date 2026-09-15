@@ -16,19 +16,9 @@ const base64 = sourceFiles
 
 if (!base64) throw new Error('Image HQ Papeterie introuvable.');
 
-const uploadsDir = path.join(root, 'public', 'uploads');
-fs.mkdirSync(uploadsDir, { recursive: true });
-
-for (const ext of ['webp', 'jpg', 'png']) {
-  const oldFile = path.join(uploadsDir, `papeterie-hero.${ext}`);
-  if (fs.existsSync(oldFile)) fs.unlinkSync(oldFile);
-}
-
-const targetFile = path.join(uploadsDir, 'papeterie-hero.webp');
-fs.writeFileSync(targetFile, Buffer.from(base64, 'base64'));
-
-paper.hero.image = '/uploads/papeterie-hero.webp';
+// Embed the image directly into the generated static HTML.
+// This removes any dependency on FTP paths, MIME types or /uploads serving.
+paper.hero.image = `data:image/webp;base64,${base64}`;
 fs.writeFileSync(paperPath, `${JSON.stringify(paper, null, 2)}\n`);
 
-console.log(`Papeterie hero HQ généré : ${targetFile}`);
-console.log(`Papeterie hero configuré sur : ${paper.hero.image}`);
+console.log(`Papeterie hero HQ intégré directement dans la page (${base64.length} caractères base64).`);
