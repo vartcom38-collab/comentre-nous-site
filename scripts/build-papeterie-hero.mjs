@@ -5,31 +5,25 @@ const root = process.cwd();
 const paperPath = path.join(root, 'content', 'papeterie.json');
 const paper = JSON.parse(fs.readFileSync(paperPath, 'utf8'));
 
-const sourceFiles = [
-  path.join(root, 'src', 'data', 'papeterieHero0.ts'),
-  path.join(root, 'src', 'data', 'papeterieHero1.ts'),
-  path.join(root, 'src', 'data', 'papeterieHero2.ts'),
-];
+const approvedHeroUrl = 'https://pikaso.cdnpk.net/private/production/5453508533/3593315163.webp?token=exp=1789776000~hmac=5d8173ab0a8d96ef638ebf88a02370f97fd80e4785c08cb9aca483e610f16e99';
 
-const base64 = sourceFiles
-  .map((file) => {
-    const source = fs.readFileSync(file, 'utf8');
-    const match = source.match(/export default\s+"([A-Za-z0-9+/=]+)";?/s);
-    if (!match) throw new Error(`Impossible de lire ${file}`);
-    return match[1];
-  })
-  .join('');
+const response = await fetch(approvedHeroUrl);
+if (!response.ok) {
+  throw new Error(`Impossible de télécharger le hero Papeterie approuvé : ${response.status} ${response.statusText}`);
+}
 
-if (!base64.startsWith('UklG')) throw new Error('Image Papeterie approuvée invalide.');
+const bytes = Buffer.from(await response.arrayBuffer());
+if (bytes.length < 100000) {
+  throw new Error(`Hero Papeterie téléchargé anormalement petit : ${bytes.length} octets`);
+}
 
 const uploadsDir = path.join(root, 'public', 'uploads');
 fs.mkdirSync(uploadsDir, { recursive: true });
 
 const targetFile = path.join(uploadsDir, 'papeterie-hero.webp');
-fs.writeFileSync(targetFile, Buffer.from(base64, 'base64'));
+fs.writeFileSync(targetFile, bytes);
 
 paper.hero.image = '/uploads/papeterie-hero.webp';
 fs.writeFileSync(paperPath, `${JSON.stringify(paper, null, 2)}\n`);
 
-console.log(`Papeterie hero approuvé généré : ${targetFile}`);
-console.log(`Papeterie hero configuré sur : ${paper.hero.image}`);
+console.log(`Papeterie hero approuvé téléchargé : ${targetFile} (${bytes.length} octets)`);
