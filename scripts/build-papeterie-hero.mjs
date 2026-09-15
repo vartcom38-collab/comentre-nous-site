@@ -6,19 +6,30 @@ const paperPath = path.join(root, 'content', 'papeterie.json');
 const paper = JSON.parse(fs.readFileSync(paperPath, 'utf8'));
 
 const sourceFiles = [
-  path.join(root, 'src', 'data', 'papeterieHeroHQ0.txt'),
-  path.join(root, 'src', 'data', 'papeterieHeroHQ1.txt'),
+  path.join(root, 'src', 'data', 'papeterieHero0.ts'),
+  path.join(root, 'src', 'data', 'papeterieHero1.ts'),
+  path.join(root, 'src', 'data', 'papeterieHero2.ts'),
 ];
 
 const base64 = sourceFiles
-  .map((file) => fs.readFileSync(file, 'utf8').replace(/\s/g, ''))
+  .map((file) => {
+    const source = fs.readFileSync(file, 'utf8');
+    const match = source.match(/export default\s+"([A-Za-z0-9+/=]+)";?/s);
+    if (!match) throw new Error(`Impossible de lire ${file}`);
+    return match[1];
+  })
   .join('');
 
-if (!base64) throw new Error('Image HQ Papeterie introuvable.');
+if (!base64.startsWith('UklG')) throw new Error('Image Papeterie approuvée invalide.');
 
-// Embed the image directly into the generated static HTML.
-// This removes any dependency on FTP paths, MIME types or /uploads serving.
-paper.hero.image = `data:image/webp;base64,${base64}`;
+const uploadsDir = path.join(root, 'public', 'uploads');
+fs.mkdirSync(uploadsDir, { recursive: true });
+
+const targetFile = path.join(uploadsDir, 'papeterie-hero.webp');
+fs.writeFileSync(targetFile, Buffer.from(base64, 'base64'));
+
+paper.hero.image = '/uploads/papeterie-hero.webp';
 fs.writeFileSync(paperPath, `${JSON.stringify(paper, null, 2)}\n`);
 
-console.log(`Papeterie hero HQ intégré directement dans la page (${base64.length} caractères base64).`);
+console.log(`Papeterie hero approuvé généré : ${targetFile}`);
+console.log(`Papeterie hero configuré sur : ${paper.hero.image}`);
