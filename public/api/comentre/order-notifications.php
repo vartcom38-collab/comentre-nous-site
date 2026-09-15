@@ -3,7 +3,36 @@
 declare(strict_types=1);
 require __DIR__ . '/_bootstrap.php';
 
-requireAdmin($config);
+function requireSiteAdminGithubToken(): void {
+    $token = trim((string)($_SERVER['HTTP_X_ADMIN_GITHUB_TOKEN'] ?? ''));
+    if ($token === '') respond(['ok' => false, 'error' => 'admin_login_required'], 401);
+
+    $ch = curl_init('https://api.github.com/repos/vartcom38-collab/comentre-nous-site');
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_TIMEOUT => 10,
+        CURLOPT_HTTPHEADER => [
+            'Accept: application/vnd.github+json',
+            'Authorization: Bearer ' . $token,
+            'X-GitHub-Api-Version: 2022-11-28',
+            'User-Agent: ComEntreNous-Admin'
+        ],
+    ]);
+    $body = curl_exec($ch);
+    $status = (int)curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+    curl_close($ch);
+
+    if ($status !== 200 || !is_string($body)) {
+        respond(['ok' => false, 'error' => 'admin_login_required'], 401);
+    }
+
+    $repo = json_decode($body, true);
+    $canPush = is_array($repo) && !empty($repo['permissions']['push']);
+    if (!$canPush) respond(['ok' => false, 'error' => 'admin_forbidden'], 403);
+}
+
+requireSiteAdminGithubToken();
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $email = getAppSetting($pdo, 'papeterie_order_email', $config['aurelie_order_email'] ?? '');
