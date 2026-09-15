@@ -18,6 +18,19 @@
       link.style.whiteSpace = 'nowrap';
       globalNav.insertBefore(link, globalNav.firstChild);
     }
+    if (globalNav && !globalNav.querySelector('[data-seasonal-access]')) {
+      const link = document.createElement('a');
+      link.href = '/admin/ambiance/';
+      link.dataset.seasonalAccess = 'true';
+      link.textContent = '✨ Ambiance du site';
+      link.style.background = '#fff1c9';
+      link.style.color = '#171b2a';
+      link.style.fontWeight = '900';
+      link.style.borderRadius = '999px';
+      link.style.padding = '8px 12px';
+      link.style.whiteSpace = 'nowrap';
+      globalNav.insertBefore(link, globalNav.firstChild);
+    }
 
     const quick = document.querySelector('.admin-quick-access');
     if (quick && !quick.querySelector('[data-aurelie-quick]')) {
@@ -25,6 +38,13 @@
       link.href = href;
       link.dataset.aurelieQuick = 'true';
       link.textContent = '🌷 Papeterie · espace Aurélie';
+      quick.insertBefore(link, quick.firstChild);
+    }
+    if (quick && !quick.querySelector('[data-seasonal-quick]')) {
+      const link = document.createElement('a');
+      link.href = '/admin/ambiance/';
+      link.dataset.seasonalQuick = 'true';
+      link.textContent = '✨ Ambiance du site';
       quick.insertBefore(link, quick.firstChild);
     }
 
