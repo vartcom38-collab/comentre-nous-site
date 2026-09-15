@@ -3,7 +3,6 @@ import { LayoutShell } from '@/components/Site';
 import { products } from '@/src/data/products';
 import paper from '@/content/papeterie.json';
 import PaperShop from './PaperShop';
-import paperHeroImage from './heroImage';
 
 export default function PaperPage(){
   const items=products.filter(product=>product.universe==='Papeterie');
@@ -16,7 +15,7 @@ export default function PaperPage(){
         <a href="#collection" className="paper-primary">{paper.hero.buttonLabel} →</a>
       </div>
       <div className="paper-photo">
-        <img src={paperHeroImage} alt="Papeterie Com’ entre nous : bujo, carnet et fournitures créatives"/>
+        <img src="/api/papeterie-hero" alt="Papeterie Com’ entre nous : bujo, carnet et fournitures créatives"/>
       </div>
     </section>
 
