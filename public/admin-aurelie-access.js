@@ -28,6 +28,30 @@
       quick.insertBefore(link, quick.firstChild);
     }
 
+    const paperAside = document.querySelector('.paper-admin aside');
+    if (paperAside && !paperAside.querySelector('[data-order-email-settings]')) {
+      const link = document.createElement('a');
+      link.href = '/admin/papeterie/notifications/';
+      link.dataset.orderEmailSettings = 'true';
+      link.textContent = '✉ Email des commandes';
+      Object.assign(link.style, {
+        display: 'block',
+        margin: '10px 0',
+        padding: '11px 13px',
+        borderRadius: '14px',
+        background: '#fff0ee',
+        color: '#171b2a',
+        textDecoration: 'none',
+        fontFamily: 'Comfortaa, system-ui, sans-serif',
+        fontSize: '11px',
+        fontWeight: '900',
+        border: '1px solid #f1d7d2'
+      });
+      const foot = paperAside.querySelector('.side-foot');
+      if (foot) paperAside.insertBefore(link, foot);
+      else paperAside.appendChild(link);
+    }
+
     if (!document.querySelector('.aurelie-floating-access')) {
       const link = document.createElement('a');
       link.href = href;
