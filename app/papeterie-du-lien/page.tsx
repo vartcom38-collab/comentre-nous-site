@@ -6,7 +6,7 @@ import PaperShop from './PaperShop';
 
 export default function PaperPage(){
   const items=products.filter(product=>product.universe==='Papeterie');
-  const heroImage=typeof paper.hero.image==='string'&&paper.hero.image.startsWith('/uploads/')?paper.hero.image:'';
+  const heroImage=typeof paper.hero.image==='string'?paper.hero.image:'';
   return <LayoutShell><main className="paper-page"><style>{styles}</style>
     <section className="paper-hero">
       <div className="paper-hero-copy">
