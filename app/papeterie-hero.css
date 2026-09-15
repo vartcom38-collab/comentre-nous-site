@@ -1,8 +1,8 @@
-/* Papeterie hero: use the stable HD Papeterie asset already fetched at build time. */
+/* Papeterie hero: use the already approved Papeterie image rebuilt at build time. */
 .paper-page .paper-photo{
   position:relative;
   overflow:hidden;
-  background-image:url('/universe-paper-hd.png?v=20260915-2');
+  background-image:url('/uploads/papeterie-hero.webp?v=20260915-3');
   background-size:cover;
   background-position:center;
   background-repeat:no-repeat;
