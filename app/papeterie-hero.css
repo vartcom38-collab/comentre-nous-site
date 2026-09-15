@@ -1,12 +1,12 @@
-/* Papeterie hero: keep the real image visible; no legacy API/background override. */
+/* Papeterie hero: use the stable HD Papeterie asset already fetched at build time. */
 .paper-page .paper-photo{
   position:relative;
   overflow:hidden;
+  background-image:url('/universe-paper-hd.png?v=20260915-2');
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
 }
 .paper-page .paper-photo>img{
-  display:block!important;
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  object-position:center;
+  display:none!important;
 }
