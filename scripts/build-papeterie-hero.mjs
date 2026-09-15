@@ -18,18 +18,20 @@ const mime = match[1].toLowerCase();
 const extension = mime.includes('png') ? 'png' : mime.includes('jpeg') || mime.includes('jpg') ? 'jpg' : 'webp';
 const base64 = match[2].replace(/\s/g, '');
 
-const targetDir = path.join(root, 'public');
-fs.mkdirSync(targetDir, { recursive: true });
+const uploadsDir = path.join(root, 'public', 'uploads');
+fs.mkdirSync(uploadsDir, { recursive: true });
 
 for (const ext of ['webp', 'jpg', 'png']) {
-  const oldFile = path.join(targetDir, `papeterie-hero.${ext}`);
+  const oldFile = path.join(uploadsDir, `papeterie-hero.${ext}`);
   if (fs.existsSync(oldFile)) fs.unlinkSync(oldFile);
 }
 
-const targetFile = path.join(targetDir, `papeterie-hero.${extension}`);
+const targetFile = path.join(uploadsDir, `papeterie-hero.${extension}`);
 fs.writeFileSync(targetFile, Buffer.from(base64, 'base64'));
 
-const aliasFile = path.join(targetDir, 'papeterie-hero.webp');
-if (targetFile !== aliasFile) fs.copyFileSync(targetFile, aliasFile);
+const publicPath = `/uploads/papeterie-hero.${extension}`;
+paper.hero.image = publicPath;
+fs.writeFileSync(paperPath, `${JSON.stringify(paper, null, 2)}\n`);
 
-console.log(`Papeterie hero généré depuis content/papeterie.json : ${targetFile}`);
+console.log(`Papeterie hero généré : ${targetFile}`);
+console.log(`Papeterie hero configuré sur : ${publicPath}`);
