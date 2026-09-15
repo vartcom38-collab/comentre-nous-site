@@ -70,3 +70,25 @@ function cleanEmail(mixed $value): string {
     if (!filter_var($value, FILTER_VALIDATE_EMAIL)) respond(['ok' => false, 'error' => 'invalid_email'], 422);
     return mb_strtolower($value);
 }
+
+function ensureAppSettings(PDO $pdo): void {
+    $pdo->exec("CREATE TABLE IF NOT EXISTS app_settings (
+        setting_key VARCHAR(120) NOT NULL PRIMARY KEY,
+        setting_value TEXT NOT NULL,
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+}
+
+function getAppSetting(PDO $pdo, string $key, ?string $fallback = null): ?string {
+    ensureAppSettings($pdo);
+    $stmt = $pdo->prepare('SELECT setting_value FROM app_settings WHERE setting_key = ? LIMIT 1');
+    $stmt->execute([$key]);
+    $row = $stmt->fetch();
+    return $row ? (string)$row['setting_value'] : $fallback;
+}
+
+function setAppSetting(PDO $pdo, string $key, string $value): void {
+    ensureAppSettings($pdo);
+    $stmt = $pdo->prepare('INSERT INTO app_settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), updated_at = CURRENT_TIMESTAMP');
+    $stmt->execute([$key, $value]);
+}
