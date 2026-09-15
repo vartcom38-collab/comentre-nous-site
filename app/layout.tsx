@@ -14,6 +14,7 @@ import './footer-cleanup.css';
 import './shared-shell.css';
 import './family-polish.css';
 import './family-shop-polish.css';
+import './papeterie-hero.css';
 
 export const metadata: Metadata = {
   title: "Com' entre nous — Des outils pour créer du lien",
