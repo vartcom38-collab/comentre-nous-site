@@ -62,8 +62,29 @@ try {
     $pdo->prepare('INSERT INTO order_status_history (order_id,status,message,visible_to_customer) VALUES (?,?,?,1)')->execute([$orderId,'new','Commande créée']);
     $pdo->commit();
 
-    if (!empty($config['aurelie_order_email'])) {
-        @mail($config['aurelie_order_email'], 'Nouvelle commande Papeterie ' . $orderNumber, "Une nouvelle commande Papeterie est disponible dans l’espace admin.\nCommande : {$orderNumber}\nMontant : {$total} {$currency}");
+    $notificationEmail = getAppSetting($pdo, 'papeterie_order_email', $config['aurelie_order_email'] ?? '');
+    if ($notificationEmail) {
+        $lines = [];
+        foreach ($normalizedItems as $item) {
+            $lines[] = '- ' . $item['quantity'] . ' x ' . $item['title'] . ' — ' . number_format((float)$item['lineTotal'], 2, ',', ' ') . ' ' . $currency;
+        }
+        $body = "Nouvelle commande Papeterie\n\n";
+        $body .= "Commande : {$orderNumber}\n";
+        $body .= "Cliente : {$firstName} {$lastName}\n";
+        $body .= "Email : {$email}\n";
+        if ($phone) $body .= "Téléphone : {$phone}\n";
+        $body .= "\nArticles :\n" . implode("\n", $lines) . "\n";
+        $body .= "\nSous-total : " . number_format($subtotal, 2, ',', ' ') . " {$currency}\n";
+        $body .= "Livraison : " . number_format($shippingAmount, 2, ',', ' ') . " {$currency}\n";
+        $body .= "Total : " . number_format($total, 2, ',', ' ') . " {$currency}\n";
+        $body .= "\nAdresse de livraison :\n{$firstName} {$lastName}\n{$address1}\n";
+        if ($address2) $body .= $address2 . "\n";
+        $body .= "{$postalCode} {$city}\n{$country}\n";
+        $body .= "\nVoir les commandes : https://comentrenous.marionbolomey.fr/admin/papeterie/commandes/\n";
+        $headers = "Content-Type: text/plain; charset=UTF-8\r\n";
+        $headers .= "From: Com entre nous <no-reply@marionbolomey.fr>\r\n";
+        $headers .= "Reply-To: {$email}\r\n";
+        @mail($notificationEmail, 'Nouvelle commande Papeterie ' . $orderNumber, $body, $headers);
     }
 
     respond(['ok' => true, 'orderNumber' => $orderNumber, 'status' => 'new', 'total' => $total, 'currency' => $currency], 201);
