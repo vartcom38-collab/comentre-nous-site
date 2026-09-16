@@ -17,6 +17,8 @@ jobs:
       COMENTRE_DB_PASSWORD_VALUE: ${{ secrets.COMENTRE_DB_PASSWORD }}
       COMENTRE_ORDERS_ADMIN_KEY_VALUE: ${{ secrets.COMENTRE_ORDERS_ADMIN_KEY }}
       AURELIE_ORDER_EMAIL_VALUE: ${{ secrets.AURELIE_ORDER_EMAIL }}
+      STRIPE_CONNECT_CLIENT_ID_VALUE: ${{ secrets.STRIPE_CONNECT_CLIENT_ID }}
+      STRIPE_CONNECT_SECRET_KEY_VALUE: ${{ secrets.STRIPE_CONNECT_SECRET_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -55,6 +57,9 @@ jobs:
             'db_password' => '${COMENTRE_DB_PASSWORD_VALUE}',
             'admin_key' => '${COMENTRE_ORDERS_ADMIN_KEY_VALUE}',
             'aurelie_order_email' => '${AURELIE_ORDER_EMAIL_VALUE}',
+            'stripe_connect_client_id' => '${STRIPE_CONNECT_CLIENT_ID_VALUE}',
+            'stripe_connect_secret_key' => '${STRIPE_CONNECT_SECRET_KEY_VALUE}',
+            'stripe_connect_redirect_uri' => 'https://comentrenous.marionbolomey.fr/api/comentre/papeterie-stripe-callback.php',
             'allowed_origins' => [
               'https://comentrenous.marionbolomey.fr',
               'https://cometrenous.marionbolomey.fr'
