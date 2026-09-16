@@ -46,6 +46,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <script src="/admin-woo-sync-safe.js" defer />
         <script src="/admin-product-quality.js" defer />
         <script src="/admin-aurelie-access.js" defer />
+        <script src="/admin-gifts-access.js" defer />
       </body>
     </html>
   );
