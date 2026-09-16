@@ -5,11 +5,15 @@ require __DIR__ . '/_bootstrap.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') respond(['ok' => false, 'error' => 'method_not_allowed'], 405);
 
+$catalogPath = __DIR__ . '/papeterie-catalog.json';
+if (!is_file($catalogPath)) respond(['ok' => false, 'error' => 'catalog_unavailable'], 503);
+$catalog = json_decode((string)file_get_contents($catalogPath), true);
+if (!is_array($catalog) || !is_array($catalog['products'] ?? null)) respond(['ok' => false, 'error' => 'catalog_unavailable'], 503);
+
 $data = jsonBody();
 $customer = is_array($data['customer'] ?? null) ? $data['customer'] : [];
 $address = is_array($data['shippingAddress'] ?? null) ? $data['shippingAddress'] : [];
 $items = is_array($data['items'] ?? null) ? $data['items'] : [];
-
 if (!$items || count($items) > 50) respond(['ok' => false, 'error' => 'invalid_items'], 422);
 
 $email = cleanEmail($customer['email'] ?? '');
@@ -23,30 +27,74 @@ $city = cleanText($address['city'] ?? '', 120);
 $region = cleanText($address['region'] ?? '', 120);
 $country = cleanText($address['country'] ?? 'France', 100);
 $shippingMethod = cleanText($data['shippingMethod'] ?? 'standard', 100);
-$currency = strtoupper(cleanText($data['currency'] ?? 'EUR', 3));
 $customerNote = cleanText($data['customerNote'] ?? '', 2000);
+$currency = 'EUR';
 
 foreach ([$firstName,$lastName,$address1,$postalCode,$city,$country] as $required) {
     if ($required === '') respond(['ok' => false, 'error' => 'missing_customer_data'], 422);
 }
 
-$subtotal = 0.0;
+$productMap = [];
+foreach ($catalog['products'] as $product) {
+    if (is_array($product) && !empty($product['id'])) $productMap[(string)$product['id']] = $product;
+}
+
+$subtotalCents = 0;
 $normalizedItems = [];
 foreach ($items as $item) {
     if (!is_array($item)) respond(['ok' => false, 'error' => 'invalid_item'], 422);
     $productId = cleanText($item['productId'] ?? '', 120);
-    $title = cleanText($item['title'] ?? '', 255);
-    $productType = cleanText($item['productType'] ?? '', 120);
+    $optionId = cleanText($item['optionId'] ?? '', 160);
     $quantity = max(1, min(99, (int)($item['quantity'] ?? 1)));
-    $unitPrice = round((float)($item['unitPrice'] ?? 0), 2);
-    if ($productId === '' || $title === '' || $unitPrice < 0) respond(['ok' => false, 'error' => 'invalid_item'], 422);
-    $lineTotal = round($unitPrice * $quantity, 2);
-    $subtotal += $lineTotal;
-    $normalizedItems[] = compact('productId','title','productType','quantity','unitPrice','lineTotal');
+    $product = $productMap[$productId] ?? null;
+    if (!is_array($product) || empty($product['published']) || ($product['paymentOwner'] ?? '') !== 'aurelie' || ($product['paymentChannel'] ?? '') !== 'stripe') {
+        respond(['ok' => false, 'error' => 'papeterie_product_not_available'], 422);
+    }
+    $options = is_array($product['options'] ?? null) ? $product['options'] : [];
+    $selected = null;
+    if ($optionId !== '') {
+        foreach ($options as $option) {
+            if (is_array($option) && (string)($option['id'] ?? '') === $optionId) { $selected = $option; break; }
+        }
+    } elseif (count($options) === 1) {
+        $selected = $options[0];
+    }
+    if (!is_array($selected) || !isset($selected['priceCents']) || ($selected['paymentOwner'] ?? '') !== 'aurelie') {
+        respond(['ok' => false, 'error' => 'papeterie_option_not_available'], 422);
+    }
+    $unitCents = max(0, (int)$selected['priceCents']);
+    $lineCents = $unitCents * $quantity;
+    $subtotalCents += $lineCents;
+    $normalizedItems[] = [
+        'productId' => $productId,
+        'title' => cleanText($product['title'] ?? '', 255),
+        'productType' => cleanText($selected['label'] ?? $selected['kind'] ?? 'Papeterie', 120),
+        'quantity' => $quantity,
+        'unitPrice' => round($unitCents / 100, 2),
+        'lineTotal' => round($lineCents / 100, 2),
+    ];
 }
 
-$shippingAmount = max(0, round((float)($data['shippingAmount'] ?? 0), 2));
-$total = round($subtotal + $shippingAmount, 2);
+$shipping = is_array($catalog['shipping'] ?? null) ? $catalog['shipping'] : [];
+$isFrance = in_array(mb_strtolower($country), ['france','fr','français','francaise'], true);
+$shippingCents = 0;
+if ($shippingMethod === 'pickup') {
+    if (empty($shipping['pickupEnabled'])) respond(['ok' => false, 'error' => 'shipping_method_unavailable'], 422);
+} else {
+    if ($isFrance) {
+        if (empty($shipping['franceEnabled'])) respond(['ok' => false, 'error' => 'shipping_country_unavailable'], 422);
+        $shippingCents = max(0, (int)($shipping['franceFlatRateCents'] ?? 0));
+    } else {
+        if (empty($shipping['europeEnabled'])) respond(['ok' => false, 'error' => 'shipping_country_unavailable'], 422);
+        $shippingCents = max(0, (int)($shipping['europeFlatRateCents'] ?? 0));
+    }
+    $freeThreshold = max(0, (int)($shipping['freeShippingThresholdCents'] ?? 0));
+    if ($freeThreshold > 0 && $subtotalCents >= $freeThreshold) $shippingCents = 0;
+}
+
+$subtotal = round($subtotalCents / 100, 2);
+$shippingAmount = round($shippingCents / 100, 2);
+$total = round(($subtotalCents + $shippingCents) / 100, 2);
 $orderNumber = 'PAP-' . date('ymd') . '-' . strtoupper(bin2hex(random_bytes(3)));
 
 try {
@@ -87,7 +135,7 @@ try {
         @mail($notificationEmail, 'Nouvelle commande Papeterie ' . $orderNumber, $body, $headers);
     }
 
-    respond(['ok' => true, 'orderNumber' => $orderNumber, 'status' => 'new', 'total' => $total, 'currency' => $currency], 201);
+    respond(['ok' => true, 'orderNumber' => $orderNumber, 'status' => 'new', 'total' => $total, 'currency' => $currency, 'paymentOwner' => 'aurelie'], 201);
 } catch (Throwable $e) {
     if ($pdo->inTransaction()) $pdo->rollBack();
     respond(['ok' => false, 'error' => 'order_creation_failed'], 500);
