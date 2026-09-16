@@ -6,7 +6,6 @@ require __DIR__ . '/_bootstrap.php';
 function requireSiteAdminGithubToken(): void {
     $token = trim((string)($_SERVER['HTTP_X_ADMIN_GITHUB_TOKEN'] ?? ''));
     if ($token === '') respond(['ok' => false, 'error' => 'admin_login_required'], 401);
-
     $ch = curl_init('https://api.github.com/repos/vartcom38-collab/comentre-nous-site');
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
@@ -27,37 +26,24 @@ function requireSiteAdminGithubToken(): void {
     if (!is_array($repo) || empty($repo['permissions']['push'])) respond(['ok' => false, 'error' => 'admin_forbidden'], 403);
 }
 
-function stripeAccount(string $key): array {
-    $ch = curl_init('https://api.stripe.com/v1/account');
-    curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT => 15,
-        CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . $key],
-    ]);
-    $body = curl_exec($ch);
-    $status = (int)curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
-    curl_close($ch);
-    $data = is_string($body) ? json_decode($body, true) : null;
-    if ($status < 200 || $status >= 300 || !is_array($data) || empty($data['id'])) {
-        respond(['ok' => false, 'error' => 'stripe_connection_failed'], 422);
-    }
-    return $data;
-}
-
 requireSiteAdminGithubToken();
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    $stripeEncrypted = getAppSetting($pdo, 'papeterie_stripe_api_key', '');
+    $stripeToken = getAppSetting($pdo, 'papeterie_stripe_access_token', '');
     $stripeAccountId = getAppSetting($pdo, 'papeterie_stripe_account_id', '');
     $stripeLabel = getAppSetting($pdo, 'papeterie_stripe_account_label', '');
+    $stripeLivemode = getAppSetting($pdo, 'papeterie_stripe_livemode', '0') === '1';
+    $stripeReady = !empty($config['stripe_connect_client_id']) && !empty($config['stripe_connect_secret_key']);
     $mrBrand = getAppSetting($pdo, 'papeterie_mondialrelay_enseigne', '');
     $mrSecret = getAppSetting($pdo, 'papeterie_mondialrelay_private_key', '');
     respond([
         'ok' => true,
         'stripe' => [
-            'connected' => (bool)$stripeEncrypted,
+            'connected' => (bool)($stripeToken && $stripeAccountId),
             'accountId' => $stripeAccountId ?: '',
             'label' => $stripeLabel ?: '',
+            'livemode' => $stripeLivemode,
+            'connectReady' => $stripeReady,
         ],
         'mondialRelay' => [
             'connected' => (bool)($mrBrand && $mrSecret),
@@ -70,19 +56,17 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') respond(['ok' => false, 'error' => 'm
 $data = jsonBody();
 $action = cleanText($data['action'] ?? '', 40);
 
-if ($action === 'connect_stripe') {
-    $key = trim((string)($data['apiKey'] ?? ''));
-    if (!preg_match('/^(sk|rk)_(test|live)_/', $key)) respond(['ok' => false, 'error' => 'invalid_stripe_key'], 422);
-    $account = stripeAccount($key);
-    $label = cleanText($account['business_profile']['name'] ?? $account['settings']['dashboard']['display_name'] ?? $account['email'] ?? 'Compte Stripe', 180);
-    setAppSetting($pdo, 'papeterie_stripe_api_key', encryptAppSecret($config, $key));
-    setAppSetting($pdo, 'papeterie_stripe_account_id', (string)$account['id']);
-    setAppSetting($pdo, 'papeterie_stripe_account_label', $label);
-    respond(['ok' => true, 'stripe' => ['connected' => true, 'accountId' => (string)$account['id'], 'label' => $label]]);
-}
-
 if ($action === 'disconnect_stripe') {
-    foreach (['papeterie_stripe_api_key','papeterie_stripe_account_id','papeterie_stripe_account_label'] as $key) deleteAppSetting($pdo, $key);
+    foreach ([
+        'papeterie_stripe_access_token',
+        'papeterie_stripe_refresh_token',
+        'papeterie_stripe_account_id',
+        'papeterie_stripe_account_label',
+        'papeterie_stripe_livemode',
+        'papeterie_stripe_oauth_state',
+        'papeterie_stripe_oauth_expires',
+        'papeterie_stripe_api_key'
+    ] as $key) deleteAppSetting($pdo, $key);
     respond(['ok' => true]);
 }
 
