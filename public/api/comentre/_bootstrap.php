@@ -31,7 +31,7 @@ if ($origin !== '') {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    header('Access-Control-Allow-Headers: Content-Type, Authorization');
+    header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Admin-Github-Token');
     header('Access-Control-Allow-Methods: GET, POST, PATCH, OPTIONS');
     exit;
 }
@@ -91,4 +91,34 @@ function setAppSetting(PDO $pdo, string $key, string $value): void {
     ensureAppSettings($pdo);
     $stmt = $pdo->prepare('INSERT INTO app_settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), updated_at = CURRENT_TIMESTAMP');
     $stmt->execute([$key, $value]);
+}
+
+function deleteAppSetting(PDO $pdo, string $key): void {
+    ensureAppSettings($pdo);
+    $stmt = $pdo->prepare('DELETE FROM app_settings WHERE setting_key = ?');
+    $stmt->execute([$key]);
+}
+
+function appSecretKey(array $config): string {
+    return hash('sha256', 'comentre-settings|' . (string)$config['admin_key'], true);
+}
+
+function encryptAppSecret(array $config, string $plain): string {
+    if ($plain === '') return '';
+    $iv = random_bytes(12);
+    $tag = '';
+    $cipher = openssl_encrypt($plain, 'aes-256-gcm', appSecretKey($config), OPENSSL_RAW_DATA, $iv, $tag);
+    if ($cipher === false) throw new RuntimeException('secret_encrypt_failed');
+    return base64_encode($iv . $tag . $cipher);
+}
+
+function decryptAppSecret(array $config, ?string $encoded): string {
+    if (!$encoded) return '';
+    $raw = base64_decode($encoded, true);
+    if ($raw === false || strlen($raw) < 29) return '';
+    $iv = substr($raw, 0, 12);
+    $tag = substr($raw, 12, 16);
+    $cipher = substr($raw, 28);
+    $plain = openssl_decrypt($cipher, 'aes-256-gcm', appSecretKey($config), OPENSSL_RAW_DATA, $iv, $tag);
+    return $plain === false ? '' : $plain;
 }
