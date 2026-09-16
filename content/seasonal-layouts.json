@@ -1,0 +1,45 @@
+{
+  "halloween": {
+    "assetsBase": "/seasonal/halloween",
+    "pages": {
+      "/": [
+        { "slot": "hero-left-accent", "asset": "star-cluster-01.webp", "size": "s", "x": "7%", "y": "12%", "rotate": -8, "minIntensity": "light" },
+        { "slot": "hero-right-character", "asset": "character-01.webp", "size": "xl", "x": "82%", "y": "7%", "rotate": 3, "hideMobile": true, "minIntensity": "normal" },
+        { "slot": "hero-edge-bat", "asset": "bat-01.webp", "size": "s", "x": "94%", "y": "20%", "rotate": 10, "minIntensity": "light" },
+        { "slot": "univers-guardian", "asset": "guardian-01.webp", "size": "l", "x": "3%", "y": "38%", "rotate": -5, "hideMobile": true, "minIntensity": "normal" },
+        { "slot": "products-pumpkins", "asset": "pumpkin-cluster-01.webp", "size": "m", "x": "91%", "y": "58%", "rotate": 4, "minIntensity": "light" },
+        { "slot": "products-cat", "asset": "cat-01.webp", "size": "m", "x": "5%", "y": "66%", "rotate": -3, "hideMobile": true, "minIntensity": "normal" },
+        { "slot": "podcast-scene", "asset": "scene-books-mug-01.webp", "size": "l", "x": "88%", "y": "82%", "rotate": 2, "hideMobile": true, "minIntensity": "festive" },
+        { "slot": "footer-leaves", "asset": "leaf-cluster-01.webp", "size": "m", "x": "4%", "y": "96%", "rotate": -5, "minIntensity": "light" }
+      ],
+      "/com-en-famille": [
+        { "slot": "hero-stars", "asset": "star-cluster-01.webp", "size": "s", "x": "7%", "y": "10%", "rotate": -8, "minIntensity": "light" },
+        { "slot": "hero-character", "asset": "character-02.webp", "size": "xl", "x": "84%", "y": "8%", "rotate": 3, "hideMobile": true, "minIntensity": "normal" },
+        { "slot": "character-scene", "asset": "character-duo-01.webp", "size": "xl", "x": "8%", "y": "38%", "rotate": -2, "hideMobile": true, "minIntensity": "normal" },
+        { "slot": "situations-guardian", "asset": "guardian-02.webp", "size": "m", "x": "93%", "y": "43%", "rotate": 5, "minIntensity": "light" },
+        { "slot": "bridge-leaves", "asset": "leaf-cluster-01.webp", "size": "s", "x": "12%", "y": "60%", "rotate": -7, "minIntensity": "light" },
+        { "slot": "bridge-stars", "asset": "star-cluster-01.webp", "size": "s", "x": "87%", "y": "62%", "rotate": 6, "minIntensity": "normal" },
+        { "slot": "shop-lantern", "asset": "lantern-01.webp", "size": "m", "x": "4%", "y": "75%", "rotate": -4, "hideMobile": true, "minIntensity": "normal" },
+        { "slot": "closing-corner", "asset": "corner-leaves-stars-01.webp", "size": "m", "x": "91%", "y": "92%", "rotate": 3, "minIntensity": "light" }
+      ],
+      "/com-des-entrepreneuses": [
+        { "slot": "hero-moon", "asset": "moon-01.webp", "size": "s", "x": "8%", "y": "11%", "rotate": -7, "minIntensity": "light" },
+        { "slot": "hero-stars", "asset": "star-cluster-01.webp", "size": "s", "x": "91%", "y": "13%", "rotate": 5, "minIntensity": "normal" },
+        { "slot": "hero-character", "asset": "character-mug-01.webp", "size": "l", "x": "86%", "y": "30%", "rotate": 2, "hideMobile": true, "minIntensity": "festive" },
+        { "slot": "shop-mug", "asset": "mug-01.webp", "size": "m", "x": "5%", "y": "65%", "rotate": -5, "minIntensity": "light" },
+        { "slot": "shop-candles", "asset": "candles-01.webp", "size": "m", "x": "91%", "y": "73%", "rotate": 4, "hideMobile": true, "minIntensity": "normal" },
+        { "slot": "shop-leaves", "asset": "leaf-cluster-01.webp", "size": "s", "x": "13%", "y": "91%", "rotate": -6, "minIntensity": "light" }
+      ],
+      "/papeterie-du-lien": [
+        { "slot": "hero-leaves", "asset": "leaf-cluster-01.webp", "size": "s", "x": "7%", "y": "11%", "rotate": -6, "minIntensity": "light" },
+        { "slot": "hero-cat", "asset": "cat-books-01.webp", "size": "m", "x": "91%", "y": "22%", "rotate": 3, "hideMobile": true, "minIntensity": "normal" },
+        { "slot": "tabs-accent", "asset": "acorn-01.webp", "size": "xs", "x": "83%", "y": "37%", "rotate": 8, "minIntensity": "light" },
+        { "slot": "shop-books", "asset": "books-01.webp", "size": "m", "x": "5%", "y": "53%", "rotate": -4, "hideMobile": true, "minIntensity": "normal" },
+        { "slot": "shop-mushrooms", "asset": "mushrooms-01.webp", "size": "m", "x": "93%", "y": "61%", "rotate": 5, "minIntensity": "festive" },
+        { "slot": "story-guardian", "asset": "guardian-mug-01.webp", "size": "l", "x": "88%", "y": "77%", "rotate": 2, "hideMobile": true, "minIntensity": "normal" },
+        { "slot": "closing-pumpkins", "asset": "pumpkin-cluster-01.webp", "size": "m", "x": "6%", "y": "91%", "rotate": -5, "minIntensity": "light" },
+        { "slot": "closing-stars", "asset": "star-cluster-01.webp", "size": "s", "x": "91%", "y": "94%", "rotate": 6, "minIntensity": "festive" }
+      ]
+    }
+  }
+}
