@@ -49,6 +49,28 @@
     }
 
     const paperAside = document.querySelector('.paper-admin aside');
+    if (paperAside && !paperAside.querySelector('[data-payment-shipping-settings]')) {
+      const link = document.createElement('a');
+      link.href = '/admin/papeterie/connexions/';
+      link.dataset.paymentShippingSettings = 'true';
+      link.textContent = '💳 Stripe & Mondial Relay';
+      Object.assign(link.style, {
+        display: 'block',
+        margin: '10px 0',
+        padding: '11px 13px',
+        borderRadius: '14px',
+        background: '#edf8f4',
+        color: '#171b2a',
+        textDecoration: 'none',
+        fontFamily: 'Comfortaa, system-ui, sans-serif',
+        fontSize: '11px',
+        fontWeight: '900',
+        border: '1px solid #d6ebe3'
+      });
+      const foot = paperAside.querySelector('.side-foot');
+      if (foot) paperAside.insertBefore(link, foot);
+      else paperAside.appendChild(link);
+    }
     if (paperAside && !paperAside.querySelector('[data-order-email-settings]')) {
       const link = document.createElement('a');
       link.href = '/admin/papeterie/notifications/';
