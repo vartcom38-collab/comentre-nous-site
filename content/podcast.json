@@ -1,9 +1,19 @@
 {
   "page": {
     "kicker": "Le podcast",
-    "title": "Com’ entre nous, le podcast",
-    "intro": "Des conversations vraies autour de la parentalité, des émotions, de l’entrepreneuriat et de tout ce qui nous traverse entre deux cafés froids.",
-    "themes": "Parentalité · Émotions · Communication · Famille · Entrepreneuriat · Créativité · Vie quotidienne · Coulisses"
+    "title": "Com’ entre nous",
+    "intro": "Des discussions vraies pour une vie de famille plus douce (et des projets qui ont du sens !)",
+    "body": "On papote parentalité, émotions, quotidien, organisation, entrepreneuriat… avec simplicité, bonne humeur et sans filtre (ou presque !).",
+    "themes": "Parentalité · Émotions · Communication · Famille · Entrepreneuriat · Créativité · Vie quotidienne · Coulisses",
+    "whyTitle": "Pourquoi ce podcast ?",
+    "whyText": "Parce qu’on avait envie d’un espace simple et vivant pour parler vrai. De parentalité, d’émotions, de communication, d’entrepreneuriat, de charge mentale, de vie réelle… Bref, de tout ce qui nous traverse, nous questionne, nous fait rire ou réfléchir. Avec un ton complice, concret et sans chercher à être parfaites.",
+    "closing": "Des discussions qui font du bien, comme un café entre copines.",
+    "status": "upcoming",
+    "platformLabel": "Bientôt disponible sur",
+    "spotifyUrl": "",
+    "appleUrl": "",
+    "youtubeUrl": "",
+    "externalUrl": ""
   },
   "homepage": {
     "mode": "upcoming",
