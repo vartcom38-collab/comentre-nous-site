@@ -23,7 +23,5 @@ export default function GiftsPage(){
   <section className="gifts-list"><div className="gifts-wrap"><div className="gifts-heading"><div><h2>Nos petits cadeaux</h2><p className="gifts-kicker">À télécharger librement</p></div><span>Des ressources concrètes<br/>pour une vie plus douce ♡</span></div>
    {published.length?<div className="gifts-grid">{published.map(g=><article className="gift-card" key={g.id}>{g.image?<img src={g.image} alt=""/>:<div className="gift-cover"><span>♡</span><b>{g.title}</b></div>}<div className="gift-copy"><p className="gift-tag">{g.category||'Petit cadeau'}</p><h3>{g.title}</h3><p>{g.description}</p>{g.fileUrl?<Link href={`/les-petits-cadeaux/telecharger/#${g.id}`}>Télécharger ♡</Link>:<span className="gift-soon">Bientôt disponible</span>}</div></article>)}</div>:<div className="gifts-empty"><div className="empty-doodle">♡</div><div><h3>Les premiers petits cadeaux se préparent.</h3><p>Dès qu’on ajoute une ressource depuis l’admin, elle apparaîtra ici dans cette mise en page.</p></div></div>}
   </div></section>
-
-  <section className="gifts-closing"><div className="gifts-wrap"><div className="closing-character" aria-hidden="true"><span>♡</span></div><h2>{page.closing}</h2><div className="closing-note">Merci d’être ici<br/>et de faire partie<br/>de cette belle aventure !<br/>♡</div></div></section>
  </main></LayoutShell>
 }
