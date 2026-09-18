@@ -25,11 +25,7 @@ export default function AboutPage() {
         </section>
 
         <section className="about-story" id="notre-histoire">
-          <div className="about-wrap about-story-grid">
-            <div className="about-story-photo">
-              <img src="/uploads/a-propos-notre-histoire.png?v=20260918" alt="Un moment de complicité autour de notre projet" />
-              <p>Deux parcours,<br/>une belle rencontre ♡</p>
-            </div>
+          <div className="about-wrap about-story-grid about-story-text-only">
             <div className="about-story-copy">
               <h2>Notre histoire</h2>
               <p>À la base, on ne se connaissait pas. On vivait à des kilomètres l’une de l’autre, avec des vies très différentes : Aurélie, maman de trois enfants, et Marion, pas maman… mais clairement <strong>la tata</strong>.</p>
