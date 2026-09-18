@@ -11,7 +11,7 @@ export default function AboutPage() {
             <div className="about-hero-copy">
               <p className="about-kicker">→ À propos</p>
               <h1>Derrière Com’ entre nous, il y a surtout… nous <span>♡</span></h1>
-              <p className="about-lead">Deux femmes, deux parcours, une même envie : créer des supports utiles, vrais et pensés pour la vie de tous les jours.</p>
+              <p className="about-lead">Deux femmes, deux parcours, une même envie : créer des supports utiles et pensés pour la vie de tous les jours.</p>
               <a className="about-primary" href="#notre-histoire">Découvrir notre histoire →</a>
             </div>
             <div className="about-hero-visual">
