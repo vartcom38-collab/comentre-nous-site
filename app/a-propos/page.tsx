@@ -26,13 +26,8 @@ export default function AboutPage() {
 
         <section className="about-story" id="notre-histoire">
           <div className="about-wrap about-story-grid">
-            <div className="about-illustration-card">
-              <div className="about-drawn-duo" aria-hidden="true">
-                <span className="draw-head draw-head-a" />
-                <span className="draw-head draw-head-b" />
-                <span className="draw-body draw-body-a" />
-                <span className="draw-body draw-body-b" />
-              </div>
+            <div className="about-story-photo">
+              <img src="/uploads/a-propos-notre-histoire.png?v=20260918" alt="Un moment de complicité autour de notre projet" />
               <p>Deux parcours,<br/>une belle rencontre ♡</p>
             </div>
             <div className="about-story-copy">
