@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "node scripts/build-gifts-hero.mjs && node scripts/build-papeterie-hero.mjs && node scripts/build-founders-image.mjs && node scripts/build-papeterie-catalog.mjs",
+    "prebuild": "node scripts/build-about-story-image.mjs && node scripts/build-gifts-hero.mjs && node scripts/build-papeterie-hero.mjs && node scripts/build-founders-image.mjs && node scripts/build-papeterie-catalog.mjs",
     "build": "next build",
     "start": "node server.js",
     "lint": "next lint"
