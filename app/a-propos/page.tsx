@@ -32,13 +32,12 @@ export default function AboutPage() {
             </div>
             <div className="about-story-copy">
               <h2>Notre histoire</h2>
-              <p>C’est d’abord une amitié, une envie commune de créer, de partager et de faire une différence, à notre échelle.</p>
-              <p>On s’est rencontrées au détour de nos vies de mamans et d’entrepreneuses, et très vite, l’envie de construire quelque chose ensemble s’est imposée comme une évidence. Com’ entre nous est né de nos discussions, de nos idées, de nos petits et grands défis du quotidien, et surtout de la conviction que les bons supports peuvent vraiment changer la façon dont on échange.</p>
-            </div>
-            <div className="about-quote">
-              <span>“</span>
-              <p>Des idées qui font du bien, des supports qui rassemblent.</p>
-              <b>♡</b>
+              <p>À la base, on ne se connaissait pas. On vivait à des kilomètres l’une de l’autre, avec des vies très différentes : Aurélie, maman de trois enfants, et Marion, pas maman… mais clairement <strong>la tata</strong>.</p>
+              <p>On s’est rencontrées grâce à un accompagnement entre entrepreneuses. Au fil des échanges, on a commencé à créer ensemble, un peu sans plan précis au départ. Et très vite, on s’est rendu compte que ça fonctionnait bien : Marion avait imaginé un premier outil, Aurélie pouvait venir l’enrichir avec son univers de papeterie, et nos idées se complétaient naturellement.</p>
+              <p>C’est comme ça que <strong>Com’ entre nous</strong> a commencé à prendre forme.</p>
+              <p>Petit à petit, le projet est devenu plus grand que ce premier produit. On avait envie de partir de nos expériences différentes — celle d’une maman et celle d’une tata — pour créer des supports qui facilitent les échanges, ouvrent la discussion et accompagnent les moments importants de la vie.</p>
+              <p>Et surtout, on ne veut pas parler uniquement aux parents. Demain, <strong>Com’ entre nous</strong> pourra aussi imaginer des outils autour de la grossesse, du couple, de la famille, de l’entrepreneuriat ou d’autres étapes de vie, toujours avec la même intention : <strong>aider à avancer, à mieux se comprendre et à mieux communiquer</strong>, avec l’appui de professionnels lorsque les sujets le demandent.</p>
+              <p className="about-story-signoff"><strong>Deux parcours très différents, des kilomètres entre nous… et finalement une même envie de créer des choses qui ont du sens. ♡</strong></p>
             </div>
           </div>
         </section>
