@@ -48,7 +48,7 @@ export default function AboutPage() {
             <div className="about-people-grid">
               <article className="about-person marion">
                 <div className="about-person-photo">
-                  <img src="/uploads/petits-cadeaux-hero-photo.png?v=20260918b" alt="" />
+                  <img src={about.people.marion.photo} alt="" />
                 </div>
                 <div className="about-person-copy">
                   <h3>{about.people.marion.name}</h3>
@@ -60,7 +60,7 @@ export default function AboutPage() {
 
               <article className="about-person aurelie">
                 <div className="about-person-photo">
-                  <img src="/uploads/petits-cadeaux-hero-photo.png?v=20260918b" alt="" />
+                  <img src={about.people.aurelie.photo} alt="" />
                 </div>
                 <div className="about-person-copy">
                   <h3>{about.people.aurelie.name}</h3>
