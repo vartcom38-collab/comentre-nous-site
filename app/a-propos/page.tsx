@@ -1,5 +1,6 @@
 import { LayoutShell } from '@/components/Site';
 import Link from 'next/link';
+import about from '../../content/about.json';
 import './about.css';
 
 export default function AboutPage() {
@@ -50,10 +51,10 @@ export default function AboutPage() {
                   <img src="/uploads/petits-cadeaux-hero-photo.png?v=20260918b" alt="" />
                 </div>
                 <div className="about-person-copy">
-                  <h3>Marion</h3>
-                  <p className="about-role">Le studio, les idées, l’élan</p>
-                  <p>Toujours un carnet à la main, des idées plein la tête et le cœur tourné vers les autres. Je m’occupe de la création des supports, de l’univers visuel et de tout ce qui fait vivre nos idées. J’aime imaginer, dessiner, tester, recommencer… et voir vos retours qui nous boostent chaque jour !</p>
-                  <strong>“Rêver, créer, partager… et recommencer !”</strong>
+                  <h3>{about.people.marion.name}</h3>
+                  <p className="about-role">{about.people.marion.role}</p>
+                  <p>{about.people.marion.text}</p>
+                  {about.people.marion.quote && <strong>“{about.people.marion.quote}”</strong>}
                 </div>
               </article>
 
@@ -62,10 +63,10 @@ export default function AboutPage() {
                   <img src="/uploads/petits-cadeaux-hero-photo.png?v=20260918b" alt="" />
                 </div>
                 <div className="about-person-copy">
-                  <h3>Aurélie</h3>
-                  <p className="about-role">La papeterie, le concret, le quotidien</p>
-                  <p>J’aime mettre de l’ordre dans les idées, les transformer en projets concrets et les rendre accessibles à toutes. Je m’occupe de la partie plus opérationnelle, de la boutique et je veille à ce que chaque création soit utile, chaleureuse et ancrée dans le réel.</p>
-                  <strong>“Des petits pas concrets pour de grands changements.”</strong>
+                  <h3>{about.people.aurelie.name}</h3>
+                  <p className="about-role">{about.people.aurelie.role}</p>
+                  <p>{about.people.aurelie.text}</p>
+                  {about.people.aurelie.quote && <strong>“{about.people.aurelie.quote}”</strong>}
                 </div>
               </article>
             </div>
