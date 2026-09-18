@@ -5,7 +5,7 @@ const root = process.cwd();
 const contentPath = path.join(root, 'content', 'gifts.json');
 const gifts = JSON.parse(fs.readFileSync(contentPath, 'utf8'));
 
-const approvedHeroUrl = 'https://pikaso.cdnpk.net/private/production/5485298879/3608879737.jpg?token=exp=1790035200~hmac=6645148a9196db6afd3c1e78d0117badb65d713badf7a55d8d5ad8818810f6a9';
+const approvedHeroUrl = 'https://pikaso.cdnpk.net/private/production/5485419431/3608940485.png?token=exp=1790035200~hmac=93a68a0d2bc7c666accdbcf1163ddb76df71dc9a7173b6a15b97e54dcc4e2ff2';
 
 const response = await fetch(approvedHeroUrl);
 if (!response.ok) {
@@ -13,17 +13,17 @@ if (!response.ok) {
 }
 
 const bytes = Buffer.from(await response.arrayBuffer());
-if (bytes.length < 30000) {
+if (bytes.length < 100000) {
   throw new Error(`Hero Petits cadeaux téléchargé anormalement petit : ${bytes.length} octets`);
 }
 
 const uploadsDir = path.join(root, 'public', 'uploads');
 fs.mkdirSync(uploadsDir, { recursive: true });
 
-const targetFile = path.join(uploadsDir, 'petits-cadeaux-hero-photo.jpg');
+const targetFile = path.join(uploadsDir, 'petits-cadeaux-hero-photo.png');
 fs.writeFileSync(targetFile, bytes);
 
-gifts.page.heroImage = '/uploads/petits-cadeaux-hero-photo.jpg?v=20260918';
+gifts.page.heroImage = '/uploads/petits-cadeaux-hero-photo.png?v=20260918b';
 fs.writeFileSync(contentPath, `${JSON.stringify(gifts, null, 2)}\n`);
 
 console.log(`Hero Petits cadeaux approuvé téléchargé : ${targetFile} (${bytes.length} octets)`);
