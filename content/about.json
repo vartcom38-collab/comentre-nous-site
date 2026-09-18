@@ -1,0 +1,18 @@
+{
+  "people": {
+    "marion": {
+      "name": "Marion",
+      "role": "La tata",
+      "text": "À l’origine de l’oracle Com’ des murmures, je suis celle qui a toujours mille idées en tête. J’aime imaginer, créer, tester, mettre du fun dans les projets et transformer une idée un peu folle en quelque chose de concret. Et dans Com’ entre nous, j’apporte aussi mon regard de tata : celui qu’on oublie parfois, mais qui fait pleinement partie de la famille et de toutes ces conversations du quotidien.",
+      "quote": "Créer, partager, mettre du fun… et recommencer.",
+      "photo": "/uploads/petits-cadeaux-hero-photo.png?v=20260918b"
+    },
+    "aurelie": {
+      "name": "Aurélie",
+      "role": "La maman",
+      "text": "Aurélie pourra écrire ici son histoire, son regard de maman de trois enfants, son univers de papeterie et ce qu’elle a envie de partager dans Com’ entre nous.",
+      "quote": "",
+      "photo": "/uploads/petits-cadeaux-hero-photo.png?v=20260918b"
+    }
+  }
+}
