@@ -88,17 +88,6 @@ export default function AboutPage() {
           </div>
         </section>
 
-        <section className="about-work">
-          <div className="about-wrap about-work-grid">
-            <div>
-              <h2>Notre façon de travailler</h2>
-              <p>On imagine, on échange, on teste, on ajuste… souvent entre deux cafés, une lessive et une réunion d’école ! Notre créativité se nourrit de notre quotidien, de vos retours et de toutes ces petites situations de vie qui méritent des supports plus simples, plus vrais et plus humains.</p>
-            </div>
-            <div className="about-sticky">“Une idée à 22h42,<br/>trois vocaux, quatre<br/>captures d’écran…<br/>et c’est parti. ♡”</div>
-            <div className="about-mug" aria-hidden="true"><span>☕</span><small>Notre quotidien<br/>en une tasse !</small></div>
-          </div>
-        </section>
-
         <section className="about-closing">
           <div className="about-wrap about-closing-inner">
             <div className="about-heart-figure" aria-hidden="true">♡</div>
