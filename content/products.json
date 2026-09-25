@@ -31,7 +31,21 @@
     "amazonUrl": "",
     "stripeUrl": "",
     "externalUrl": "",
-    "purchaseOptions": [],
+    "purchaseOptions": [
+      {
+        "id": "option-1790339331629-cjg9z",
+        "label": "Nouvelle version",
+        "kind": "physical",
+        "channel": "amazon",
+        "price": "16.90",
+        "compareAtPrice": "",
+        "buttonLabel": "Acheter",
+        "url": "",
+        "format": "",
+        "note": "",
+        "downloadKey": ""
+      }
+    ],
     "paperTabs": [],
     "paymentNote": "",
     "workflowStatus": "ready",
@@ -41,7 +55,7 @@
     "featured": false,
     "new": true,
     "createdAt": "2026-09-24",
-    "updatedAt": "2026-09-24"
+    "updatedAt": "2026-09-25"
   },
   {
     "id": "produit-1789290945516",
