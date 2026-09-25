@@ -9,8 +9,7 @@ import initialOps from '../../../content/papeterie-operations.json';
 type PaperTab={id:string;label:string;icon:string;description:string;visible:boolean;order:number};
 type PaperContent=typeof initialPaper;
 type OpsContent=typeof initialOps;
-type ProductBase=(typeof initialProducts)[number];
-type PaperProduct=ProductBase & {paperTabs?:string[]};
+type PaperProduct={id:string;title:string;price:string;image:string;category:string;universe:string;type:string;color:string;updatedAt?:string;paperTabs?:string[];[key:string]:unknown};
 type View='dashboard'|'store'|'shipping'|'products'|'orders'|'page';
 
 const OWNER='vartcom38-collab';const REPO='comentre-nous-site';const BRANCH='main';
