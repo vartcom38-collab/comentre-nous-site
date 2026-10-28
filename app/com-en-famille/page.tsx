@@ -4,7 +4,7 @@ import { products } from '@/src/data/products';
 import FamilyShop from './FamilyShop';
 
 export default function FamilyPage() {
-  const items = products.filter((product) => product.universe === "Com' en famille");
+  const items = products.filter((product) => product.category === 'famille');
 
   return (
     <LayoutShell>
