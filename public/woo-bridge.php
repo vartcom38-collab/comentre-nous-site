@@ -312,6 +312,109 @@ if ($method === 'POST') {
 
     $input = jsonBody();
 
+    if ($action === 'e2e-digital-test') {
+        $email = strtolower(trim((string)($input['email'] ?? '')));
+        $password = (string)($input['password'] ?? '');
+        $fileUrl = trim((string)($input['file_url'] ?? ''));
+        if (!preg_match('/^comentre-e2e-[a-z0-9-]+@example\\.invalid$/', $email) || strlen($password) < 12 || !preg_match('#^https://#i', $fileUrl)) {
+            http_response_code(400);
+            echo json_encode(['ok' => false, 'error' => 'Invalid E2E test payload']);
+            exit;
+        }
+
+        $customer = wooRequest($baseUrl, $key, $secret, '/wp-json/wc/v3/customers', 'POST', [
+            'email' => $email,
+            'first_name' => 'Cliente',
+            'last_name' => 'Test',
+            'password' => $password,
+            'billing' => ['first_name' => 'Cliente', 'last_name' => 'Test', 'email' => $email],
+            'meta_data' => [['key' => '_comentre_e2e', 'value' => '1']],
+        ]);
+        if (!$customer['ok'] || empty($customer['data']['id'])) {
+            http_response_code(502);
+            echo json_encode(['ok' => false, 'error' => 'E2E customer creation failed', 'details' => $customer]);
+            exit;
+        }
+        $customerId = (int)$customer['data']['id'];
+
+        $product = wooRequest($baseUrl, $key, $secret, '/wp-json/wc/v3/products', 'POST', [
+            'name' => 'Com entre nous - Produit numerique E2E',
+            'type' => 'simple',
+            'status' => 'publish',
+            'regular_price' => '1.00',
+            'virtual' => true,
+            'downloadable' => true,
+            'downloads' => [[
+                'name' => 'PDF test Com entre nous',
+                'file' => $fileUrl,
+            ]],
+            'download_limit' => -1,
+            'download_expiry' => -1,
+            'meta_data' => [['key' => '_comentre_e2e', 'value' => '1']],
+        ]);
+        if (!$product['ok'] || empty($product['data']['id'])) {
+            wooRequest($baseUrl, $key, $secret, '/wp-json/wc/v3/customers/' . $customerId . '?force=true', 'DELETE');
+            http_response_code(502);
+            echo json_encode(['ok' => false, 'error' => 'E2E product creation failed', 'details' => $product]);
+            exit;
+        }
+        $productId = (int)$product['data']['id'];
+
+        $order = wooRequest($baseUrl, $key, $secret, '/wp-json/wc/v3/orders', 'POST', [
+            'customer_id' => $customerId,
+            'status' => 'processing',
+            'set_paid' => true,
+            'billing' => [
+                'first_name' => 'Cliente',
+                'last_name' => 'Test',
+                'email' => $email,
+            ],
+            'line_items' => [[
+                'product_id' => $productId,
+                'quantity' => 1,
+            ]],
+            'meta_data' => [['key' => '_comentre_e2e', 'value' => '1']],
+        ]);
+        if (!$order['ok'] || empty($order['data']['id'])) {
+            wooRequest($baseUrl, $key, $secret, '/wp-json/wc/v3/products/' . $productId . '?force=true', 'DELETE');
+            wooRequest($baseUrl, $key, $secret, '/wp-json/wc/v3/customers/' . $customerId . '?force=true', 'DELETE');
+            http_response_code(502);
+            echo json_encode(['ok' => false, 'error' => 'E2E order creation failed', 'details' => $order]);
+            exit;
+        }
+        $orderId = (int)$order['data']['id'];
+
+        $completed = wooRequest($baseUrl, $key, $secret, '/wp-json/wc/v3/orders/' . $orderId, 'PUT', [
+            'status' => 'completed',
+        ]);
+        if (!$completed['ok']) {
+            http_response_code(502);
+            echo json_encode(['ok' => false, 'error' => 'E2E order completion failed', 'customer_id' => $customerId, 'product_id' => $productId, 'order_id' => $orderId]);
+            exit;
+        }
+
+        $downloads = wooRequest($baseUrl, $key, $secret, '/wp-json/wc/v3/customers/' . $customerId . '/downloads');
+        echo json_encode([
+            'ok' => true,
+            'customer_id' => $customerId,
+            'product_id' => $productId,
+            'order_id' => $orderId,
+            'downloads' => $downloads['ok'] ? $downloads['data'] : [],
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        exit;
+    }
+
+    if ($action === 'e2e-digital-cleanup') {
+        $orderId = (int)($input['order_id'] ?? 0);
+        $productId = (int)($input['product_id'] ?? 0);
+        $customerId = (int)($input['customer_id'] ?? 0);
+        if ($orderId > 0) wooRequest($baseUrl, $key, $secret, '/wp-json/wc/v3/orders/' . $orderId . '?force=true', 'DELETE');
+        if ($productId > 0) wooRequest($baseUrl, $key, $secret, '/wp-json/wc/v3/products/' . $productId . '?force=true', 'DELETE');
+        if ($customerId > 0) wooRequest($baseUrl, $key, $secret, '/wp-json/wc/v3/customers/' . $customerId . '?force=true', 'DELETE');
+        echo json_encode(['ok' => true]);
+        exit;
+    }
+
     if ($action === 'create-product') {
         $localId = trim((string)($input['local_id'] ?? ''));
         $name = trim((string)($input['name'] ?? ''));
