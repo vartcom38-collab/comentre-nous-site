@@ -34,12 +34,12 @@
     "purchaseOptions": [
       {
         "id": "option-1790339331629-cjg9z",
-        "label": "Nouvelle version",
+        "label": "Version papier",
         "kind": "physical",
         "channel": "amazon",
         "price": "16.90€",
         "compareAtPrice": "",
-        "buttonLabel": "Acheter",
+        "buttonLabel": "Acheter sur Amazon",
         "url": "",
         "format": "",
         "note": "",
