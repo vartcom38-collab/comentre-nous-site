@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "node scripts/build-founders-image.mjs && node scripts/build-papeterie-catalog.mjs",
+    "prebuild": "node scripts/build-e2e-digital-pdf.mjs && node scripts/build-founders-image.mjs && node scripts/build-papeterie-catalog.mjs",
     "build": "next build",
     "start": "node server.js",
     "lint": "next lint"
