@@ -236,6 +236,31 @@ function publicOrigin(): string {
     return ($https ? 'https' : 'http') . '://' . $host;
 }
 
+function ensureDigitalEmailWebhooks(string $baseUrl,string $key,string $secret): void {
+    $deliveryUrl = publicOrigin() . '/woo-download-email.php';
+    $topics = ['order.created','order.updated'];
+    $existing = wooRequest($baseUrl,$key,$secret,'/wp-json/wc/v3/webhooks?per_page=100');
+    $hooks = ($existing['ok'] && is_array($existing['data'] ?? null)) ? $existing['data'] : [];
+    foreach ($topics as $topic) {
+        $found = false;
+        foreach ($hooks as $hook) {
+            if (!is_array($hook)) continue;
+            if ((string)($hook['topic'] ?? '') === $topic && (string)($hook['delivery_url'] ?? '') === $deliveryUrl && (string)($hook['status'] ?? '') === 'active') {
+                $found = true;
+                break;
+            }
+        }
+        if ($found) continue;
+        wooRequest($baseUrl,$key,$secret,'/wp-json/wc/v3/webhooks','POST',[
+            'name' => 'Com entre nous - ebook email - ' . $topic,
+            'topic' => $topic,
+            'delivery_url' => $deliveryUrl,
+            'secret' => $secret,
+            'status' => 'active',
+        ]);
+    }
+}
+
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 $action = $_GET['action'] ?? 'ping';
 
@@ -391,6 +416,12 @@ if ($method === 'POST') {
 
     $input = jsonBody();
 
+    if ($action === 'ensure-digital-email-webhooks') {
+        ensureDigitalEmailWebhooks($baseUrl,$key,$secret);
+        echo json_encode(['ok'=>true,'message'=>'Webhooks e-mail numérique actifs'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        exit;
+    }
+
     if ($action === 'create-product') {
         $localId = trim((string)($input['local_id'] ?? ''));
         $name = trim((string)($input['name'] ?? ''));
@@ -422,6 +453,7 @@ if ($method === 'POST') {
             echo json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
             exit;
         }
+        if (($input['delivery_type'] ?? '') === 'digital') ensureDigitalEmailWebhooks($baseUrl,$key,$secret);
         echo json_encode(['ok' => true, 'created' => true, 'product' => sanitizeProduct((array)$result['data'])], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         exit;
     }
@@ -461,6 +493,7 @@ if ($method === 'POST') {
             echo json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
             exit;
         }
+        if (($input['delivery_type'] ?? '') === 'digital') ensureDigitalEmailWebhooks($baseUrl,$key,$secret);
         echo json_encode(['ok' => true, 'product' => sanitizeProduct((array)$result['data'])], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         exit;
     }
