@@ -19,8 +19,22 @@ export default function CustomerSpacePage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
+  const [activation, setActivation] = useState<{order_id:number;order_key:string;email:string}|null>(null);
+  const [needsPassword, setNeedsPassword] = useState(false);
 
-  useEffect(() => { void restoreSession(); }, []);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const order_id = Number(params.get('order_id') || 0);
+    const order_key = params.get('order_key') || '';
+    const email = params.get('email') || '';
+    if(order_id && order_key && email){
+      const proof = {order_id,order_key,email};
+      setActivation(proof);
+      void provisionFromOrder(proof);
+    } else {
+      void restoreSession();
+    }
+  }, []);
 
   async function request(action:string, options?:RequestInit){
     const response = await fetch(`/customer-account.php?action=${encodeURIComponent(action)}`, { credentials:'same-origin', cache:'no-store', ...options });
@@ -45,6 +59,34 @@ export default function CustomerSpacePage() {
     const [ordersData, downloadsData] = await Promise.all([request('orders'), request('downloads')]);
     setOrders(ordersData.orders || []);
     setDownloads(downloadsData.downloads || []);
+  }
+
+  async function provisionFromOrder(proof:{order_id:number;order_key:string;email:string}) {
+    setLoading(true); setMessage('');
+    try{
+      await request('provision-from-order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(proof)});
+      setNeedsPassword(true);
+    }catch(error){
+      setMessage(error instanceof Error ? error.message : 'Impossible de préparer ton espace client.');
+    }finally{ setLoading(false); }
+  }
+
+  async function setFirstPassword(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if(!activation) return;
+    const form = new FormData(event.currentTarget);
+    const password = String(form.get('password') || '');
+    const confirmPassword = String(form.get('confirm_password') || '');
+    if(password !== confirmPassword){ setMessage('Les deux mots de passe ne correspondent pas.'); return; }
+    setBusy(true); setMessage('');
+    try{
+      const data = await request('set-first-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...activation,password})});
+      setCustomer(data.customer || null);
+      setNeedsPassword(false);
+      window.history.replaceState({},'', '/mon-espace/');
+      await loadPrivateData();
+    }catch(error){ setMessage(error instanceof Error ? error.message : 'Impossible de créer ton mot de passe.'); }
+    finally{ setBusy(false); }
   }
 
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
@@ -96,7 +138,21 @@ export default function CustomerSpacePage() {
           </div>
         </section>
 
-        {!customer && !loading ? <section className="customer-login" id="connexion" aria-labelledby="connexion-title">
+        {!customer && !loading && needsPassword && activation ? <section className="customer-login" id="connexion" aria-labelledby="activation-title">
+          <div className="customer-login-copy">
+            <p className="customer-kicker">Première connexion</p>
+            <h2 id="activation-title">Crée ton mot de passe</h2>
+            <p>Ton achat est bien rattaché à ton espace Com’ entre nous. Choisis simplement ton mot de passe pour retrouver ton ebook et tes prochains achats ici.</p>
+          </div>
+          <form onSubmit={setFirstPassword}>
+            <label>Mot de passe<input type="password" name="password" autoComplete="new-password" placeholder="10 caractères minimum" minLength={10} required /></label>
+            <label>Confirmer le mot de passe<input type="password" name="confirm_password" autoComplete="new-password" placeholder="Retape ton mot de passe" minLength={10} required /></label>
+            <button type="submit" disabled={busy}>{busy ? 'Création…' : 'Créer mon accès →'}</button>
+            {message ? <p className="customer-message" role="status">{message}</p> : null}
+          </form>
+        </section> : null}
+
+        {!customer && !loading && !needsPassword ? <section className="customer-login" id="connexion" aria-labelledby="connexion-title">
           <div className="customer-login-copy">
             <p className="customer-kicker">Connexion cliente</p>
             <h2 id="connexion-title">Se connecter à mon espace</h2>
