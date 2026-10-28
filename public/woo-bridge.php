@@ -208,8 +208,32 @@ function payloadFromInput(array $input, bool $forCreate = false): array {
         $payload['virtual'] = $isDigital;
         $payload['downloadable'] = $isDigital;
     }
+    if (($payload['downloadable'] ?? false) && !empty($input['download_file']) && preg_match('#^https?://#i', (string)$input['download_file'])) {
+        $payload['downloads'] = [[
+            'name' => trim((string)($input['download_name'] ?? 'Téléchargement')) ?: 'Téléchargement',
+            'file' => (string)$input['download_file'],
+        ]];
+        $payload['download_limit'] = -1;
+        $payload['download_expiry'] = -1;
+    }
     if (!empty($input['image']) && preg_match('#^https?://#i', (string)$input['image'])) $payload['images'] = [['src' => (string)$input['image']]];
     return $payload;
+}
+
+function digitalStorageDir(): string {
+    $dir = __DIR__ . '/private-digital';
+    if (!is_dir($dir)) @mkdir($dir, 0750, true);
+    if (is_dir($dir)) {
+        $deny = $dir . '/.htaccess';
+        if (!is_file($deny)) @file_put_contents($deny, "Require all denied\nDeny from all\n");
+    }
+    return $dir;
+}
+
+function publicOrigin(): string {
+    $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
+    $host = preg_replace('/[^a-zA-Z0-9.:-]/', '', (string)($_SERVER['HTTP_HOST'] ?? 'comentrenous.marionbolomey.fr'));
+    return ($https ? 'https' : 'http') . '://' . $host;
 }
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
@@ -307,6 +331,61 @@ if ($method === 'POST') {
     if (!githubTokenIsAllowed($token)) {
         http_response_code(401);
         echo json_encode(['ok' => false, 'error' => 'Admin authentication failed']);
+        exit;
+    }
+
+    if ($action === 'upload-download') {
+        if (!isset($_FILES['file']) || !is_array($_FILES['file'])) {
+            http_response_code(400);
+            echo json_encode(['ok' => false, 'error' => 'Aucun PDF reçu']);
+            exit;
+        }
+        $file = $_FILES['file'];
+        if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+            http_response_code(400);
+            echo json_encode(['ok' => false, 'error' => 'Le PDF n’a pas pu être envoyé (code ' . (int)($file['error'] ?? -1) . ')']);
+            exit;
+        }
+        $size = (int)($file['size'] ?? 0);
+        if ($size <= 0 || $size > 60 * 1024 * 1024) {
+            http_response_code(413);
+            echo json_encode(['ok' => false, 'error' => 'Le PDF doit faire moins de 60 Mo']);
+            exit;
+        }
+        $original = trim((string)($file['name'] ?? 'document.pdf'));
+        if (!preg_match('/\.pdf$/i', $original)) {
+            http_response_code(415);
+            echo json_encode(['ok' => false, 'error' => 'Seuls les fichiers PDF sont acceptés']);
+            exit;
+        }
+        $tmp = (string)($file['tmp_name'] ?? '');
+        $mime = '';
+        if (function_exists('finfo_open')) {
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            if ($finfo) { $mime = (string)finfo_file($finfo, $tmp); finfo_close($finfo); }
+        }
+        if ($mime !== '' && !in_array($mime, ['application/pdf','application/octet-stream'], true)) {
+            http_response_code(415);
+            echo json_encode(['ok' => false, 'error' => 'Le fichier reçu n’est pas un PDF valide']);
+            exit;
+        }
+        $keyValue = bin2hex(random_bytes(24));
+        $dir = digitalStorageDir();
+        if (!is_dir($dir) || !is_writable($dir)) {
+            http_response_code(500);
+            echo json_encode(['ok' => false, 'error' => 'Le stockage privé des PDF est indisponible']);
+            exit;
+        }
+        $target = $dir . '/' . $keyValue . '.pdf';
+        if (!move_uploaded_file($tmp, $target)) {
+            http_response_code(500);
+            echo json_encode(['ok' => false, 'error' => 'Impossible d’enregistrer le PDF']);
+            exit;
+        }
+        @chmod($target, 0640);
+        $safeName = preg_replace('/[^\pL\pN._ -]+/u', '-', $original) ?: 'document.pdf';
+        $url = publicOrigin() . '/digital-file.php?key=' . rawurlencode($keyValue) . '&name=' . rawurlencode($safeName);
+        echo json_encode(['ok' => true, 'file' => ['name' => $safeName, 'url' => $url, 'size' => $size]], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         exit;
     }
 
