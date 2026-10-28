@@ -52,6 +52,11 @@
 
     if (!isRepoWrite(url, method)) return nativeFetch(input, init);
 
+    // products.json must be retried by the product editor itself: it reloads
+    // the latest catalog and reapplies only the current product mutation.
+    // Retrying the same stale body here could overwrite another recent edit.
+    if (url.startsWith(repoPrefix + 'content/products.json')) return nativeFetch(input, init);
+
     const task = () => retryWrite(url, init || {});
     const result = queue.then(task, task);
     queue = result.then(() => undefined, () => undefined);
