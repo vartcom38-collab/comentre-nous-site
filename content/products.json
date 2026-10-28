@@ -39,11 +39,24 @@
         "channel": "amazon",
         "price": "16.90€",
         "compareAtPrice": "",
-        "buttonLabel": "Acheter sur Amazon",
+        "buttonLabel": "Prochainement",
         "url": "",
         "format": "",
         "note": "",
         "downloadKey": ""
+      },
+      {
+        "id": "option-1793191772472-ukxns",
+        "label": "Ebook",
+        "kind": "digital",
+        "channel": "woo",
+        "price": "9.90",
+        "compareAtPrice": "",
+        "buttonLabel": "Acheter Ebook",
+        "url": "",
+        "format": "PDF",
+        "note": "Téléchargement disponible dans l’espace client",
+        "downloadKey": "https://drive.google.com/uc?export=download&id=1Es8tN7YuzNBGpogUH47haIUE0Fr3a2FB"
       }
     ],
     "paperTabs": [],
@@ -55,7 +68,7 @@
     "featured": false,
     "new": true,
     "createdAt": "2026-09-24",
-    "updatedAt": "2026-09-25"
+    "updatedAt": "2026-10-28"
   },
   {
     "id": "produit-1789290945516",
