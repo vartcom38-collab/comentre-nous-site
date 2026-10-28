@@ -1,11 +1,11 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { LayoutShell } from '@/components/Site';
-import { getProduct, getPurchaseOptions, products } from '@/src/data/products';
+import { getProduct, getPurchaseOptions, allProducts } from '@/src/data/products';
 import wooLinksJson from '@/content/woo-links.json';
 
 export function generateStaticParams() {
-  return products.map((product) => ({ slug: product.slug }));
+  return allProducts.map((product) => ({ slug: product.slug }));
 }
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
