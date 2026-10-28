@@ -94,7 +94,10 @@ $list = '';
 foreach ($digitalNames as $name) {
     $list .= '<li style="margin:6px 0;">' . htmlspecialchars($name, ENT_QUOTES, 'UTF-8') . '</li>';
 }
-$spaceUrl = 'https://comentrenous.marionbolomey.fr/mon-espace/';
+$orderKey = (string)($order['order_key'] ?? '');
+$spaceUrl = 'https://comentrenous.marionbolomey.fr/mon-espace/?order_id=' . rawurlencode((string)$orderId)
+    . '&order_key=' . rawurlencode($orderKey)
+    . '&email=' . rawurlencode($email);
 $subject = 'Votre ebook est arrivé dans votre espace Com’ entre nous ♡';
 
 $html = '<!doctype html><html><body style="margin:0;background:#fff8f1;font-family:Arial,sans-serif;color:#171b2a;">'
