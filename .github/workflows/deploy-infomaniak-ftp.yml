@@ -96,3 +96,51 @@ jobs:
           mirror -R --continue --verbose --parallel=2 ./out/ ./sites/comentrenous.marionbolomey.fr/
           bye
           LFTP
+
+      - name: Digital product E2E test
+        if: ${{ success() }}
+        env:
+          GH_TEST_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="https://comentrenous.marionbolomey.fr"
+          EMAIL="comentre-e2e-${GITHUB_RUN_ID}@example.invalid"
+          PASSWORD="ComEntreNous-E2E-${GITHUB_RUN_ID}-Aa9!"
+          COOKIE="$(mktemp)"
+          IDS="$(mktemp)"
+          cleanup() {
+            if [ -s "$IDS" ]; then
+              ORDER_ID=$(jq -r '.order_id // 0' "$IDS")
+              PRODUCT_ID=$(jq -r '.product_id // 0' "$IDS")
+              CUSTOMER_ID=$(jq -r '.customer_id // 0' "$IDS")
+              curl -fsS -X POST "$BASE/woo-bridge.php?action=e2e-digital-cleanup" \
+                -H "Authorization: Bearer $GH_TEST_TOKEN" \
+                -H "Content-Type: application/json" \
+                --data "{\"order_id\":$ORDER_ID,\"product_id\":$PRODUCT_ID,\"customer_id\":$CUSTOMER_ID}" >/dev/null || true
+            fi
+            rm -f "$COOKIE" "$IDS"
+          }
+          trap cleanup EXIT
+
+          curl -fsS "$BASE/uploads/e2e-digital-test.pdf" -o /tmp/e2e.pdf
+          head -c 5 /tmp/e2e.pdf | grep -q '%PDF-'
+
+          curl -fsS -X POST "$BASE/woo-bridge.php?action=e2e-digital-test" \
+            -H "Authorization: Bearer $GH_TEST_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\",\"file_url\":\"$BASE/uploads/e2e-digital-test.pdf\"}" > "$IDS"
+
+          jq -e '.ok == true and (.downloads | length) > 0' "$IDS" >/dev/null
+
+          curl -fsS -c "$COOKIE" -b "$COOKIE" -X POST "$BASE/customer-account.php?action=login" \
+            -H "Content-Type: application/json" \
+            --data "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\"}" | jq -e '.authenticated == true' >/dev/null
+
+          curl -fsS -c "$COOKIE" -b "$COOKIE" "$BASE/customer-account.php?action=downloads" > /tmp/downloads.json
+          jq -e '.ok == true and (.downloads | length) > 0' /tmp/downloads.json >/dev/null
+          DOWNLOAD_URL=$(jq -r '.downloads[0].download_url' /tmp/downloads.json)
+          test -n "$DOWNLOAD_URL"
+          curl -fsSL "$DOWNLOAD_URL" -o /tmp/downloaded-e2e.pdf
+          head -c 5 /tmp/downloaded-e2e.pdf | grep -q '%PDF-'
+          echo "Digital E2E passed: WooCommerce -> customer account -> download"
