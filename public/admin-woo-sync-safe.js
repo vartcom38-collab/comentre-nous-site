@@ -102,22 +102,28 @@
     return /^https?:\/\//i.test(url) ? url : `${location.origin}${url.startsWith('/') ? '' : '/'}${url}`;
   }
 
-  function productPayload(product) {
+  function productPayload(product, option = null) {
+    const selected = option || {};
+    const isDigital = selected.kind === 'digital';
     return {
-      local_id: product.id,
-      name: product.title,
-      slug: product.slug,
+      local_id: option ? `${product.id}:${option.id}` : product.id,
+      name: option ? `${product.title} — ${selected.label || (isDigital ? 'Version numérique' : 'Version')}` : product.title,
+      slug: option ? `${product.slug}-${String(selected.label || selected.kind || 'version').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}` : product.slug,
       short_description: product.shortDescription || product.tagline || '',
       description: product.longDescription || '',
-      sku: product.sku || '',
+      sku: option ? '' : (product.sku || ''),
       featured: Boolean(product.featured),
       status: product.published ? 'publish' : 'draft',
-      regular_price: product.price || '',
-      stock_status: product.stockStatus === 'out' ? 'outofstock' : product.stockStatus === 'preorder' ? 'onbackorder' : 'instock',
-      stock_quantity: Number.isFinite(Number(product.stockQuantity)) ? Number(product.stockQuantity) : 0,
-      delivery_type: product.deliveryType || 'physical',
+      regular_price: selected.price || product.price || '',
+      stock_status: isDigital ? 'instock' : (product.stockStatus === 'out' ? 'outofstock' : product.stockStatus === 'preorder' ? 'onbackorder' : 'instock'),
+      stock_quantity: isDigital ? undefined : (Number.isFinite(Number(product.stockQuantity)) ? Number(product.stockQuantity) : 0),
+      delivery_type: isDigital ? 'digital' : 'physical',
       image: absolute(product.image || ''),
     };
+  }
+
+  function wooKey(product, option) {
+    return option ? `${product.id}:${option.id}` : product.id;
   }
 
   function waitForSaveCycle() {
@@ -159,29 +165,40 @@
     running = true;
     try {
       const product = await waitForSaveCycle();
-      if (product.purchaseChannel !== 'woo') return;
+      const wooOptions = Array.isArray(product.purchaseOptions)
+        ? product.purchaseOptions.filter((option) => option && option.channel === 'woo')
+        : [];
+
+      if (!wooOptions.length && product.purchaseChannel !== 'woo') return;
       if (!product.title || product.title === 'Nouveau produit') throw new Error('Donne un vrai nom au produit avant la synchronisation.');
-      if (!product.price) throw new Error('Ajoute un prix avant la synchronisation.');
 
-      notice('Synchronisation avec la boutique…', 'working');
+      notice('Synchronisation des versions WooCommerce…', 'working');
       const linksFile = await loadJson(LINKS_PATH);
-      const wooId = Number((linksFile.data || {})[product.id] || 0);
+      const currentLinks = linksFile.data || {};
+      let synced = 0;
 
-      if (wooId) {
-        try {
-          await woo('update-managed-product', { id: wooId, ...productPayload(product) });
-          notice('Produit enregistré et synchronisé avec la boutique ✓');
-        } catch (error) {
-          if (error.status === 409) notice('Produit enregistré. Ancienne liaison protégée : aucun prix n’a été écrasé.', 'safe');
-          else throw error;
+      const targets = wooOptions.length ? wooOptions : [null];
+      for (const option of targets) {
+        if (option && !option.price) throw new Error(`Ajoute le prix de “${option.label || 'la version WooCommerce'}”.`);
+        if (!option && !product.price) throw new Error('Ajoute un prix avant la synchronisation.');
+
+        const key = wooKey(product, option);
+        const wooId = Number(currentLinks[key] || 0);
+        const payload = productPayload(product, option);
+
+        if (wooId) {
+          await woo('update-managed-product', { id: wooId, ...payload });
+        } else {
+          const result = await woo('create-product', payload);
+          const createdId = Number(result.product && result.product.id);
+          if (!createdId) throw new Error('WooCommerce n’a pas renvoyé d’identifiant produit.');
+          await updateLinks(key, createdId);
+          currentLinks[key] = createdId;
         }
-      } else {
-        const result = await woo('create-product', productPayload(product));
-        const createdId = Number(result.product && result.product.id);
-        if (!createdId) throw new Error('La boutique n’a pas renvoyé d’identifiant produit.');
-        await updateLinks(product.id, createdId);
-        notice('Produit créé automatiquement dans la boutique ✓');
+        synced += 1;
       }
+
+      notice(`${synced} version${synced > 1 ? 's' : ''} WooCommerce synchronisée${synced > 1 ? 's' : ''} ✓`);
     } catch (error) {
       notice(`Boutique : ${error.message || error}`, 'error');
     } finally {
@@ -195,8 +212,6 @@
     if (!button || button.disabled) return;
     const text = (button.textContent || '').trim();
     if (!['Enregistrer', 'Enregistrer la fiche', 'Mettre en ligne', 'Retirer du site'].some((label) => text === label || text.startsWith(label))) return;
-    const saleSelect = Array.from(document.querySelectorAll('.form-card label')).find((label) => /canal de vente|mode de vente/i.test((label.textContent || '').trim()))?.querySelector('select');
-    if (!saleSelect || saleSelect.value !== 'woo') return;
     window.setTimeout(syncAfterSave, 20);
   }, true);
 })();
