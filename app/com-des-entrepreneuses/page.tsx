@@ -1,13 +1,10 @@
 import { LayoutShell } from '@/components/Site';
-import { products } from '@/src/data/products';
 import {wooCatalog} from '@/src/lib/woo-public';
 import WooCards from '@/components/WooCards';
 export const dynamic='force-dynamic';
-import EntrepreneurShop from './EntrepreneurShop';
 
 export default async function EntrepreneursPage() {
   let wooGroups;try{wooGroups=(await wooCatalog()).filter(g=>g.category==='entrepreneuses')}catch(error){console.error('WooCommerce catalog',error);wooGroups=[];}
-  const items = products.filter((product) => product.category === 'entrepreneuses');
 
   return (
     <LayoutShell>
@@ -35,7 +32,7 @@ export default async function EntrepreneursPage() {
         </section>
 
         <WooCards groups={wooGroups} title="Nos produits disponibles" />
-        <EntrepreneurShop items={items.filter(item=>!wooGroups.some(g=>g.primary.slug===item.slug))} />
+        
       </main>
     </LayoutShell>
   );
