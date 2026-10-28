@@ -359,12 +359,15 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     <script dangerouslySetInnerHTML={{ __html: unsavedChangesScript }} />
     <nav className="admin-global-nav">
       <Link href="/admin/">Tableau de bord</Link>
+      <a href="https://comunoracle.marionbolomey.fr/wp-admin/edit.php?post_type=product" target="_blank" rel="noopener noreferrer">🛍 Produits WooCommerce ↗</a>
+      <a href="https://comunoracle.marionbolomey.fr/wp-admin/post-new.php?post_type=product" target="_blank" rel="noopener noreferrer">＋ Ajouter un produit ↗</a>
       <Link href="/admin/contenus/">Contenus du site</Link>
       <Link href="/admin/podcast/">Podcast</Link>
       <Link href="/boutique/">Voir la boutique</Link>
       <Link href="/">Voir le site</Link>
     </nav>
     <div className="admin-quick-access" aria-label="Accès rapides administration">
+      <a href="https://comunoracle.marionbolomey.fr/wp-admin/edit.php?post_type=product" target="_blank" rel="noopener noreferrer">🛍 Gérer la boutique</a>
       <Link href="/admin/contenus/">✎ Contenus du site</Link>
       <Link href="/admin/podcast/">◉ Podcast</Link>
     </div>
