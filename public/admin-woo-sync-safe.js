@@ -118,6 +118,8 @@
       stock_status: isDigital ? 'instock' : (product.stockStatus === 'out' ? 'outofstock' : product.stockStatus === 'preorder' ? 'onbackorder' : 'instock'),
       stock_quantity: isDigital ? undefined : (Number.isFinite(Number(product.stockQuantity)) ? Number(product.stockQuantity) : 0),
       delivery_type: isDigital ? 'digital' : 'physical',
+      download_file: isDigital ? (selected.downloadKey || '') : '',
+      download_name: isDigital ? (selected.label || product.title || 'Téléchargement') : '',
       image: absolute(product.image || ''),
     };
   }
