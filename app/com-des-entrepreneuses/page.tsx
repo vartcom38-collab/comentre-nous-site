@@ -3,7 +3,7 @@ import { products } from '@/src/data/products';
 import EntrepreneurShop from './EntrepreneurShop';
 
 export default function EntrepreneursPage() {
-  const items = products.filter((product) => product.universe === "Com' des entrepreneuses");
+  const items = products.filter((product) => product.category === 'entrepreneuses');
 
   return (
     <LayoutShell>
