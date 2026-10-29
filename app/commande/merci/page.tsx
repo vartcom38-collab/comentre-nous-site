@@ -1,0 +1,3 @@
+import Link from 'next/link';
+import {LayoutShell} from '@/components/Site';
+export default function Thanks(){return <LayoutShell><main style={{maxWidth:760,margin:'5rem auto',padding:24,textAlign:'center'}}><h1>Merci pour ta commande ♡</h1><p>Si ton paiement a été validé, tu recevras un e-mail de confirmation et les instructions pour accéder à ton produit.</p><p>Le traitement peut demander quelques instants. La présence de cette page ne constitue pas, à elle seule, une confirmation du paiement.</p><p><Link href="/mon-espace/">Accéder à mon espace</Link></p><p><Link href="/boutique/">Retour à la boutique</Link></p></main></LayoutShell>}
