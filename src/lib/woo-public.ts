@@ -4,13 +4,13 @@ const source='https://comentrenous.marionbolomey.fr';
 export async function wooCatalog():Promise<(ShopGroup & {category:string})[]>{
  const all:PublicWooProduct[]=[];
  for(let page=1;page<=10;page++){
-  const response=await fetch(source+'/woo-bridge.php?action=products',{cache:'no-store',headers:{Accept:'application/json'}});
+  const response=await fetch(source+'/woo-bridge.php?action=public-products',{cache:'no-store',headers:{Accept:'application/json'}});
   if(!response.ok)throw new Error('Catalogue WooCommerce indisponible ('+response.status+')');
   const payload=await response.json() as {ok:boolean;products:PublicWooProduct[]};
   if(!payload.ok)throw new Error('Passerelle WooCommerce indisponible');
   const batch=payload.products;
   if(!Array.isArray(batch))throw new Error('Réponse WooCommerce invalide');
-  all.push(...batch.filter(p=>p.status!=='draft'));
+  all.push(...batch.filter(p=>p.status==='publish'));
   break;
  }
  return combineFormats(all).map(group=>{
