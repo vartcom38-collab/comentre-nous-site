@@ -18,6 +18,7 @@ add_filter('template_include', function($template) {
     if (!isset($_GET['comentre_preview']) || $_GET['comentre_preview'] !== '1') return $template;
     // Only shop managers/admins can view the experimental checkout.
     if (!current_user_can('manage_woocommerce')) return $template;
+    if (!function_exists('WC') || !WC()->cart || WC()->cart->is_empty()) return $template;
     return __FILE__;
 }, 99);
 
@@ -53,6 +54,7 @@ if (defined('ABSPATH') && did_action('template_redirect') && function_exists('is
     <body <?php body_class('comentre-checkout-preview'); ?>>
       <?php wp_body_open(); ?>
       <div class="ce-shell">
+        <div style="background:#fff0c9;border:1px solid #e8c66d;color:#4c3a16;padding:12px 20px;border-radius:12px;text-align:center;font-weight:700">APERÇU ADMINISTRATEUR — Ne pas effectuer de paiement réel. Cette page utilise encore le domaine WordPress.</div>
         <header class="ce-brand"><strong>Com’ entre nous</strong><small>DES MOMENTS À PARTAGER</small></header>
         <div class="ce-header"><h1>Finaliser ma commande</h1><p>Paiement sécurisé par WooPayments</p></div>
         <main><?php echo do_shortcode('[woocommerce_checkout]'); ?></main>
