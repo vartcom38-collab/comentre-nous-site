@@ -57,7 +57,7 @@
       <div class="woo-cart-head"><div><small>COM’ ENTRE NOUS</small><h2>Mon panier</h2></div><button type="button" data-cart-close aria-label="Fermer">×</button></div>
       <div class="woo-cart-message" data-cart-message></div>
       <div class="woo-cart-items" data-cart-items></div>
-      <div class="woo-cart-summary" data-cart-summary></div>
+      <div class="woo-cart-summary" data-cart-summary></div><div class="woo-cart-checkout" data-cart-checkout></div>
       <div class="woo-cart-foot"><button type="button" class="woo-cart-continue" data-cart-close>Continuer mes achats</button><p>Le paiement sécurisé sera géré par notre boutique.</p></div>
     `;
     drawer.querySelectorAll('[data-cart-close]').forEach((button) => button.addEventListener('click', close));
@@ -75,12 +75,14 @@
     document.querySelectorAll('[data-woo-cart-count]').forEach((node) => { node.textContent = String(quantity()); });
     const itemsEl = drawer.querySelector('[data-cart-items]');
     const summaryEl = drawer.querySelector('[data-cart-summary]');
+    const checkoutEl = drawer.querySelector('[data-cart-checkout]');
     const messageEl = drawer.querySelector('[data-cart-message]');
     if (messageEl) messageEl.textContent = '';
     const items = cart?.items || [];
     if (!items.length) {
       itemsEl.innerHTML = '<div class="woo-cart-empty">Ton panier est vide pour le moment.</div>';
       summaryEl.innerHTML = '';
+      checkoutEl.innerHTML = '';
       return;
     }
     itemsEl.innerHTML = items.map((item) => {
@@ -97,6 +99,8 @@
     });
     const totals = cart?.totals || {};
     summaryEl.innerHTML = `<div><small>Total du panier</small><strong>${money(totals.total_price, totals)}</strong></div>`;
+    const one = items.length === 1 && Number(items[0].quantity) === 1 ? items[0] : null;
+    checkoutEl.innerHTML = one ? `<a style="display:block;margin:12px 22px;text-align:center;background:#171b2a;color:#fff;padding:13px 16px;border-radius:999px;text-decoration:none;font-weight:900" href="/commande/?id=${encodeURIComponent(Number(one.id))}">Passer au paiement sécurisé</a>` : `<p style="margin:12px 22px;font-size:11px">Le paiement groupé du panier est en préparation. Pour le moment, utilise « Acheter maintenant » sur chaque fiche produit.</p>`;
   }
 
   async function load() {
