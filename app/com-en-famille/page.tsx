@@ -1,11 +1,8 @@
 import Link from 'next/link';
 import { LayoutShell } from '@/components/Site';
-import {wooCatalog} from '@/src/lib/woo-public';
 import WooCards from '@/components/WooCards';
-export const dynamic='force-dynamic';
 
-export default async function FamilyPage() {
-  let wooGroups;try{wooGroups=(await wooCatalog()).filter(g=>g.category==='famille')}catch(error){console.error('WooCommerce catalog',error);wooGroups=[];}
+export default function FamilyPage() {
 
   return (
     <LayoutShell>
@@ -65,7 +62,7 @@ export default async function FamilyPage() {
           <h2>Il suffit parfois d’un petit support pour que la conversation commence.</h2>
         </section>
 
-        <WooCards groups={wooGroups} title="Nos produits disponibles" />
+        <WooCards category="famille" title="Nos produits disponibles" />
         
 
         <section className="family-closing">
