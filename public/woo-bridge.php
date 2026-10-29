@@ -329,13 +329,13 @@ if ($method === 'POST' && in_array($action, ['cart-add', 'cart-update', 'cart-re
 }
 
 if ($method === 'GET') {
-    if (!in_array($action, ['ping', 'products'], true)) {
+    if (!in_array($action, ['ping', 'products', 'public-products'], true)) {
         http_response_code(400);
         echo json_encode(['ok' => false, 'error' => 'Unknown action']);
         exit;
     }
 
-    $endpoint = $action === 'products'
+    $endpoint = in_array($action, ['products', 'public-products'], true)
         ? '/wp-json/wc/v3/products?status=any&per_page=100'
         : '/wp-json/wc/v3/system_status';
     $result = wooRequest($baseUrl, $key, $secret, $endpoint);
@@ -352,8 +352,10 @@ if ($method === 'GET') {
 
     $products = [];
     foreach ((array)$result['data'] as $product) {
-        if (($product['status'] ?? '') !== 'publish') continue;
-        $products[] = sanitizeProduct((array)$product);
+        if ($action === 'public-products' && ($product['status'] ?? '') !== 'publish') continue;
+        $safe = sanitizeProduct((array)$product);
+        if ($action === 'public-products') unset($safe['meta_data'], $safe['managed_local_id'], $safe['managed']);
+        $products[] = $safe;
     }
     echo json_encode(['ok' => true, 'count' => count($products), 'products' => $products], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
