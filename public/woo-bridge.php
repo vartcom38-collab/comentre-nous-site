@@ -153,6 +153,11 @@ function sanitizeProduct(array $product): array {
         'name' => $product['name'] ?? '',
         'slug' => $product['slug'] ?? '',
         'status' => $product['status'] ?? '',
+        'type' => $product['type'] ?? '',
+        'downloadable' => (bool)($product['downloadable'] ?? false),
+        'product_url' => $product['product_url'] ?? '',
+        'description' => $product['description'] ?? '',
+        'short_description' => $product['short_description'] ?? '',
         'price' => $product['price'] ?? '',
         'regular_price' => $product['regular_price'] ?? '',
         'sale_price' => $product['sale_price'] ?? '',
@@ -346,7 +351,10 @@ if ($method === 'GET') {
     }
 
     $products = [];
-    foreach ((array)$result['data'] as $product) $products[] = sanitizeProduct((array)$product);
+    foreach ((array)$result['data'] as $product) {
+        if (($product['status'] ?? '') !== 'publish') continue;
+        $products[] = sanitizeProduct((array)$product);
+    }
     echo json_encode(['ok' => true, 'count' => count($products), 'products' => $products], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 }
