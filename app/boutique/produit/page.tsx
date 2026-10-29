@@ -14,17 +14,17 @@ export default function ProductPage(){
   const found=groups.find(g=>g.primary.id===id||g.ebook?.id===id||g.amazon?.id===id);
   if(found){setGroup(found);setState('ready');}else setState('not-found');
  }).catch(()=>{if(active)setState('unavailable');});return()=>{active=false;};},[]);
- return <LayoutShell><main style={{maxWidth:1180,margin:'3rem auto',padding:20}}>
+ return <LayoutShell><main style={{maxWidth:1180,margin:'3rem auto',padding:'0 20px 5rem'}}>
  {state==='loading'&&<p>Chargement du produit…</p>}
  {state==='unavailable'&&<p>La boutique est momentanément indisponible. Merci de réessayer plus tard.</p>}
  {state==='not-found'&&<p>Ce produit n'est pas disponible à la vente.</p>}
  {group&&state==='ready'&&<div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(300px,1fr))',gap:42}}>
- <div>{group.primary.images?.[0]?.src&&<img src={group.primary.images[0].src} alt={group.primary.name} style={{width:'100%',borderRadius:28}}/>}</div>
- <div><p>{group.category==='famille'?'Com’ en famille':'Com’ des entrepreneuses'}</p><h1>{group.primary.name}</h1>{Boolean((group.primary as DescribedProduct).short_description)&&<div style={{lineHeight:1.8,marginBottom:20}} dangerouslySetInnerHTML={{__html:(group.primary as DescribedProduct).short_description||''}}/>}<h2>Choisir mon format</h2>
- {group.ebook&&<div style={{border:'1px solid #ddd',borderRadius:16,padding:18,marginBottom:15}}><h3>Ebook — {formatWooPrice(group.ebook)}</h3><p>Téléchargement numérique après achat.</p><button type="button" data-woo-add={group.ebook.id} style={{display:'inline-block',border:0,cursor:'pointer',padding:'12px 18px',borderRadius:25,background:'#11182a',color:'white'}}>Ajouter au panier</button></div>}
+ <div>{group.primary.images?.[0]?.src&&<img src={group.primary.images[0].src} alt={group.primary.name} style={{width:'100%',borderRadius:28,boxShadow:'0 20px 60px #171b2a18'}}/>}<p style={{fontSize:12,color:'#6a6266',marginTop:14}}>♡ Un support pensé pour partager de vrais moments ensemble.</p></div>
+ <div><p>{group.category==='famille'?'Com’ en famille':'Com’ des entrepreneuses'}</p><h1>{group.primary.name}</h1>{Boolean((group.primary as DescribedProduct).short_description)&&<div style={{lineHeight:1.8,marginBottom:20}} dangerouslySetInnerHTML={{__html:(group.primary as DescribedProduct).short_description||''}}/>}<p style={{lineHeight:1.8,color:'#505668'}}>Une création Com’ entre nous à découvrir et à utiliser à ton rythme.</p><h2>Choisir mon format</h2>
+ {group.ebook&&<div style={{border:'1px solid #ddd',borderRadius:16,padding:18,marginBottom:15}}><h3>Ebook — {formatWooPrice(group.ebook)}</h3><p>Fichier PDF à télécharger après ton achat, à retrouver dans ton espace personnel.</p><button type="button" data-woo-add={group.ebook.id} style={{display:'inline-block',border:0,cursor:'pointer',padding:'12px 18px',borderRadius:25,background:'#11182a',color:'white'}}>Ajouter au panier</button></div>}
  {group.amazon&&<div style={{border:'1px solid #ddd',borderRadius:16,padding:18}}><h3>Version papier sur Amazon</h3>{group.amazon.product_url?<a href={group.amazon.product_url} target="_blank" rel="noopener noreferrer">Voir sur Amazon ↗</a>:<p>Cette version n'est pas encore disponible.</p>}</div>}
  {(group.primary as DescribedProduct).description&&<section style={{gridColumn:'1 / -1',lineHeight:1.9,marginTop:14}}><h2>Tout savoir sur ce produit</h2><div dangerouslySetInnerHTML={{__html:(group.primary as DescribedProduct).description||''}}/></section>}
  </div>}
- <p><Link href="/boutique/">← Retour à la boutique</Link></p>
+ <section style={{marginTop:45,background:'#fff1ec',borderRadius:24,padding:'22px 26px'}}><h2>Une question avant de choisir ?</h2><p>Le produit est numérique : aucun colis ne sera expédié. Tu recevras les informations d’accès à ton téléchargement après la validation de ta commande.</p></section><p><Link href="/boutique/">← Retour à la boutique</Link></p>
  </main></LayoutShell>;
 }
