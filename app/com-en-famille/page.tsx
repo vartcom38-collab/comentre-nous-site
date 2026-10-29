@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import { LayoutShell } from '@/components/Site';
-import { products } from '@/src/data/products';
-import FamilyShop from './FamilyShop';
+import {wooCatalog} from '@/src/lib/woo-public';
+import WooCards from '@/components/WooCards';
+export const dynamic='force-dynamic';
 
-export default function FamilyPage() {
-  const items = products.filter((product) => product.category === 'famille');
+export default async function FamilyPage() {
+  let wooGroups;try{wooGroups=(await wooCatalog()).filter(g=>g.category==='famille')}catch(error){console.error('WooCommerce catalog',error);wooGroups=[];}
 
   return (
     <LayoutShell>
@@ -64,7 +65,8 @@ export default function FamilyPage() {
           <h2>Il suffit parfois d’un petit support pour que la conversation commence.</h2>
         </section>
 
-        <FamilyShop items={items} />
+        <WooCards groups={wooGroups} title="Nos produits disponibles" />
+        
 
         <section className="family-closing">
           <div><span>♡</span><p>« Des conversations d’aujourd’hui pour des liens plus forts demain. »</p></div>

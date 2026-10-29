@@ -153,6 +153,11 @@ function sanitizeProduct(array $product): array {
         'name' => $product['name'] ?? '',
         'slug' => $product['slug'] ?? '',
         'status' => $product['status'] ?? '',
+        'type' => $product['type'] ?? '',
+        'downloadable' => (bool)($product['downloadable'] ?? false),
+        'product_url' => $product['product_url'] ?? '',
+        'description' => $product['description'] ?? '',
+        'short_description' => $product['short_description'] ?? '',
         'price' => $product['price'] ?? '',
         'regular_price' => $product['regular_price'] ?? '',
         'sale_price' => $product['sale_price'] ?? '',
@@ -324,13 +329,13 @@ if ($method === 'POST' && in_array($action, ['cart-add', 'cart-update', 'cart-re
 }
 
 if ($method === 'GET') {
-    if (!in_array($action, ['ping', 'products'], true)) {
+    if (!in_array($action, ['ping', 'products', 'public-products'], true)) {
         http_response_code(400);
         echo json_encode(['ok' => false, 'error' => 'Unknown action']);
         exit;
     }
 
-    $endpoint = $action === 'products'
+    $endpoint = in_array($action, ['products', 'public-products'], true)
         ? '/wp-json/wc/v3/products?status=any&per_page=100'
         : '/wp-json/wc/v3/system_status';
     $result = wooRequest($baseUrl, $key, $secret, $endpoint);
@@ -346,7 +351,12 @@ if ($method === 'GET') {
     }
 
     $products = [];
-    foreach ((array)$result['data'] as $product) $products[] = sanitizeProduct((array)$product);
+    foreach ((array)$result['data'] as $product) {
+        if ($action === 'public-products' && ($product['status'] ?? '') !== 'publish') continue;
+        $safe = sanitizeProduct((array)$product);
+        if ($action === 'public-products') unset($safe['meta_data'], $safe['managed_local_id'], $safe['managed']);
+        $products[] = $safe;
+    }
     echo json_encode(['ok' => true, 'count' => count($products), 'products' => $products], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 }
