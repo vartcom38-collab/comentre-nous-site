@@ -1,10 +1,7 @@
 import { LayoutShell } from '@/components/Site';
-import {wooCatalog} from '@/src/lib/woo-public';
 import WooCards from '@/components/WooCards';
-export const dynamic='force-dynamic';
 
-export default async function EntrepreneursPage() {
-  let wooGroups;try{wooGroups=(await wooCatalog()).filter(g=>g.category==='entrepreneuses')}catch(error){console.error('WooCommerce catalog',error);wooGroups=[];}
+export default function EntrepreneursPage() {
 
   return (
     <LayoutShell>
@@ -31,7 +28,7 @@ export default async function EntrepreneursPage() {
           <div><span>⌁</span><strong>Des projets alignés avec tes valeurs</strong><p>pour créer sans te perdre en route</p></div>
         </section>
 
-        <WooCards groups={wooGroups} title="Nos produits disponibles" />
+        <WooCards category="entrepreneuses" title="Nos produits disponibles" />
         
       </main>
     </LayoutShell>
