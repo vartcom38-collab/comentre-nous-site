@@ -62,6 +62,9 @@ foreach ($published as $p) {
         'name' => (string)($p['name'] ?? ''),
         'price' => (string)($p['price'] ?? ''),
         'downloadable' => (bool)($p['downloadable'] ?? false),
+        'short_description' => trim(html_entity_decode(strip_tags((string)($p['short_description'] ?? '')), ENT_QUOTES | ENT_HTML5, 'UTF-8')),
+        'description' => trim(html_entity_decode(strip_tags((string)($p['description'] ?? '')), ENT_QUOTES | ENT_HTML5, 'UTF-8')),
+        'sku' => (string)($p['sku'] ?? ''),
         'image' => (string)($images[0]['src'] ?? ''),
         'categories' => array_values(array_map(static function ($c) {
             return (string)($c['name'] ?? '');
@@ -87,6 +90,12 @@ if (isset($_GET['view']) && $_GET['view'] === '1') {
     .counts strong{font-size:27px;display:block}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px}
     article{background:white;padding:16px;border-radius:20px;box-shadow:0 8px 25px #171b2a0d}
     article img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:14px}
+    article a{display:inline-block;background:#25283c;color:#fff;padding:11px 16px;text-decoration:none;border-radius:999px;margin-top:12px}
+    .product-head{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:30px;align-items:start;margin-top:24px}
+    .product-copy{white-space:pre-line;line-height:1.8;color:#484655}
+    .back{display:inline-block;margin:14px 0 24px;color:#25283c}
+    .detail-image{width:100%;border-radius:24px;object-fit:cover}
+    .detail{background:white;border-radius:25px;padding:26px;margin-top:24px}
     .placeholder{background:#fce9e0;aspect-ratio:4/3;border-radius:14px}
     .note{color:#665f6a;line-height:1.6}.price{font-weight:bold}
     </style></head><body><main>
@@ -94,6 +103,28 @@ if (isset($_GET['view']) && $_GET['view'] === '1') {
     <h1>Aperçu de la nouvelle boutique</h1>
     <p class="note">Catalogue lu depuis boutique-test.marionbolomey.fr. Aucun achat possible sur cette page.</p>
     </header>
+    <?php
+    $selectedId = isset($_GET['product']) ? (int)$_GET['product'] : 0;
+    $selectedProduct = null;
+    foreach ($products as $candidate) {
+        if ($selectedId > 0 && $candidate['id'] === $selectedId) { $selectedProduct = $candidate; break; }
+    }
+    ?>
+    <?php if ($selectedProduct !== null): ?>
+    <a class="back" href="?view=1">← Revenir à tous les produits</a>
+    <div class="detail"><div class="product-head">
+      <div><?php if ($selectedProduct['image'] !== ''): ?><img class="detail-image" src="<?php echo $esc($selectedProduct['image']); ?>" alt="">
+      <?php else: ?><div class="placeholder"></div><?php endif; ?></div>
+      <div><p class="note"><?php echo $selectedProduct['downloadable'] ? 'Ebook à télécharger' : 'Produit'; ?></p>
+      <h1><?php echo $esc($selectedProduct['name']); ?></h1>
+      <p class="price"><?php echo $esc($selectedProduct['price']); ?> €</p>
+      <div class="product-copy"><?php echo $esc($selectedProduct['short_description']); ?></div>
+      <p class="note">Aperçu de fiche — la vente n’est pas activée.</p>
+      </div></div>
+      <?php if ($selectedProduct['description'] !== ''): ?><h2>Tout savoir sur ce produit</h2>
+      <div class="product-copy"><?php echo $esc($selectedProduct['description']); ?></div><?php endif; ?>
+    </div>
+    <?php else: ?>
     <div class="counts"><p><strong><?php echo count($products); ?></strong>Produits publiés</p>
     <p><strong><?php echo count($drafts); ?></strong>Brouillons (non affichés)</p></div>
     <?php if (!$products): ?>
@@ -108,10 +139,12 @@ if (isset($_GET['view']) && $_GET['view'] === '1') {
     <h2><?php echo $esc($product['name']); ?></h2>
     <p><?php echo $product['downloadable'] ? 'PDF numérique' : 'Produit'; ?></p>
     <p class="price"><?php echo $esc($product['price']); ?> €</p>
+    <a href="?view=1&amp;product=<?php echo (int)$product['id']; ?>">Voir la fiche détaillée</a>
     <p class="note">Aperçu seulement — aucun paiement</p>
     </article>
     <?php endforeach; ?>
     </div>
+    <?php endif; ?>
     <?php endif; ?>
     </main></body></html><?php
     exit;
