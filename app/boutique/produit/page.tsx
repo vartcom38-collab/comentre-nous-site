@@ -18,11 +18,13 @@ export default function ProductPage(){
   let active=true;
   const params=new URLSearchParams(window.location.search);
   const id=Number(params.get('id'));
-  const staging=params.get('source')==='test';
+  const source=params.get('source');
+  const staging=source==='test'||source==='commerce';
+  const endpoint=source==='commerce'?'/woo-commerce-catalog.php':'/woo-test-catalog.php';
   setIsStaging(staging);
   const promise:Promise<ProductGroup[]>=staging
-   ? fetch('/woo-test-catalog.php',{cache:'no-store'}).then(async response=>{
-      if(!response.ok)throw Error('Catalogue test indisponible');
+   ? fetch(endpoint,{cache:'no-store'}).then(async response=>{
+      if(!response.ok)throw Error('Catalogue d’aperçu indisponible');
       const data=await response.json();
       if(!data.ok||!Array.isArray(data.products))throw Error('Catalogue test indisponible');
       return combineFormats(data.products).map(g=>({ ...g,category:(data.products.find((p:{id:number})=>p.id===g.primary.id)?.categories||[]).some((c:{slug:string})=>c.slug==='com-des-entrepreneuses')?'entrepreneuses':'famille' }));
