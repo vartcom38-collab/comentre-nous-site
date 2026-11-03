@@ -68,6 +68,54 @@ foreach ($published as $p) {
         }, $categories)),
     ];
 }
+if (isset($_GET['view']) && $_GET['view'] === '1') {
+    header('Content-Type: text/html; charset=utf-8');
+    $esc = static function ($value): string {
+        return htmlspecialchars((string)$value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    };
+    ?><!doctype html>
+    <html lang="fr">
+    <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="robots" content="noindex,nofollow">
+    <title>Aperçu boutique test — Com’ entre nous</title>
+    <style>
+    *{box-sizing:border-box}body{background:#fff9f5;color:#232337;font-family:system-ui,sans-serif;margin:0}
+    main{max-width:1100px;padding:24px;margin:30px auto 80px}
+    header{background:#fce9e0;padding:30px;border-radius:28px}
+    h1{font-family:Georgia,serif;font-size:clamp(28px,5vw,47px);margin:8px 0}
+    .counts{display:flex;flex-wrap:wrap;gap:14px;margin:26px 0}.counts p{margin:0;background:white;border-radius:17px;padding:18px;flex:1}
+    .counts strong{font-size:27px;display:block}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px}
+    article{background:white;padding:16px;border-radius:20px;box-shadow:0 8px 25px #171b2a0d}
+    article img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:14px}
+    .placeholder{background:#fce9e0;aspect-ratio:4/3;border-radius:14px}
+    .note{color:#665f6a;line-height:1.6}.price{font-weight:bold}
+    </style></head><body><main>
+    <header><small>COM’ ENTRE NOUS · TEST UNIQUEMENT</small>
+    <h1>Aperçu de la nouvelle boutique</h1>
+    <p class="note">Catalogue lu depuis boutique-test.marionbolomey.fr. Aucun achat possible sur cette page.</p>
+    </header>
+    <div class="counts"><p><strong><?php echo count($products); ?></strong>Produits publiés</p>
+    <p><strong><?php echo count($drafts); ?></strong>Brouillons (non affichés)</p></div>
+    <?php if (!$products): ?>
+    <article><h2>Aucun produit publié pour le moment</h2>
+    <p class="note">C’est normal si ton ebook est encore en brouillon. Il reste protégé.</p></article>
+    <?php else: ?>
+    <div class="grid">
+    <?php foreach ($products as $product): ?>
+    <article><?php if ($product['image'] !== ''): ?>
+    <img src="<?php echo $esc($product['image']); ?>" alt="">
+    <?php else: ?><div class="placeholder"></div><?php endif; ?>
+    <h2><?php echo $esc($product['name']); ?></h2>
+    <p><?php echo $product['downloadable'] ? 'PDF numérique' : 'Produit'; ?></p>
+    <p class="price"><?php echo $esc($product['price']); ?> €</p>
+    <p class="note">Aperçu seulement — aucun paiement</p>
+    </article>
+    <?php endforeach; ?>
+    </div>
+    <?php endif; ?>
+    </main></body></html><?php
+    exit;
+}
 echo json_encode([
     'ok' => true,
     'store' => 'boutique-test',
