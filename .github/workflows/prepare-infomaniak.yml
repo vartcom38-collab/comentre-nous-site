@@ -1,0 +1,67 @@
+name: Préparer le site Com entre nous pour Infomaniak
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - 'components/**'
+      - 'src/**'
+      - 'content/**'
+      - 'public/**'
+      - 'scripts/**'
+      - 'assets/**'
+      - 'next.config.mjs'
+      - 'package.json'
+      - 'tsconfig.json'
+      - '.github/workflows/prepare-infomaniak.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+      - name: Installer Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Installer les dépendances
+        run: npm install --no-audit --no-fund
+      - name: Compiler les vraies pages du site
+        run: npm run build
+      - name: Vérifier les pages nécessaires
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f out/index.html
+          test -f out/boutique/index.html
+          test -f out/boutique/produit/index.html
+          test -f out/woo-commerce-catalog.php
+          test -f out/woo-commerce-connection.php
+          echo "Pages principales et passerelles présentes."
+      - name: Préparer un paquet sans destruction des fichiers serveur
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p package-site
+          cp -a out/. package-site/
+          # Aucun élément du paquet ne doit remplacer le WordPress /commerce/
+          test ! -e package-site/commerce
+          test ! -e package-site/woo-private.php
+          test ! -e package-site/woo-commerce-private.php
+          test ! -e package-site/woo-test-private.php
+          test ! -e package-site/.htaccess
+          echo "Aucune clé privée, aucun dossier commerce, aucun .htaccess racine."
+      - name: Déposer le paquet compilé comme artefact GitHub
+        uses: actions/upload-artifact@v4
+        with:
+          name: comentre-nous-site-pour-infomaniak
+          path: package-site/
+          retention-days: 7
+          if-no-files-found: error
