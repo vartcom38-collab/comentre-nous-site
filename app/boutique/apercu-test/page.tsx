@@ -2,35 +2,52 @@
 import {useEffect,useState} from 'react';
 import Link from 'next/link';
 import {LayoutShell} from '@/components/Site';
+import styles from './preview.module.css';
 
-type Product={id:number;name:string;price:string;downloadable:boolean;image:string;categories:string[];short_description?:string;description?:string};
+type Product={
+ id:number;name:string;price:string;downloadable:boolean;image:string;
+ short_description?:string;categories:{name:string;slug:string}[];
+};
 type Catalog={ok:boolean;published_count:number;draft_count:number;products:Product[]};
-function euro(value:string){const n=Number(value);return Number.isFinite(n)&&value!==''?new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(n):'Prix non défini';}
+function euro(value:string){
+ const n=Number(value);
+ return Number.isFinite(n)&&value!==''?new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(n):'Prix non défini';
+}
 export default function WooTestPreview(){
  const [catalog,setCatalog]=useState<Catalog|null>(null);
  const [error,setError]=useState('');
- useEffect(()=>{let active=true;fetch('/woo-test-catalog.php',{cache:'no-store'})
- .then(async response=>{const data=await response.json();if(!response.ok||!data.ok)throw Error(data.error||'Connexion indisponible');return data as Catalog;})
- .then(data=>{if(active)setCatalog(data);})
- .catch(err=>{if(active)setError(String(err.message||'Connexion indisponible'));});
- return()=>{active=false;};},[]);
- return <LayoutShell><main style={{maxWidth:1120,margin:'3rem auto',padding:'0 20px 80px'}}>
- <div style={{background:'#fff0e8',borderRadius:28,padding:'30px 28px',marginBottom:32}}>
-  <p style={{letterSpacing:'.12em',fontSize:12,fontWeight:800}}>COM’ ENTRE NOUS · APERÇU TECHNIQUE</p>
-  <h1 style={{fontSize:'clamp(32px,5vw,52px)',margin:'10px 0'}}>La nouvelle boutique WooCommerce</h1>
-  <p style={{lineHeight:1.8,maxWidth:760}}>Cette page affiche uniquement les produits publiés dans notre nouvelle boutique de test. Rien ici ne permet de commander ou de payer. La boutique actuelle reste inchangée.</p>
- </div>
- {error&&<p role="alert" style={{background:'#fff0e8',padding:22,borderRadius:18}}>Impossible de charger l'aperçu : {error}. Vérifier que le fichier de test a été déployé sur Infomaniak.</p>}
- {!catalog&&!error&&<p>Connexion au catalogue de test…</p>}
- {catalog&&<><section style={{display:'flex',gap:16,flexWrap:'wrap',marginBottom:32}}>
-  <div style={{padding:22,background:'#fff',borderRadius:18,flex:'1 1 210px'}}><strong style={{fontSize:34}}>{catalog.published_count}</strong><p>Produit(s) publiés</p></div>
-  <div style={{padding:22,background:'#fff',borderRadius:18,flex:'1 1 210px'}}><strong style={{fontSize:34}}>{catalog.draft_count}</strong><p>Brouillon(s) non visibles des clientes</p></div>
- </section>
- {catalog.products.length===0?<div style={{background:'#fff',padding:28,borderRadius:20}}><h2>Aucun produit publié pour l'instant</h2><p>Ton ebook de test reste en brouillon : c'est normal qu'il n'apparaisse pas ici. Nous n'allons pas le publier avant d'avoir sécurisé le paiement.</p></div>:
- <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(240px,1fr))',gap:20}}>{catalog.products.map(p=><article key={p.id} style={{background:'#fff',padding:18,borderRadius:22}}>
- {p.image?<img src={p.image} alt="" style={{width:'100%',aspectRatio:'4/3',objectFit:'cover',borderRadius:15}}/>:<div style={{aspectRatio:'4/3',background:'#fce9e0',borderRadius:15}}/>}
- <h2 style={{fontSize:20}}>{p.name}</h2>{p.short_description&&<p style={{color:"#625e68",lineHeight:1.6}}>{p.short_description}</p>}<p>{p.downloadable?'Fichier numérique':'Produit'}</p><strong>{euro(p.price)}</strong><p><a href={"/woo-test-catalog.php?view=1&product="+encodeURIComponent(p.id)} style={{color:"#171b2a",fontWeight:700}}>Voir la fiche détaillée →</a></p><p style={{fontSize:12,color:"#76717a"}}>Aperçu uniquement — vente désactivée</p></article>)}</div>}
- </>}
- <p style={{marginTop:36}}><Link href="/boutique/">← Retour à la boutique actuelle</Link></p>
+ useEffect(()=>{
+  let active=true;
+  fetch('/woo-test-catalog.php',{cache:'no-store'})
+   .then(async response=>{const data=await response.json();if(!response.ok||!data.ok)throw Error(data.error||'Connexion indisponible');return data as Catalog;})
+   .then(data=>{if(active)setCatalog(data);})
+   .catch(err=>{if(active)setError(String(err.message||'Connexion indisponible'));});
+  return()=>{active=false;};
+ },[]);
+ return <LayoutShell><main className={styles.page}>
+  <nav className={styles.breadcrumb}><Link href="/">Accueil</Link><span>♡</span><Link href="/boutique/">Boutique</Link><span>♡</span><span>Aperçu technique</span></nav>
+  <header className={styles.hero}>
+   <p className={styles.tag}>Com’ entre nous · nouveau WooCommerce</p>
+   <h1>Nos créations, <span>à leur place ♡</span></h1>
+   <p>Un aperçu du nouveau catalogue directement dans l’univers graphique de notre site. Aucun achat n’est possible ici : la boutique actuelle reste intacte.</p>
+   <span className={styles.doodle}>↝ petit aperçu des coulisses</span>
+  </header>
+  {error&&<p role="alert" className={styles.message}>Le catalogue de test n’est pas encore accessible : {error}. Il faut installer la dernière version du fichier PHP sur Infomaniak.</p>}
+  {!catalog&&!error&&<p role="status" className={styles.message}>On prépare les créations… ♡</p>}
+  {catalog&&<>
+   <div className={styles.counts}><p><strong>{catalog.published_count}</strong>produit(s) visibles</p><p><strong>{catalog.draft_count}</strong>brouillon(s) conservés à l’abri</p></div>
+   {catalog.products.length===0?<div className={styles.empty}><span>♡</span><h2>Les créations arrivent doucement…</h2><p>Ton produit test est encore en brouillon : il n’apparaîtra pas dans le catalogue tant qu’il n’aura pas été publié. Aucun paiement n’est activé.</p></div>:
+    <div className={styles.grid}>{catalog.products.map((p,i)=><article className={styles.product} key={p.id}>
+     <Link href={'/boutique/produit/?source=test&id='+encodeURIComponent(p.id)} className={styles.link}>
+      <div className={styles.picture}>{p.image?<img src={p.image} alt={p.name}/>:<div className={styles.placeholder}>♡</div>}<span className={styles.sticker}>{i%2===0?'Coup de cœur ♡':'À découvrir ✳'}</span></div>
+      <p className={styles.category}>{p.categories?.[0]?.name||'Com’ entre nous'}</p>
+      <h2>{p.name}</h2>
+      {p.short_description&&<p className={styles.description}>{p.short_description}</p>}
+      <div className={styles.bottom}><strong>{euro(p.price)}</strong><span>Découvrir la fiche ↗</span></div>
+     </Link>
+     <p className={styles.disabled}>Aperçu uniquement · achat désactivé</p>
+    </article>)}</div>}
+  </>}
+  <Link href="/boutique/" className={styles.back}>← Retour à la boutique actuelle</Link>
  </main></LayoutShell>;
 }
