@@ -4,27 +4,77 @@ import Link from 'next/link';
 import {LayoutShell} from '@/components/Site';
 import {loadWooCatalog,formatWooPrice} from '@/components/WooCards';
 import type {ShopGroup} from '@/src/lib/woo-grouping';
-type G=ShopGroup & {category:string};
+import styles from './product.module.css';
+
+type ProductGroup=ShopGroup & {category:string};
 type DescribedProduct=ShopGroup['primary'] & {description?:string;short_description?:string};
+
 export default function ProductPage(){
- const [group,setGroup]=useState<G|null>(null);
+ const [group,setGroup]=useState<ProductGroup|null>(null);
  const [state,setState]=useState<'loading'|'unavailable'|'not-found'|'ready'>('loading');
- useEffect(()=>{let active=true;const id=Number(new URLSearchParams(window.location.search).get('id'));loadWooCatalog().then(groups=>{
-  if(!active)return;
-  const found=groups.find(g=>g.primary.id===id||g.ebook?.id===id||g.amazon?.id===id);
-  if(found){setGroup(found);setState('ready');}else setState('not-found');
- }).catch(()=>{if(active)setState('unavailable');});return()=>{active=false;};},[]);
- return <LayoutShell><main style={{maxWidth:1180,margin:'3rem auto',padding:'0 20px 5rem'}}>
- {state==='loading'&&<p>Chargement du produit…</p>}
- {state==='unavailable'&&<p>La boutique est momentanément indisponible. Merci de réessayer plus tard.</p>}
- {state==='not-found'&&<p>Ce produit n'est pas disponible à la vente.</p>}
- {group&&state==='ready'&&<div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(300px,1fr))',gap:42}}>
- <div>{group.primary.images?.[0]?.src&&<img src={group.primary.images[0].src} alt={group.primary.name} style={{width:'100%',borderRadius:28,boxShadow:'0 20px 60px #171b2a18'}}/>}<p style={{fontSize:12,color:'#6a6266',marginTop:14}}>♡ Un support pensé pour partager de vrais moments ensemble.</p></div>
- <div><p>{group.category==='famille'?'Com’ en famille':'Com’ des entrepreneuses'}</p><h1>{group.primary.name}</h1>{Boolean((group.primary as DescribedProduct).short_description)&&<div style={{lineHeight:1.8,marginBottom:20}} dangerouslySetInnerHTML={{__html:(group.primary as DescribedProduct).short_description||''}}/>}<p style={{lineHeight:1.8,color:'#505668'}}>Une création Com’ entre nous à découvrir et à utiliser à ton rythme.</p><h2>Choisir mon format</h2>
- {group.ebook&&<div style={{border:'1px solid #ddd',borderRadius:16,padding:18,marginBottom:15}}><h3>Ebook — {formatWooPrice(group.ebook)}</h3><p>Fichier PDF à télécharger après ton achat, à retrouver dans ton espace personnel.</p><button type="button" data-woo-add={group.ebook.id} style={{display:'inline-block',border:0,cursor:'pointer',padding:'12px 18px',borderRadius:25,background:'#11182a',color:'white'}}>Ajouter au panier</button></div>}
- {group.amazon&&<div style={{border:'1px solid #ddd',borderRadius:16,padding:18}}><h3>Version papier sur Amazon</h3>{group.amazon.product_url?<a href={group.amazon.product_url} target="_blank" rel="noopener noreferrer">Voir sur Amazon ↗</a>:<p>Cette version n'est pas encore disponible.</p>}</div>}
- {(group.primary as DescribedProduct).description&&<section style={{gridColumn:'1 / -1',lineHeight:1.9,marginTop:14}}><h2>Tout savoir sur ce produit</h2><div dangerouslySetInnerHTML={{__html:(group.primary as DescribedProduct).description||''}}/></section>}
- </div>}
- <section style={{marginTop:45,background:'#fff1ec',borderRadius:24,padding:'22px 26px'}}><h2>Une question avant de choisir ?</h2><p>Le produit est numérique : aucun colis ne sera expédié. Tu recevras les informations d’accès à ton téléchargement après la validation de ta commande.</p></section><p><Link href="/boutique/">← Retour à la boutique</Link></p>
+ useEffect(()=>{
+  let active=true;
+  const id=Number(new URLSearchParams(window.location.search).get('id'));
+  loadWooCatalog().then(groups=>{
+   if(!active)return;
+   const found=groups.find(g=>g.primary.id===id||g.ebook?.id===id||g.amazon?.id===id);
+   if(found){setGroup(found);setState('ready');}
+   else setState('not-found');
+  }).catch(()=>{if(active)setState('unavailable');});
+  return()=>{active=false;};
+ },[]);
+ const primary=group?.primary as DescribedProduct|undefined;
+ const name=primary?.name||'';
+ const image=primary?.images?.[0]?.src;
+ const hasDigital=Boolean(group?.ebook);
+ const hasPaper=Boolean(group?.amazon);
+ return <LayoutShell><main className={styles.page}>
+  <nav className={styles.breadcrumb} aria-label="Fil d’Ariane">
+   <Link href="/">Accueil</Link><span>♡</span><Link href="/boutique/">La boutique</Link>
+   {group&&<><span>♡</span><span>{group.category==='famille'?'Com’ en famille':'Com’ des entrepreneuses'}</span></>}
+  </nav>
+  {state==='loading'&&<p className={styles.message} role="status">On prépare ta découverte… ♡</p>}
+  {state==='unavailable'&&<p className={styles.message} role="alert">La boutique est momentanément indisponible. Réessaie dans quelques instants.</p>}
+  {state==='not-found'&&<p className={styles.message}>Ce produit n’est pas disponible pour le moment. <Link href="/boutique/">Découvrir la boutique</Link></p>}
+  {group&&primary&&state==='ready'&&<>
+   <div className={styles.hero}>
+    <div className={styles.visual}>
+     <div className={styles.photo}>
+      {image?<img src={image} alt={name} />:<div className={styles.placeholder}>Une création à découvrir ♡</div>}
+     </div>
+     <span className={styles.sticker}>Fait avec le cœur ♡</span>
+    </div>
+    <div className={styles.copy}>
+     <span className={styles.eyebrow}>{group.category==='famille'?'Com’ en famille':'Com’ des entrepreneuses'}</span>
+     <h1>{name}</h1>
+     {primary.short_description&&<div className={styles.lead} dangerouslySetInnerHTML={{__html:primary.short_description}}/>}
+     {(group.ebook||group.primary)?.price&&<p className={styles.price}>{formatWooPrice(group.ebook||group.primary)}</p>}
+     <div className={styles.softNote}><span>✳</span><div>Des créations imaginées pour accompagner les moments du quotidien, à ton rythme.</div></div>
+     <div className={styles.formats}>
+      <h2 className={styles.formatsTitle}>Choisis ton format</h2>
+      {hasDigital&&group.ebook&&<div className={styles.format}>
+       <div className={styles.formatHead}><h3>♡ Version numérique</h3><strong>{formatWooPrice(group.ebook)}</strong></div>
+       <p>Un produit téléchargeable à retrouver après confirmation de ton achat.</p>
+       <button type="button" data-woo-add={group.ebook.id} className={styles.buy}>Ajouter au panier ♡</button>
+      </div>}
+      {hasPaper&&group.amazon&&<div className={styles.format+' '+styles.alt}>
+       <div className={styles.formatHead}><h3>✳ Version papier</h3></div>
+       <p>Une édition physique, proposée sur Amazon lorsqu’elle est disponible.</p>
+       {group.amazon.product_url?<a className={styles.amazonLink} href={group.amazon.product_url} target="_blank" rel="noopener noreferrer">Voir la version papier ↗</a>:<p>Cette version arrive bientôt.</p>}
+      </div>}
+     </div>
+    </div>
+   </div>
+   {primary.description&&<section className={styles.details}>
+    <h2>Ce qu’on a imaginé pour toi…</h2>
+    <div className={styles.description} dangerouslySetInnerHTML={{__html:primary.description}}/>
+   </section>}
+   <section className={styles.reassurance} aria-label="Informations utiles">
+    <article><strong>Un petit moment pour soi ♡</strong><p>Des créations à découvrir à ton rythme, sans pression.</p></article>
+    <article><strong>Le format qui te ressemble</strong><p>Choisis le format disponible qui correspond à tes envies.</p></article>
+    <article><strong>Une question ?</strong><p>Notre équipe est là pour t’accompagner avant ton achat.</p></article>
+   </section>
+  </>}
+  <Link className={styles.back} href="/boutique/">← Revenir aux créations</Link>
  </main></LayoutShell>;
 }
