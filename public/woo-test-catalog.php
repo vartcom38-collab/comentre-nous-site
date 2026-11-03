@@ -60,14 +60,24 @@ foreach ($published as $p) {
     $products[] = [
         'id' => (int)($p['id'] ?? 0),
         'name' => (string)($p['name'] ?? ''),
+        'slug' => (string)($p['slug'] ?? ''),
+        'type' => (string)($p['type'] ?? ''),
+        'status' => 'publish',
         'price' => (string)($p['price'] ?? ''),
         'downloadable' => (bool)($p['downloadable'] ?? false),
         'short_description' => trim(html_entity_decode(strip_tags((string)($p['short_description'] ?? '')), ENT_QUOTES | ENT_HTML5, 'UTF-8')),
         'description' => trim(html_entity_decode(strip_tags((string)($p['description'] ?? '')), ENT_QUOTES | ENT_HTML5, 'UTF-8')),
         'sku' => (string)($p['sku'] ?? ''),
+        'product_url' => '',
         'image' => (string)($images[0]['src'] ?? ''),
+        'images' => array_values(array_map(static function ($image) {
+            return ['src' => (string)($image['src'] ?? '')];
+        }, $images)),
         'categories' => array_values(array_map(static function ($c) {
-            return (string)($c['name'] ?? '');
+            return [
+                'name' => (string)($c['name'] ?? ''),
+                'slug' => (string)($c['slug'] ?? ''),
+            ];
         }, $categories)),
     ];
 }
