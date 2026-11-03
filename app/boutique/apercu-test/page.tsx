@@ -3,7 +3,7 @@ import {useEffect,useState} from 'react';
 import Link from 'next/link';
 import {LayoutShell} from '@/components/Site';
 
-type Product={id:number;name:string;price:string;downloadable:boolean;image:string;categories:string[]};
+type Product={id:number;name:string;price:string;downloadable:boolean;image:string;categories:string[];short_description?:string;description?:string};
 type Catalog={ok:boolean;published_count:number;draft_count:number;products:Product[]};
 function euro(value:string){const n=Number(value);return Number.isFinite(n)&&value!==''?new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR'}).format(n):'Prix non défini';}
 export default function WooTestPreview(){
@@ -29,7 +29,7 @@ export default function WooTestPreview(){
  {catalog.products.length===0?<div style={{background:'#fff',padding:28,borderRadius:20}}><h2>Aucun produit publié pour l'instant</h2><p>Ton ebook de test reste en brouillon : c'est normal qu'il n'apparaisse pas ici. Nous n'allons pas le publier avant d'avoir sécurisé le paiement.</p></div>:
  <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(240px,1fr))',gap:20}}>{catalog.products.map(p=><article key={p.id} style={{background:'#fff',padding:18,borderRadius:22}}>
  {p.image?<img src={p.image} alt="" style={{width:'100%',aspectRatio:'4/3',objectFit:'cover',borderRadius:15}}/>:<div style={{aspectRatio:'4/3',background:'#fce9e0',borderRadius:15}}/>}
- <h2 style={{fontSize:20}}>{p.name}</h2><p>{p.downloadable?'Fichier numérique':'Produit'}</p><strong>{euro(p.price)}</strong><p style={{fontSize:12,color:'#76717a'}}>Aperçu uniquement — vente désactivée</p></article>)}</div>}
+ <h2 style={{fontSize:20}}>{p.name}</h2>{p.short_description&&<p style={{color:"#625e68",lineHeight:1.6}}>{p.short_description}</p>}<p>{p.downloadable?'Fichier numérique':'Produit'}</p><strong>{euro(p.price)}</strong><p><a href={"/woo-test-catalog.php?view=1&product="+encodeURIComponent(p.id)} style={{color:"#171b2a",fontWeight:700}}>Voir la fiche détaillée →</a></p><p style={{fontSize:12,color:"#76717a"}}>Aperçu uniquement — vente désactivée</p></article>)}</div>}
  </>}
  <p style={{marginTop:36}}><Link href="/boutique/">← Retour à la boutique actuelle</Link></p>
  </main></LayoutShell>;
