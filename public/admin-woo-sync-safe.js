@@ -15,6 +15,24 @@
     const linkObserver = new MutationObserver(fixAdminLinks);
     linkObserver.observe(document.documentElement, {childList: true, subtree: true});
   }
+  // Accès à la création depuis l'administration, sans passer par WordPress.
+  if (location.pathname === '/admin/' || location.pathname === '/admin') {
+    function addProductShortcut() {
+      if (document.querySelector('[data-comentre-create-product]')) return;
+      const toolbar = document.querySelector('.toolbar');
+      if (!toolbar) return;
+      const link = document.createElement('a');
+      link.href = '/admin/produit/?new=famille';
+      link.setAttribute('data-comentre-create-product', '1');
+      link.textContent = '＋ Créer un produit ici';
+      link.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:12px 18px;background:#ff5d62;color:white;font:800 12px Comfortaa,system-ui,sans-serif;text-decoration:none;white-space:nowrap';
+      toolbar.appendChild(link);
+    }
+    const shortcutObserver = new MutationObserver(addProductShortcut);
+    shortcutObserver.observe(document.documentElement,{childList:true,subtree:true});
+    if (document.readyState==='loading') document.addEventListener('DOMContentLoaded',addProductShortcut,{once:true});
+    else addProductShortcut();
+  }
   if (!location.pathname.startsWith('/admin/produit')) return;
 
   const OWNER = 'vartcom38-collab';
@@ -37,7 +55,9 @@
       el.setAttribute('data-woo-safe-status', '1');
       el.style.cssText = 'max-width:1500px;margin:0 auto 14px;padding:11px 14px;border-radius:14px;background:#eef9f7;font:800 11px Comfortaa,system-ui,sans-serif;color:#087f78';
       const anchor = document.querySelector('.completion');
+      const shell = document.querySelector('.product-editor-shell');
       if (anchor && anchor.parentElement) anchor.parentElement.insertBefore(el, anchor.nextSibling);
+      else if (shell) shell.insertBefore(el, shell.firstChild);
     }
     if (!el) return;
     el.textContent = text;
@@ -132,7 +152,7 @@
       status: product.published ? 'publish' : 'draft',
       regular_price: selected.price || product.price || '',
       stock_status: isDigital ? 'instock' : (product.stockStatus === 'out' ? 'outofstock' : product.stockStatus === 'preorder' ? 'onbackorder' : 'instock'),
-      stock_quantity: isDigital ? undefined : (Number.isFinite(Number(product.stockQuantity)) ? Number(product.stockQuantity) : 0),
+      stock_quantity: isDigital || product.stockQuantity === '' || product.stockQuantity == null ? undefined : (Number.isFinite(Number(product.stockQuantity)) && Number(product.stockQuantity) > 0 ? Number(product.stockQuantity) : undefined),
       delivery_type: isDigital ? 'digital' : 'physical',
       download_file: isDigital ? (selected.downloadKey || '') : '',
       download_name: isDigital ? (selected.label || product.title || 'Téléchargement') : '',
@@ -187,7 +207,10 @@
         ? product.purchaseOptions.filter((option) => option && option.channel === 'woo')
         : [];
 
-      if (!wooOptions.length && product.purchaseChannel !== 'woo') return;
+      if (!wooOptions.length && product.purchaseChannel !== 'woo') {
+        notice('Fiche enregistrée dans Com’ entre nous. Aucune version WooCommerce à synchroniser pour ce produit.');
+        return;
+      }
       if (!product.title || product.title === 'Nouveau produit') throw new Error('Donne un vrai nom au produit avant la synchronisation.');
 
       notice('Synchronisation des versions WooCommerce…', 'working');
