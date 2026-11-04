@@ -1,4 +1,20 @@
 (() => {
+  // Petit correctif pouvant être déployé seul, sans remplacer la compilation Next.js.
+  // Remplace uniquement les liens d'administration vers l'ancienne boutique.
+  if (location.pathname.startsWith('/admin')) {
+    const oldBase = 'https://comunoracle.marionbolomey.fr/wp-admin/';
+    const newBase = 'https://comentrenous.marionbolomey.fr/commerce/wp-admin/';
+    function fixAdminLinks() {
+      document.querySelectorAll('a[href^="' + oldBase + '"]').forEach((link) => {
+        const href = link.getAttribute('href') || '';
+        if (href.startsWith(oldBase)) link.setAttribute('href', newBase + href.slice(oldBase.length));
+      });
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fixAdminLinks, { once: true });
+    else fixAdminLinks();
+    const linkObserver = new MutationObserver(fixAdminLinks);
+    linkObserver.observe(document.documentElement, {childList: true, subtree: true});
+  }
   if (!location.pathname.startsWith('/admin/produit')) return;
 
   const OWNER = 'vartcom38-collab';
