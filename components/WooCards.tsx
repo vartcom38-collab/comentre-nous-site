@@ -10,7 +10,7 @@ type WooProduct=ShopProduct & {
  image?:string;
 };
 type CatalogGroup=ShopGroup & {category:string};
-const allowed=['com-en-famille','com-des-entrepreneuses'];
+const categorySlugs={famille:'com-en-famille',entrepreneuses:'com-des-entrepreneuses'} as const;
 
 export async function loadWooCatalog(source:'active'|'commerce'='active'):Promise<CatalogGroup[]>{
  const endpoint='/woo-commerce-catalog.php';
@@ -21,11 +21,15 @@ export async function loadWooCatalog(source:'active'|'commerce'='active'):Promis
  const products:WooProduct[]=data.products
   .filter((p:WooProduct)=>p.status==='publish')
   .map((p:WooProduct)=>({...p,images:Array.isArray(p.images)?p.images:[],sku:p.sku||''}));
- const selected=products;
- return combineFormats(selected).map(group=>{
+ // Aucun produit non classé ne doit apparaître dans un univers par défaut.
+ // Le produit doit avoir une catégorie d'univers explicitement choisie dans WooCommerce.
+ const selected=products.filter(p=>(p.categories||[]).some(c=>Object.values(categorySlugs).includes(c.slug as typeof categorySlugs[keyof typeof categorySlugs])));
+ return combineFormats(selected).flatMap(group=>{
   const categories=(group.primary as WooProduct).categories||[];
-  const category=categories.some(c=>c.slug==='com-des-entrepreneuses')?'entrepreneuses':'famille';
-  return {...group,category};
+  const category=categories.some(c=>c.slug===categorySlugs.entrepreneuses)
+   ? 'entrepreneuses'
+   : categories.some(c=>c.slug===categorySlugs.famille) ? 'famille' : null;
+  return category ? [{...group,category}] : [];
  });
 }
 export function formatWooPrice(product:ShopProduct){
