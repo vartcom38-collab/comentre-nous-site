@@ -1,7 +1,10 @@
 (() => {
   if (location.pathname.startsWith('/admin')) return;
 
-  const TOKEN_KEY = 'comentre_woo_cart_token';
+  const TOKEN_KEY = 'comentre_commerce_test_cart_token';
+  const ADMIN_TOKEN_KEY = 'comentre_admin_github_token';
+  const getAdminToken = () => sessionStorage.getItem(ADMIN_TOKEN_KEY) || localStorage.getItem(ADMIN_TOKEN_KEY) || '';
+  let privateTestAuthorized = false;
   let cart = null;
   let drawer = null;
   let backdrop = null;
@@ -11,12 +14,13 @@
   const setToken = (value) => { if (value) localStorage.setItem(TOKEN_KEY, value); };
 
   async function api(action, payload) {
-    const response = await fetch(`/woo-bridge.php?action=${encodeURIComponent(action)}`, {
+    const response = await fetch(`/woo-commerce-cart-test.php?action=${encodeURIComponent(action)}`, {
       method: payload ? 'POST' : 'GET',
       cache: 'no-store',
       headers: {
         ...(payload ? { 'Content-Type': 'application/json' } : {}),
         ...(getToken() ? { 'X-Cart-Token': getToken() } : {}),
+        ...(getAdminToken() ? { 'Authorization': `Bearer ${getAdminToken()}` } : {}),
       },
       body: payload ? JSON.stringify(payload) : undefined,
     });
@@ -54,11 +58,11 @@
     drawer.className = 'woo-cart-drawer';
     drawer.setAttribute('aria-label', 'Panier');
     drawer.innerHTML = `
-      <div class="woo-cart-head"><div><small>COM’ ENTRE NOUS</small><h2>Mon panier</h2></div><button type="button" data-cart-close aria-label="Fermer">×</button></div>
+      <div class="woo-cart-head"><div><small>COM’ ENTRE NOUS · TEST PRIVÉ</small><h2>Mon panier</h2></div><button type="button" data-cart-close aria-label="Fermer">×</button></div>
       <div class="woo-cart-message" data-cart-message></div>
       <div class="woo-cart-items" data-cart-items></div>
       <div class="woo-cart-summary" data-cart-summary></div>
-      <div class="woo-cart-foot"><button type="button" class="woo-cart-continue" data-cart-close>Continuer mes achats</button><p>Le paiement sécurisé sera géré par notre boutique.</p></div>
+      <div class="woo-cart-foot"><button type="button" class="woo-cart-continue" data-cart-close>Continuer mes achats</button><p>Panier test uniquement · paiement et commandes désactivés.</p></div>
     `;
     drawer.querySelectorAll('[data-cart-close]').forEach((button) => button.addEventListener('click', close));
     document.body.append(backdrop, drawer);
@@ -76,7 +80,7 @@
     const itemsEl = drawer.querySelector('[data-cart-items]');
     const summaryEl = drawer.querySelector('[data-cart-summary]');
     const messageEl = drawer.querySelector('[data-cart-message]');
-    if (messageEl) messageEl.textContent = '';
+    if (messageEl) messageEl.textContent = privateTestAuthorized ? '' : 'Le panier est en préparation. Les achats sont désactivés pour le public.';
     const items = cart?.items || [];
     if (!items.length) {
       itemsEl.innerHTML = '<div class="woo-cart-empty">Ton panier est vide pour le moment.</div>';
@@ -100,12 +104,49 @@
   }
 
   async function load() {
-    try { await api('cart'); }
-    catch (_) { render(); }
+    if (!getAdminToken()) { render(); return; }
+    try {
+      const res = await fetch('/woo-commerce-cart-test.php?action=ping', {
+        cache: 'no-store',
+        headers: {Authorization: `Bearer ${getAdminToken()}`},
+      });
+      const data = await res.json().catch(() => ({}));
+      privateTestAuthorized = Boolean(res.ok && data.ok && data.store === 'commerce' && data.test_only);
+      if (privateTestAuthorized) {
+        await api('cart');
+        enablePrivateTestButton();
+      } else render();
+    } catch (_) { render(); }
+  }
+
+  function enablePrivateTestButton() {
+    if (!privateTestAuthorized) return;
+    if (!location.pathname.startsWith('/boutique/produit')) return;
+    if (new URLSearchParams(location.search).get('id') !== '14') return;
+    const upgrade = () => {
+      const spans = Array.from(document.querySelectorAll('span'));
+      const locked = spans.find(el => el.textContent?.trim() === 'Achat désactivé pendant les tests');
+      if (!locked) return;
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = 'Ajouter au panier · TEST ♡';
+      button.setAttribute('data-woo-add', '14');
+      button.className = locked.className;
+      button.style.cssText = 'border:0;cursor:pointer;display:inline-block;background:#ead7ff;border-radius:999px;padding:14px 20px;font-size:12px;font-weight:800;color:#171b2a';
+      locked.replaceWith(button);
+    };
+    upgrade();
+    // La fiche Next.js peut se charger après ce script : surveiller jusqu'à affichage.
+    const observer = new MutationObserver(() => {
+      upgrade();
+      if (document.querySelector('[data-woo-add="14"]')) observer.disconnect();
+    });
+    observer.observe(document.body,{childList:true,subtree:true});
   }
 
   async function add(productId, button) {
     if (busy) return;
+    if (!privateTestAuthorized) { showError('Ajout réservé à la session de test administratrice.'); return; }
     busy = true;
     const previous = button?.textContent;
     if (button) { button.disabled = true; button.textContent = 'Ajout au panier…'; }
