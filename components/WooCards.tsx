@@ -13,7 +13,7 @@ type CatalogGroup=ShopGroup & {category:string};
 const allowed=['com-en-famille','com-des-entrepreneuses'];
 
 export async function loadWooCatalog(source:'active'|'commerce'='active'):Promise<CatalogGroup[]>{
- const endpoint=source==='commerce'?'/woo-commerce-catalog.php':'/woo-bridge.php?action=public-products';
+ const endpoint='/woo-commerce-catalog.php';
  const response=await fetch(endpoint,{cache:'no-store'});
  if(!response.ok)throw Error('Passerelle WooCommerce indisponible');
  const data=await response.json();
@@ -21,9 +21,7 @@ export async function loadWooCatalog(source:'active'|'commerce'='active'):Promis
  const products:WooProduct[]=data.products
   .filter((p:WooProduct)=>p.status==='publish')
   .map((p:WooProduct)=>({...p,images:Array.isArray(p.images)?p.images:[],sku:p.sku||''}));
- const selected=source==='active'
-  ? products.filter(p=>(p.categories||[]).some(c=>allowed.includes(c.slug)))
-  : products;
+ const selected=products;
  return combineFormats(selected).map(group=>{
   const categories=(group.primary as WooProduct).categories||[];
   const category=categories.some(c=>c.slug==='com-des-entrepreneuses')?'entrepreneuses':'famille';
@@ -54,15 +52,15 @@ export default function WooCards({category,title}:{category?:'famille'|'entrepre
  },[category]);
  return <section id={category==='famille'?'collection':category==='entrepreneuses'?'boutique':undefined} className={styles.section} aria-label={title||'Produits WooCommerce'}>
  {title&&<h2 className={styles.title}>{title}</h2>}
- {preview&&<div role="status" className={styles.preview}><strong>Aperçu du futur catalogue Com’ entre nous</strong><span>Produits récupérés de notre nouveau WooCommerce dans /commerce/. Aucun achat possible sur cet aperçu.</span></div>}
+ {preview&&<div role="status" className={styles.preview}><strong>Aperçu du catalogue Com’ entre nous</strong><span>Produits récupérés de WooCommerce dans /commerce/. Les achats sont désactivés durant les tests.</span></div>}
  {loading&&<p role="status" className={styles.message}>On prépare nos créations… ♡</p>}
  {error&&<p role="alert" className={styles.message}>Les produits sont momentanément indisponibles. Vérifie la connexion WooCommerce.</p>}
- {!loading&&!error&&groups.length===0&&<div className={styles.empty}><span>♡</span><h2>De jolies choses se préparent…</h2><p>{preview?'Le nouveau catalogue ne contient encore aucun produit publié. Ton ebook de démonstration reste en brouillon.':'Nos nouveautés arrivent bientôt.'}</p></div>}
+ {!loading&&!error&&groups.length===0&&<div className={styles.empty}><span>♡</span><h2>De jolies choses se préparent…</h2><p>{preview?'Aucun produit n’est publié dans notre nouveau WooCommerce pour le moment.':'Nos nouveautés arrivent bientôt. Les produits en brouillon restent invisibles.'}</p></div>}
  <div className={styles.grid}>
  {groups.map((group,i)=>{
   const product=group.primary as WooProduct;
   const price=group.ebook||group.primary;
-  const href='/boutique/produit/?id='+encodeURIComponent(product.id)+(preview?'&source=commerce':'');
+  const href='/boutique/produit/?id='+encodeURIComponent(product.id)+'&source=commerce';
   return <article key={group.key} className={styles.card}>
    <Link href={href} className={styles.link}>
     <div className={styles.visual}>
@@ -76,7 +74,7 @@ export default function WooCards({category,title}:{category?:'famille'|'entrepre
      <div className={styles.bottom}><strong>{formatWooPrice(price)}</strong><span>Découvrir ↗</span></div>
     </div>
    </Link>
-   {preview&&<p className={styles.noBuy}>Prévisualisation · vente désactivée</p>}
+   <p className={styles.noBuy}>Vente temporairement désactivée</p>
   </article>;
  })}
  </div>
