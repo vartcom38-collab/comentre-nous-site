@@ -6,7 +6,7 @@
   const BRANCH = 'main';
   const TOKEN_KEY = 'comentre_admin_github_token';
   const PRODUCTS_PATH = 'content/products.json';
-  const LINKS_PATH = 'content/woo-links.json';
+  const LINKS_PATH = 'content/woo-commerce-links.json';
   const startedAsNew = new URLSearchParams(location.search).has('new');
   let wooProducts = [];
   let links = {};
@@ -70,13 +70,13 @@
   }
 
   async function woo(action, payload) {
-    const response = await fetch(`/woo-bridge.php?action=${encodeURIComponent(action)}`, {
+    const response = await fetch(`/woo-commerce-admin.php?action=${encodeURIComponent(action)}`, {
       method: payload ? 'POST' : 'GET',
       cache: 'no-store',
-      headers: payload ? {
-        'Content-Type': 'application/json',
+      headers: {
+        ...(payload ? {'Content-Type': 'application/json'} : {}),
         Authorization: `Bearer ${token()}`,
-      } : undefined,
+      },
       body: payload ? JSON.stringify(payload) : undefined,
     });
     const data = await response.json().catch(() => ({}));
