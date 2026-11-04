@@ -15,23 +15,22 @@
     const linkObserver = new MutationObserver(fixAdminLinks);
     linkObserver.observe(document.documentElement, {childList: true, subtree: true});
   }
-  // Accès à la création depuis l'administration, sans passer par WordPress.
+  // Repère visible : la création des fiches se fait ici, pas dans WordPress.
   if (location.pathname === '/admin/' || location.pathname === '/admin') {
-    function addProductShortcut() {
-      if (document.querySelector('[data-comentre-create-product]')) return;
+    function showProductFlowHelp() {
+      if (document.querySelector('[data-comentre-product-flow]')) return;
       const toolbar = document.querySelector('.toolbar');
       if (!toolbar) return;
-      const link = document.createElement('a');
-      link.href = '/admin/produit/?new=famille';
-      link.setAttribute('data-comentre-create-product', '1');
-      link.textContent = '＋ Créer un produit ici';
-      link.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:12px 18px;background:#ff5d62;color:white;font:800 12px Comfortaa,system-ui,sans-serif;text-decoration:none;white-space:nowrap';
-      toolbar.appendChild(link);
+      const note = document.createElement('div');
+      note.setAttribute('data-comentre-product-flow','1');
+      note.style.cssText = 'max-width:100%;padding:13px 17px;border-radius:16px;margin:12px 0;background:#eaf9f4;font:700 12px/1.8 Comfortaa,system-ui,sans-serif;color:#153d3b';
+      note.innerHTML = '♡ <strong>Les produits se créent ici, dans Com’ entre nous.</strong> Utilise le bouton « Créer un produit » de cette page. WooCommerce est synchronisé en coulisses et conserve les produits en brouillon pendant nos tests.';
+      toolbar.insertAdjacentElement('afterend', note);
     }
-    const shortcutObserver = new MutationObserver(addProductShortcut);
-    shortcutObserver.observe(document.documentElement,{childList:true,subtree:true});
-    if (document.readyState==='loading') document.addEventListener('DOMContentLoaded',addProductShortcut,{once:true});
-    else addProductShortcut();
+    const helperObserver = new MutationObserver(showProductFlowHelp);
+    helperObserver.observe(document.documentElement,{childList:true,subtree:true});
+    if (document.readyState==='loading') document.addEventListener('DOMContentLoaded',showProductFlowHelp,{once:true});
+    else showProductFlowHelp();
   }
   if (!location.pathname.startsWith('/admin/produit')) return;
 
