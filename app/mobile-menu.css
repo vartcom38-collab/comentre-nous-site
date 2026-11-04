@@ -37,3 +37,8 @@
   .mobile-menu-inner{padding:16px 16px 20px}
   .mobile-menu-inner nav a{padding:13px 2px;font-size:1rem}
 }
+
+/* Panier visible dans l'en-tête mobile, sans confondre avec l'espace client. */
+.mobile-global-actions .mobile-cart-link{position:relative;cursor:pointer;color:#0d1424}
+.mobile-global-actions .mobile-cart-count{position:absolute;top:-7px;right:-8px;display:grid;place-items:center;min-width:19px;height:19px;padding:0 4px;background:#ff5d62;color:#fff;border-radius:999px;font:800 10px/1 Comfortaa,system-ui,sans-serif}
+.mobile-global-actions .mobile-account-link{display:grid;place-items:center;width:40px;height:40px;color:#0d1424;font:700 30px/1 'Patrick Hand',cursive;text-decoration:none}
