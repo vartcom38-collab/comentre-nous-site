@@ -2,7 +2,7 @@
 import {useEffect,useState} from 'react';
 import Link from 'next/link';
 import {LayoutShell} from '@/components/Site';
-import {loadWooCatalog,formatWooPrice} from '@/components/WooCards';
+import {formatWooPrice} from '@/components/WooCards';
 import type {ShopGroup} from '@/src/lib/woo-grouping';
 import {combineFormats} from '@/src/lib/woo-grouping';
 import styles from './product.module.css';
@@ -19,17 +19,16 @@ export default function ProductPage(){
   const params=new URLSearchParams(window.location.search);
   const id=Number(params.get('id'));
   const source=params.get('source');
-  const staging=source==='test'||source==='commerce';
-  const endpoint=source==='commerce'?'/woo-commerce-catalog.php':'/woo-test-catalog.php';
+  // Le catalogue officiel est /commerce/. Vente désactivée jusqu'au test du panier et des paiements.
+  const staging=true;
+  const endpoint=source==='test'?'/woo-test-catalog.php':'/woo-commerce-catalog.php';
   setIsStaging(staging);
-  const promise:Promise<ProductGroup[]>=staging
-   ? fetch(endpoint,{cache:'no-store'}).then(async response=>{
+  const promise:Promise<ProductGroup[]>=fetch(endpoint,{cache:'no-store'}).then(async response=>{
       if(!response.ok)throw Error('Catalogue d’aperçu indisponible');
       const data=await response.json();
       if(!data.ok||!Array.isArray(data.products))throw Error('Catalogue test indisponible');
       return combineFormats(data.products).map(g=>({ ...g,category:(data.products.find((p:{id:number})=>p.id===g.primary.id)?.categories||[]).some((c:{slug:string})=>c.slug==='com-des-entrepreneuses')?'entrepreneuses':'famille' }));
-     })
-   : loadWooCatalog();
+     });
   promise.then(groups=>{
    if(!active)return;
    const found=groups.find(g=>g.primary.id===id||g.ebook?.id===id||g.amazon?.id===id);
