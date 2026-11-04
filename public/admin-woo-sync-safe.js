@@ -6,7 +6,7 @@
   const BRANCH = 'main';
   const TOKEN_KEY = 'comentre_admin_github_token';
   const PRODUCTS_PATH = 'content/products.json';
-  const LINKS_PATH = 'content/woo-links.json';
+  const LINKS_PATH = 'content/woo-commerce-links.json';
   let running = false;
 
   const token = () => sessionStorage.getItem(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY) || '';
@@ -78,7 +78,7 @@
   }
 
   async function woo(action, payload) {
-    const response = await fetch(`/woo-bridge.php?action=${encodeURIComponent(action)}`, {
+    const response = await fetch(`/woo-commerce-admin.php?action=${encodeURIComponent(action)}`, {
       method: 'POST',
       cache: 'no-store',
       headers: {
