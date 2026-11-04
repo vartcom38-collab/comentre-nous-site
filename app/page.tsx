@@ -39,13 +39,6 @@ const univers = [
   },
 ] as const;
 
-const products = [
-  ['Les Petits Liens', 'Jeu de cartes famille', '29,00 €', '/produits/les-petits-liens'],
-  ['Mon carnet de clarté', 'Carnet guidé', '12,90 €', '/produits/mon-carnet-de-clarte'],
-  ['Mon kit d’été', 'Activités à imprimer', '12,90 €', '/produits/mon-kit-ete'],
-  ['Cartes émotions', 'Support à imprimer', '24,90 €', '/produits/cartes-emotions'],
-] as const;
-
 type Universe = (typeof univers)[number];
 
 function UniverseVisual({ item }: { item: Universe }) {
@@ -145,16 +138,11 @@ export default function HomePage() {
           <Link href="/boutique" className="shop-link">Voir toute la boutique →</Link>
         </div>
         <div className="product-grid">
-          {products.map(([title, tag, price, href]) => (
-            <article className="product-card" key={href}>
-              <Link href={href} className="product-visual"><span>{tag}</span></Link>
-              <h3><Link href={href}>{title}</Link></h3>
-              <div className="product-bottom">
-                <strong>{price}</strong>
-                <Link href={href}>Voir le produit</Link>
-              </div>
-            </article>
-          ))}
+          <article className="product-card" style={{gridColumn:'1 / -1',padding:'28px',textAlign:'center'}}>
+            <h3 style={{fontSize:'1.3rem'}}>Nos créations arrivent bientôt ♡</h3>
+            <p>Nous préparons la boutique avec soin. Les produits en brouillon ne sont pas encore en vente.</p>
+            <Link href="/boutique/" className="shop-link">Découvrir notre boutique →</Link>
+          </article>
         </div>
       </section>
 
