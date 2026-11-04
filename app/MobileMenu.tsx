@@ -11,7 +11,6 @@ const links = [
   ['Les petits cadeaux', '/les-petits-cadeaux'],
   ['À propos', '/a-propos'],
   ['Se connecter à mon espace', '/mon-espace'],
-  ['Boutique', '/boutique'],
 ] as const;
 
 export default function MobileMenu() {
