@@ -64,8 +64,15 @@ export default function CustomerSpacePage() {
   async function provisionFromOrder(proof:{order_id:number;order_key:string;email:string}) {
     setLoading(true); setMessage('');
     try{
-      await request('provision-from-order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(proof)});
-      setNeedsPassword(true);
+      const result = await request('provision-from-order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(proof)});
+      if(result.needs_password_setup){
+        setNeedsPassword(true);
+      }else{
+        setNeedsPassword(false);
+        setActivation(null);
+        window.history.replaceState({},'', '/mon-espace/');
+        setMessage('Ton espace client existe déjà. Connecte-toi avec ton e-mail et ton mot de passe pour retrouver tes achats.');
+      }
     }catch(error){
       setMessage(error instanceof Error ? error.message : 'Impossible de préparer ton espace client.');
     }finally{ setLoading(false); }
