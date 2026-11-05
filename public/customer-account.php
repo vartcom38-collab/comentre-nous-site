@@ -601,6 +601,91 @@ if ($action === 'update-address' && $method === 'POST') {
     exit;
 }
 
+
+/**
+ * Liste des cartes enregistrées : ne renvoie jamais les jetons du prestataire.
+ * Seules les quatre dernières positions et l'échéance sont exposées.
+ */
+if ($action === 'payment-methods' && $method === 'GET') {
+    $loader = __DIR__ . '/commerce/wp-load.php';
+    if (!is_file($loader)) {
+        http_response_code(503);
+        echo json_encode(['ok'=>false,'error'=>'Boutique indisponible.']);
+        exit;
+    }
+    require_once $loader;
+    $id = requireCustomer();
+    if (!class_exists('WC_Payment_Tokens')) {
+        http_response_code(503);
+        echo json_encode(['ok'=>false,'error'=>'Les moyens de paiement sont momentanément indisponibles.']);
+        exit;
+    }
+    try {
+        $tokens = WC_Payment_Tokens::get_customer_tokens($id);
+        $methods = [];
+        foreach ($tokens as $token) {
+            if (!($token instanceof WC_Payment_Token) || (int)$token->get_user_id() !== $id) continue;
+            if (!($token instanceof WC_Payment_Token_CC)) continue;
+            $methods[] = [
+                'id' => (int)$token->get_id(),
+                'brand' => (string)$token->get_card_type(),
+                'last4' => (string)$token->get_last4(),
+                'expiry_month' => (string)$token->get_expiry_month(),
+                'expiry_year' => (string)$token->get_expiry_year(),
+                'is_default' => (bool)$token->get_is_default(),
+            ];
+        }
+        echo json_encode(['ok'=>true,'payment_methods'=>$methods],JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    } catch (Throwable $e) {
+        http_response_code(503);
+        echo json_encode(['ok'=>false,'error'=>'Impossible de récupérer tes moyens de paiement pour le moment.']);
+    }
+    exit;
+}
+
+if ($action === 'payment-method-action' && $method === 'POST') {
+    $loader = __DIR__ . '/commerce/wp-load.php';
+    if (!is_file($loader)) {
+        http_response_code(503);
+        echo json_encode(['ok'=>false,'error'=>'Boutique indisponible.']);
+        exit;
+    }
+    require_once $loader;
+    $id = requireCustomer();
+    verifyCustomerWrite();
+    $input = bodyJson();
+    $tokenId = filter_var($input['token_id'] ?? null, FILTER_VALIDATE_INT, ['options'=>['min_range'=>1]]);
+    $operation = $input['operation'] ?? null;
+    if (!$tokenId || !in_array($operation, ['delete','make-default'], true)) {
+        http_response_code(400);
+        echo json_encode(['ok'=>false,'error'=>'Action invalide.']);
+        exit;
+    }
+    if (!class_exists('WC_Payment_Tokens')) {
+        http_response_code(503);
+        echo json_encode(['ok'=>false,'error'=>'Les moyens de paiement sont momentanément indisponibles.']);
+        exit;
+    }
+    try {
+        $token = WC_Payment_Tokens::get($tokenId);
+        if (!($token instanceof WC_Payment_Token_CC) || (int)$token->get_user_id() !== $id) {
+            http_response_code(404);
+            echo json_encode(['ok'=>false,'error'=>'Ce moyen de paiement est introuvable.']);
+            exit;
+        }
+        if ($operation === 'delete') {
+            WC_Payment_Tokens::delete($tokenId);
+        } else {
+            WC_Payment_Tokens::set_users_default($id, $tokenId);
+        }
+        echo json_encode(['ok'=>true]);
+    } catch (Throwable $e) {
+        http_response_code(503);
+        echo json_encode(['ok'=>false,'error'=>'Impossible de modifier ce moyen de paiement pour le moment.']);
+    }
+    exit;
+}
+
 if ($action === 'orders' && $method === 'GET') {
     // La boutique WooCommerce est installée sur ce même serveur :
     // lecture locale des commandes, sans authentification REST externe (HTTP 401).
