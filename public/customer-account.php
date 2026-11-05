@@ -4,6 +4,7 @@ header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 
 $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
 ini_set('session.use_strict_mode', '1');
+session_name('COMENTRECLIENT');
 session_set_cookie_params([
     'lifetime' => 60 * 60 * 24 * 7,
     'path' => '/',
@@ -105,6 +106,44 @@ function customerPayload(array $customer): array {
             'country' => (string)($customer['shipping']['country'] ?? ''),
         ],
     ];
+}
+
+function localCustomerPayload(int $id): ?array {
+    if (!function_exists('wc_get_customer')) return null;
+    try {
+        $customer = new WC_Customer($id);
+        if (!$customer->get_id()) return null;
+        $address = static function (string $kind) use ($customer): array {
+            $out = [];
+            foreach (['first_name','last_name','address_1','address_2','postcode','city','country'] as $field) {
+                $getter = 'get_' . $kind . '_' . $field;
+                $out[$field] = method_exists($customer, $getter) ? (string)$customer->$getter() : '';
+            }
+            return $out;
+        };
+        return customerPayload([
+            'id' => $id,
+            'email' => (string)$customer->get_email(),
+            'first_name' => (string)$customer->get_first_name(),
+            'last_name' => (string)$customer->get_last_name(),
+            'billing' => $address('billing'),
+            'shipping' => $address('shipping'),
+        ]);
+    } catch (Throwable $e) { return null; }
+}
+
+function sessionToken(): string {
+    if (empty($_SESSION['customer_csrf'])) $_SESSION['customer_csrf'] = bin2hex(random_bytes(24));
+    return (string)$_SESSION['customer_csrf'];
+}
+
+function verifyCustomerWrite(): void {
+    $token = (string)($_SERVER['HTTP_X_COMENTRE_CSRF'] ?? '');
+    if ($token === '' || !hash_equals(sessionToken(), $token)) {
+        http_response_code(403);
+        echo json_encode(['ok' => false, 'error' => 'Session de sécurité expirée. Actualise ton espace puis réessaie.']);
+        exit;
+    }
 }
 
 function requireCustomer(): int {
@@ -299,19 +338,16 @@ if ($action === 'login' && $method === 'POST') {
         echo json_encode(['ok' => false, 'error' => 'Connexion impossible. Vérifie tes identifiants ou utilise « Mot de passe oublié ? ».']);
         exit;
     }
-    $lookup = wooApi($baseUrl, $key, $secret, '/wp-json/wc/v3/customers/' . $wordpressUserId);
-    if (!$lookup['ok'] || !is_array($lookup['data']) ||
-        (int)($lookup['data']['id'] ?? 0) !== $wordpressUserId ||
-        strtolower((string)($lookup['data']['email'] ?? '')) !== $email) {
+    $customer = localCustomerPayload($wordpressUserId);
+    if (!$customer || strtolower((string)$customer['email']) !== $email) {
         http_response_code(401);
         echo json_encode(['ok' => false, 'error' => 'Compte client indisponible.']);
         exit;
     }
-    $customer = (array)$lookup['data'];
     session_regenerate_id(true);
-    $_SESSION['customer_id'] = (int)$customer['id'];
+    $_SESSION['customer_id'] = $wordpressUserId;
     $_SESSION['customer_email'] = $email;
-    echo json_encode(['ok' => true, 'authenticated' => true, 'customer' => customerPayload($customer)], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    echo json_encode(['ok' => true, 'authenticated' => true, 'customer' => $customer, 'csrf' => sessionToken()], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 }
 
@@ -327,28 +363,68 @@ if ($action === 'logout' && $method === 'POST') {
 }
 
 if ($action === 'session' && $method === 'GET') {
+    $wpLoader = __DIR__ . '/commerce/wp-load.php';
+    if (is_file($wpLoader)) require_once $wpLoader;
     $id = (int)($_SESSION['customer_id'] ?? 0);
-    if ($id > 0) {
-        $wpLoader = __DIR__ . '/commerce/wp-load.php';
-        if (is_file($wpLoader)) require_once $wpLoader;
-        $wpUser = function_exists('get_user_by') ? get_user_by('id', $id) : false;
-        if (!$wpUser || !in_array('customer', (array)$wpUser->roles, true)
-            || strtolower((string)$wpUser->user_email) !== (string)($_SESSION['customer_email'] ?? '')) {
-            $_SESSION = [];
-            $id = 0;
-        }
-    }
     if ($id <= 0) {
         echo json_encode(['ok' => true, 'authenticated' => false]);
         exit;
     }
-    $result = wooApi($baseUrl, $key, $secret, '/wp-json/wc/v3/customers/' . $id);
-    if (!$result['ok'] || !is_array($result['data'])) {
+    $wpUser = function_exists('get_user_by') ? get_user_by('id', $id) : false;
+    if (!$wpUser || !in_array('customer', (array)$wpUser->roles, true)
+        || strtolower((string)$wpUser->user_email) !== (string)($_SESSION['customer_email'] ?? '')) {
         $_SESSION = [];
         echo json_encode(['ok' => true, 'authenticated' => false]);
         exit;
     }
-    echo json_encode(['ok' => true, 'authenticated' => true, 'customer' => customerPayload((array)$result['data'])], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    // Ne dépend plus des appels REST WooCommerce, qui renvoyaient parfois HTTP 401.
+    $customer = localCustomerPayload($id);
+    if (!$customer) {
+        http_response_code(503);
+        echo json_encode(['ok' => false, 'error' => 'Connexion temporairement indisponible.']);
+        exit;
+    }
+    echo json_encode(['ok' => true, 'authenticated' => true, 'customer' => $customer, 'csrf' => sessionToken()], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+if ($action === 'update-address' && $method === 'POST') {
+    $wpLoader = __DIR__ . '/commerce/wp-load.php';
+    if (!is_file($wpLoader)) {
+        http_response_code(503); echo json_encode(['ok'=>false,'error'=>'Boutique indisponible.']); exit;
+    }
+    require_once $wpLoader;
+    $id = requireCustomer();
+    verifyCustomerWrite();
+    $input = bodyJson();
+    $kind = (string)($input['kind'] ?? '');
+    if (!in_array($kind, ['billing', 'shipping'], true)) {
+        http_response_code(400); echo json_encode(['ok'=>false,'error'=>'Type d’adresse invalide.']); exit;
+    }
+    $fields = (array)($input['address'] ?? []);
+    $allowed = ['first_name','last_name','address_1','address_2','postcode','city','country'];
+    foreach ($allowed as $field) {
+        if (!isset($fields[$field]) || !is_string($fields[$field]) || mb_strlen($fields[$field]) > 160) {
+            http_response_code(400); echo json_encode(['ok'=>false,'error'=>'Vérifie les champs de ton adresse.']); exit;
+        }
+    }
+    if (trim($fields['first_name']) === '' || trim($fields['last_name']) === '' ||
+        trim($fields['address_1']) === '' || trim($fields['postcode']) === '' ||
+        trim($fields['city']) === '' || !preg_match('/^[A-Z]{2}$/', $fields['country'])) {
+        http_response_code(400); echo json_encode(['ok'=>false,'error'=>'Complète les champs obligatoires de ton adresse.']); exit;
+    }
+    try {
+        $customer = new WC_Customer($id);
+        if ((int)$customer->get_id() !== $id) throw new RuntimeException('Compte introuvable');
+        foreach ($allowed as $field) {
+            $setter = 'set_' . $kind . '_' . $field;
+            if (method_exists($customer, $setter)) $customer->$setter(sanitize_text_field($fields[$field]));
+        }
+        $customer->save();
+        echo json_encode(['ok'=>true,'customer'=>localCustomerPayload($id)], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    } catch (Throwable $e) {
+        http_response_code(503); echo json_encode(['ok'=>false,'error'=>'Impossible d’enregistrer l’adresse pour le moment.']);
+    }
     exit;
 }
 
