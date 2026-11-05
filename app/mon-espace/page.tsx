@@ -7,6 +7,7 @@ import { LayoutShell } from '@/components/Site';
 type Address = { first_name:string; last_name:string; address_1:string; address_2:string; postcode:string; city:string; country:string };
 type Customer = { id:number; email:string; first_name:string; last_name:string; display_name:string; billing?:Address; shipping?:Address };
 type SpaceTab = 'overview' | 'orders' | 'downloads' | 'addresses' | 'payments' | 'account';
+type SavedCard = {id:number;brand:string;last4:string;expiry_month:string;expiry_year:string;is_default:boolean};
 type Order = { id:number; number:string; status:string; date_created:string; total:string; currency:string; items:{name:string;quantity:number;total:string}[] };
 type Download = { download_name:string; product_name:string; download_url:string; downloads_remaining:string|number; access_expires:string };
 
@@ -36,6 +37,10 @@ export default function CustomerSpacePage() {
   const [emailMessage, setEmailMessage] = useState('');
   const [emailConfirmation, setEmailConfirmation] = useState<{id:number;token:string}|null>(null);
   const [emailConfirmationMessage, setEmailConfirmationMessage] = useState('');
+  const [savedCards, setSavedCards] = useState<SavedCard[]>([]);
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [paymentMessage, setPaymentMessage] = useState('');
+  const [paymentError, setPaymentError] = useState('');
   useEffect(() => {
     void restoreSession();
     const hash = window.location.hash.match(/^#confirmer-email=(\d+)\.([a-f0-9]{64})$/);
@@ -88,7 +93,39 @@ export default function CustomerSpacePage() {
   async function logout(){
     setBusy(true);
     try{ await request('logout',{method:'POST'}); }catch(_){}
-    setCustomer(null); setCsrf(''); setOrders([]); setDownloads([]); setDataError(''); setActiveTab('overview'); setBusy(false);
+    setCustomer(null); setCsrf(''); setOrders([]); setDownloads([]); setDataError(''); setActiveTab('overview'); setSavedCards([]); setPaymentMessage(''); setPaymentError(''); setBusy(false);
+  }
+
+  async function loadPaymentMethods() {
+    setPaymentLoading(true);setPaymentError('');
+    try {
+      const data = await request('payment-methods');
+      setSavedCards(Array.isArray(data.payment_methods)?data.payment_methods:[]);
+    } catch(error) {
+      setPaymentError(error instanceof Error ? error.message : 'Impossible de charger tes moyens de paiement.');
+    } finally {setPaymentLoading(false);}
+  }
+
+  async function paymentAction(operation:'delete'|'make-default',tokenId:number) {
+    if (!csrf) {setPaymentError('Actualise ton espace pour continuer.');return;}
+    if (operation==='delete' && !window.confirm('Supprimer cette carte enregistrée ? Elle ne sera plus proposée lors de tes prochains achats.')) return;
+    setBusy(true);setPaymentError('');setPaymentMessage('');
+    try {
+      await request('payment-method-action',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','X-Comentre-CSRF':csrf},
+        body:JSON.stringify({operation,token_id:tokenId})
+      });
+      await loadPaymentMethods();
+      setPaymentMessage(operation==='delete'?'Cette carte a été supprimée ♡':'Ta carte par défaut a été mise à jour ♡');
+    } catch(error) {
+      setPaymentError(error instanceof Error ? error.message : 'Impossible de modifier ce moyen de paiement.');
+    } finally {setBusy(false);}
+  }
+
+  function openAccountTab(tab:SpaceTab){
+    setActiveTab(tab);
+    if(tab==='payments') {setPaymentMessage('');void loadPaymentMethods();}
   }
 
   function money(value:string,currency='EUR'){
@@ -281,7 +318,7 @@ export default function CustomerSpacePage() {
             <p className="customer-kicker">Mon petit coin ♡</p>
             <h2>Mon espace</h2>
             <div className="customer-nav-items">
-              {navItems.map(item=><button key={item.key} type="button" className={activeTab===item.key?'is-active':''} aria-current={activeTab===item.key?'page':undefined} onClick={()=>setActiveTab(item.key)}>
+              {navItems.map(item=><button key={item.key} type="button" className={activeTab===item.key?'is-active':''} aria-current={activeTab===item.key?'page':undefined} onClick={()=>openAccountTab(item.key)}>
                 <span aria-hidden="true">{item.symbol}</span>{item.title}
                 {item.key==='orders' ? <small>{orders.length}</small> : item.key==='downloads' ? <small>{downloads.length}</small> : null}
               </button>)}
@@ -326,8 +363,26 @@ export default function CustomerSpacePage() {
             </> : null}
             {activeTab==='payments' ? <>
               <div className="customer-section-head"><div><p className="customer-kicker">Paiement</p><h2>Mes moyens de paiement</h2></div></div>
-              <p className="customer-panel-intro">Consulte ou gère les moyens de paiement enregistrés auprès de WooCommerce. Aucune donnée bancaire n’est affichée ni enregistrée dans cet espace.</p>
-              <a className="customer-native-link" href={wooAccount+'payment-methods/'}>Gérer mes moyens de paiement →</a>
+              <p className="customer-panel-intro">Retrouve les cartes que tu as choisi d’enregistrer pour tes futurs achats. Tes données bancaires complètes restent protégées par WooPayments.</p>
+              {paymentLoading ? <div className="empty-box">Chargement de tes moyens de paiement…</div> :
+                savedCards.length ? <div className="customer-saved-cards">
+                  {savedCards.map(card=><article className="customer-saved-card" key={card.id}>
+                    <div className="customer-saved-card-info">
+                      <span className="customer-card-symbol" aria-hidden="true">◇</span>
+                      <div><strong>{card.brand ? card.brand.charAt(0).toUpperCase()+card.brand.slice(1) : 'Carte bancaire'} •••• {card.last4}</strong>
+                      <small>Expire {card.expiry_month}/{card.expiry_year}</small></div>
+                    </div>
+                    {card.is_default ? <span className="customer-default-card">Carte par défaut</span> : null}
+                    <div className="customer-card-actions">
+                      {!card.is_default ? <button type="button" disabled={busy} onClick={()=>void paymentAction('make-default',card.id)}>Définir par défaut</button> : null}
+                      <button type="button" className="customer-remove-card" disabled={busy} onClick={()=>void paymentAction('delete',card.id)}>Supprimer</button>
+                    </div>
+                  </article>)}
+                </div> : <div className="empty-box">Aucune carte enregistrée pour le moment. Tu peux choisir d’enregistrer ta carte lors d’un prochain paiement, si cette option est proposée.</div>}
+              {paymentError ? <p className="customer-data-error" role="alert">{paymentError}</p> : null}
+              {paymentMessage ? <p className="customer-address-message" role="status">{paymentMessage}</p> : null}
+              <p className="customer-small-note">Pour ajouter une carte, utilise l'option d’enregistrement proposée au moment d’une commande sécurisée. Aucune saisie de numéro de carte n’est demandée dans cet espace.</p>
+              <button type="button" className="customer-refresh-cards" disabled={paymentLoading} onClick={()=>void loadPaymentMethods()}>Actualiser mes moyens de paiement ↻</button>
             </> : null}
             {activeTab==='account' ? <>
               <div className="customer-section-head"><div><p className="customer-kicker">Mes informations</p><h2>Mon compte</h2></div></div>
@@ -379,6 +434,20 @@ export default function CustomerSpacePage() {
 }
 
 const styles = String.raw`
+.customer-saved-cards{display:grid;gap:12px;margin:22px 0}
+.customer-saved-card{border:1px solid #eee2da;border-radius:20px;padding:18px;background:#fffaf6;display:flex;align-items:center;gap:15px;flex-wrap:wrap}
+.customer-saved-card-info{display:flex;gap:11px;align-items:center;flex:1;min-width:160px}
+.customer-card-symbol{font:700 32px/1 'Patrick Hand',cursive;color:#ef6b71;background:#fce9e0;width:48px;height:48px;border-radius:14px;display:grid;place-items:center}
+.customer-saved-card-info>div{display:grid;gap:7px}
+.customer-saved-card-info strong{font:800 12px/1.5 'Comfortaa',sans-serif}
+.customer-saved-card-info small{font:500 11px/1.5 'Comfortaa',sans-serif;color:#747987}
+.customer-default-card{padding:8px 10px;border-radius:999px;background:#dff6f0;color:#28685d;font:700 10px 'Comfortaa',sans-serif}
+.customer-card-actions{display:flex;gap:10px;flex-wrap:wrap}
+.customer-card-actions button,.customer-refresh-cards{border:1px solid #e4d9d0;border-radius:999px;background:#fff;color:#171b2a;padding:10px 13px;cursor:pointer;font:700 10px 'Comfortaa',sans-serif}
+.customer-card-actions button.customer-remove-card{color:#a34349}
+.customer-card-actions button:disabled,.customer-refresh-cards:disabled{opacity:.5;cursor:wait}
+@media(max-width:650px){.customer-saved-card{align-items:flex-start;flex-direction:column}.customer-card-actions{width:100%}}
+
 .customer-email-confirm{width:min(900px,calc(100% - 2rem));margin:12px auto 28px;padding:28px;background:#e8f8f4;border-radius:26px;box-shadow:0 12px 32px rgba(48,30,18,.06)}
 .customer-email-confirm h2{font:700 clamp(30px,4vw,46px)/1.1 'Patrick Hand',cursive;margin:0 0 14px}
 .customer-email-confirm p:not(.customer-kicker){font:500 12px/1.9 'Comfortaa',sans-serif;color:#455d59}
