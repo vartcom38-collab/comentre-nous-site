@@ -23,6 +23,10 @@ export default function CustomerSpacePage() {
   const [message, setMessage] = useState('');
   const [activeTab, setActiveTab] = useState<SpaceTab>('overview');
   const [dataError, setDataError] = useState('');
+  const [csrf, setCsrf] = useState('');
+  const [editingAddress, setEditingAddress] = useState<'billing'|'shipping'|null>(null);
+  const [addressForm, setAddressForm] = useState<Address>({first_name:'',last_name:'',address_1:'',address_2:'',postcode:'',city:'',country:'FR'});
+  const [addressMessage, setAddressMessage] = useState('');
   useEffect(() => {
     void restoreSession();
   }, []);
@@ -39,6 +43,7 @@ export default function CustomerSpacePage() {
       const data = await request('session');
       if(data.authenticated && data.customer){
         setCustomer(data.customer);
+        setCsrf(data.csrf || '');
         try { await loadPrivateData(); } catch(error) { setDataError(error instanceof Error ? error.message : 'Impossible de charger tes achats.'); }
       }
     }catch(_){
@@ -61,6 +66,7 @@ export default function CustomerSpacePage() {
     try{
       const data = await request('login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});
       setCustomer(data.customer || null);
+      setCsrf(data.csrf || '');
       setActiveTab('overview');
       try { await loadPrivateData(); } catch(error) { setDataError(error instanceof Error ? error.message : 'Impossible de charger tes achats.'); }
       event.currentTarget.reset();
@@ -71,12 +77,43 @@ export default function CustomerSpacePage() {
   async function logout(){
     setBusy(true);
     try{ await request('logout',{method:'POST'}); }catch(_){}
-    setCustomer(null); setOrders([]); setDownloads([]); setDataError(''); setActiveTab('overview'); setBusy(false);
+    setCustomer(null); setCsrf(''); setOrders([]); setDownloads([]); setDataError(''); setActiveTab('overview'); setBusy(false);
   }
 
   function money(value:string,currency='EUR'){
     const amount = Number(value || 0);
     try{return new Intl.NumberFormat('fr-FR',{style:'currency',currency}).format(amount)}catch(_){return `${value} €`}
+  }
+
+  function beginAddressEdit(kind:'billing'|'shipping') {
+    if (!customer) return;
+    const current = customer[kind];
+    setAddressForm({
+      first_name:current?.first_name || customer.first_name || '',
+      last_name:current?.last_name || customer.last_name || '',
+      address_1:current?.address_1 || '', address_2:current?.address_2 || '',
+      postcode:current?.postcode || '',city:current?.city || '',country:current?.country || 'FR'
+    });
+    setEditingAddress(kind);
+    setAddressMessage('');
+  }
+
+  async function saveAddress(event:FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!editingAddress || !csrf) { setAddressMessage('Ta session doit être actualisée avant de modifier tes coordonnées.'); return; }
+    setBusy(true);setAddressMessage('');
+    try {
+      const data = await request('update-address', {
+        method:'POST',
+        headers:{'Content-Type':'application/json','X-Comentre-CSRF':csrf},
+        body:JSON.stringify({kind:editingAddress,address:addressForm})
+      });
+      setCustomer(data.customer);
+      setEditingAddress(null);
+      setAddressMessage('Ton adresse a bien été enregistrée ♡');
+    } catch(error) {
+      setAddressMessage(error instanceof Error ? error.message : 'Impossible d’enregistrer ton adresse.');
+    } finally {setBusy(false);}
   }
 
   const wooAccount = 'https://comentrenous.marionbolomey.fr/commerce/mon-compte/';
@@ -171,8 +208,15 @@ export default function CustomerSpacePage() {
               <div className="customer-section-head"><div><p className="customer-kicker">Mes informations</p><h2>Mes coordonnées</h2></div></div>
               <p className="customer-panel-intro">Les adresses enregistrées pour tes commandes.</p>
               <div className="customer-address-grid"><article><h3>Adresse de facturation</h3><p>{addressText(customer.billing) || 'Aucune adresse enregistrée.'}</p></article><article><h3>Adresse de livraison</h3><p>{addressText(customer.shipping) || 'Aucune adresse enregistrée.'}</p></article></div>
-              <p className="customer-small-note">Pour modifier ces informations en toute sécurité, utilise le formulaire WooCommerce.</p>
-              <a className="customer-native-link" href={wooAccount+'edit-address/'}>Modifier mes adresses →</a>
+              {editingAddress ? <form className="customer-address-form" onSubmit={saveAddress}>
+                <h3>Modifier mon adresse de {editingAddress==='billing'?'facturation':'livraison'}</h3>
+                <div className="customer-form-columns">
+                  {([['first_name','Prénom'],['last_name','Nom'],['address_1','Adresse'],['address_2','Complément d’adresse'],['postcode','Code postal'],['city','Ville'],['country','Pays (code à 2 lettres, ex. FR)']] as const).map(([key,title])=>
+                    <label key={key}>{title}<input type="text" value={addressForm[key]} required={key!=='address_2'} maxLength={160} onChange={e=>setAddressForm(prev=>({...prev,[key]:e.target.value}))}/></label>)}
+                </div>
+                <div className="customer-form-actions"><button type="submit" disabled={busy}>{busy?'Enregistrement…':'Enregistrer mes coordonnées ♡'}</button><button type="button" className="customer-form-cancel" onClick={()=>{setEditingAddress(null);setAddressMessage('');}}>Annuler</button></div>
+              </form> : <div className="customer-form-actions"><button type="button" onClick={()=>beginAddressEdit('billing')}>Modifier ma facturation →</button><button type="button" onClick={()=>beginAddressEdit('shipping')}>Modifier ma livraison →</button></div>}
+              {addressMessage ? <p className="customer-address-message" role="status">{addressMessage}</p> : null}
             </> : null}
             {activeTab==='payments' ? <>
               <div className="customer-section-head"><div><p className="customer-kicker">Paiement</p><h2>Mes moyens de paiement</h2></div></div>
@@ -198,6 +242,18 @@ export default function CustomerSpacePage() {
 }
 
 const styles = String.raw`
+.customer-address-form{border-top:1px solid #f0e2d9;margin:24px 0 0;padding:24px 0 0}
+.customer-address-form h3{font:700 29px/1.2 'Patrick Hand',cursive;margin:0 0 18px}
+.customer-form-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.customer-form-columns label{display:grid;gap:8px;font:700 11px/1.5 'Comfortaa',sans-serif}
+.customer-form-columns input{min-width:0;border:1px solid #e4d9d0;border-radius:13px;background:#fffdfb;padding:12px;color:#171b2a;font:500 12px 'Comfortaa',sans-serif}
+.customer-form-actions{display:flex;flex-wrap:wrap;gap:10px;margin:24px 0 0}
+.customer-form-actions button{border:0;border-radius:999px;background:#171b2a;color:#fff;padding:13px 17px;cursor:pointer;font:700 11px 'Comfortaa',sans-serif}
+.customer-form-actions button.customer-form-cancel{background:#fce9e0;color:#171b2a}
+.customer-form-actions button:disabled{opacity:.55;cursor:wait}
+.customer-address-message{padding:14px 16px;border-radius:13px;background:#e8f8f4;color:#285d55;font:600 11px/1.7 'Comfortaa',sans-serif}
+@media(max-width:600px){.customer-form-columns{grid-template-columns:1fr}}
+
 /* Nouveau tableau de bord client : structure inspirée de WooCommerce, identité Com’ entre nous. */
 .customer-hero-logged{padding:50px 0 26px;grid-template-columns:minmax(0,1fr) minmax(260px,.46fr);gap:32px}
 .customer-hero-logged h1{font-size:clamp(46px,5vw,65px)}
