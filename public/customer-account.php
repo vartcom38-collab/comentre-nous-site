@@ -388,6 +388,86 @@ if ($action === 'session' && $method === 'GET') {
     exit;
 }
 
+
+if ($action === 'request-email-change' && $method === 'POST') {
+    $loader = __DIR__ . '/commerce/wp-load.php';
+    if (!is_file($loader)) { http_response_code(503); echo json_encode(['ok'=>false,'error'=>'Boutique indisponible.']); exit; }
+    require_once $loader;
+    $id = requireCustomer();
+    verifyCustomerWrite();
+    $data = bodyJson();
+    $email = isset($data['new_email']) && is_string($data['new_email']) ? strtolower(trim($data['new_email'])) : '';
+    $password = $data['current_password'] ?? null;
+    $user = get_user_by('id', $id);
+    if (!is_email($email) || strlen($email)>190 || !is_string($password) || !$user) {
+        http_response_code(400); echo json_encode(['ok'=>false,'error'=>'Adresse e-mail ou mot de passe invalide.']); exit;
+    }
+    if ($email === strtolower($user->user_email)) {
+        http_response_code(400); echo json_encode(['ok'=>false,'error'=>'Cette adresse est déjà utilisée pour ton compte.']); exit;
+    }
+    $tries = array_values(array_filter((array)($_SESSION['email_change_tries'] ?? []), static function($t){ return is_numeric($t) && $t > time()-900; }));
+    if (count($tries)>=5) { http_response_code(429); echo json_encode(['ok'=>false,'error'=>'Trop de tentatives. Réessaie dans 15 minutes.']); exit; }
+    if (!wp_check_password($password, $user->user_pass, $id)) {
+        $tries[] = time(); $_SESSION['email_change_tries'] = $tries;
+        http_response_code(403); echo json_encode(['ok'=>false,'error'=>'Mot de passe actuel incorrect.']); exit;
+    }
+    if (email_exists($email)) { http_response_code(409); echo json_encode(['ok'=>false,'error'=>'Cette adresse est déjà associée à un compte.']); exit; }
+    $pending = get_user_meta($id, '_comentre_email_pending', true);
+    if (is_array($pending) && ($pending['created'] ?? 0) > time()-120) {
+        http_response_code(429); echo json_encode(['ok'=>false,'error'=>'Attends deux minutes avant de renvoyer un lien.']); exit;
+    }
+    $token = bin2hex(random_bytes(32));
+    update_user_meta($id, '_comentre_email_pending', ['email'=>$email, 'hash'=>hash('sha256',$token), 'old'=>$user->user_email,'created'=>time()]);
+    $link = 'https://comentrenous.marionbolomey.fr/mon-espace/#confirmer-email=' . $id . '.' . $token;
+    $mail = "Bonjour,\n\nPour confirmer ta nouvelle adresse e-mail Com’ entre nous, ouvre ce lien :\n" . $link
+        . "\n\nLe lien est valable 30 minutes. Si tu n'as rien demandé, ignore cet e-mail.\n\nCom’ entre nous";
+    if (!wp_mail($email,'Confirme ta nouvelle adresse — Com’ entre nous',$mail,['Content-Type: text/plain; charset=UTF-8'])) {
+        delete_user_meta($id, '_comentre_email_pending');
+        http_response_code(503); echo json_encode(['ok'=>false,'error'=>'Impossible d’envoyer la confirmation pour le moment.']); exit;
+    }
+    echo json_encode(['ok'=>true,'message'=>'Un lien de confirmation a été envoyé à la nouvelle adresse.']); exit;
+}
+
+if ($action === 'confirm-email-change' && $method === 'POST') {
+    $loader = __DIR__ . '/commerce/wp-load.php';
+    if (!is_file($loader)) { http_response_code(503); echo json_encode(['ok'=>false,'error'=>'Boutique indisponible.']); exit; }
+    require_once $loader;
+    $data = bodyJson();
+    $id = filter_var($data['customer_id'] ?? null, FILTER_VALIDATE_INT, ['options'=>['min_range'=>1]]);
+    $token = $data['token'] ?? null;
+    if (!$id || !is_string($token) || !preg_match('/^[a-f0-9]{64}$/', $token)) {
+        http_response_code(400); echo json_encode(['ok'=>false,'error'=>'Lien invalide.']); exit;
+    }
+    $user = get_user_by('id',$id);
+    $pending = get_user_meta($id,'_comentre_email_pending',true);
+    if (!$user || !in_array('customer',(array)$user->roles,true) || !is_array($pending)
+        || !hash_equals((string)($pending['hash'] ?? ''),hash('sha256',$token))
+        || (int)($pending['created'] ?? 0) < time()-1800
+        || strtolower($user->user_email) !== strtolower((string)($pending['old'] ?? ''))) {
+        http_response_code(400); echo json_encode(['ok'=>false,'error'=>'Lien expiré ou déjà utilisé.']); exit;
+    }
+    $new = (string)($pending['email'] ?? '');
+    if (!is_email($new) || email_exists($new)) {
+        http_response_code(409); echo json_encode(['ok'=>false,'error'=>'Cette adresse n’est plus disponible.']); exit;
+    }
+    $old = $user->user_email;
+    $updated = wp_update_user(['ID'=>$id,'user_email'=>$new]);
+    if (is_wp_error($updated)) {
+        http_response_code(503); echo json_encode(['ok'=>false,'error'=>'Impossible de modifier l’adresse pour le moment.']); exit;
+    }
+    delete_user_meta($id,'_comentre_email_pending');
+    // Les commandes et permissions restent liées à l'ID client, pas à l'ancien e-mail.
+    try { $c = new WC_Customer($id); $c->set_billing_email($new); $c->save(); } catch (Throwable $e) {}
+    if ((int)($_SESSION['customer_id'] ?? 0) === $id) {
+        $_SESSION['customer_email'] = strtolower($new);
+        session_regenerate_id(true);
+    }
+    wp_mail($old,'Changement d’adresse — Com’ entre nous',
+        "Bonjour,\n\nL’adresse e-mail de ton compte Com’ entre nous a été modifiée. Si tu n’es pas à l’origine de ce changement, contacte-nous.\n\nCom’ entre nous",
+        ['Content-Type: text/plain; charset=UTF-8']);
+    echo json_encode(['ok'=>true,'message'=>'Ta nouvelle adresse est confirmée. Tous tes achats restent associés au même compte.']); exit;
+}
+
 if ($action === 'change-password' && $method === 'POST') {
     $wpLoader = __DIR__ . '/commerce/wp-load.php';
     if (!is_file($wpLoader)) {
