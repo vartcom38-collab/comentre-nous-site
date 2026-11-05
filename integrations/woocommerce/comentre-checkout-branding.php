@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Com' entre nous — Habillage commande
  * Description: Habillage léger du paiement WooCommerce sur /commerce/, sans modifier les moyens de paiement ni le tunnel d'achat.
- * Version: 0.4.0
+ * Version: 0.5.0
  */
 defined('ABSPATH') || exit;
 
@@ -58,6 +58,31 @@ body.woocommerce-checkout .comentre-checkout-ribbon__copy strong {
 }
 body.woocommerce-checkout .comentre-checkout-ribbon__copy span {
   display:block; margin-top:5px; font:500 11px/1.6 'Comfortaa',sans-serif;
+}
+body.woocommerce-checkout .comentre-account-choices {
+  max-width:1250px; margin:0 auto 24px;
+  padding:0 15px; display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;
+}
+body.woocommerce-checkout .comentre-account-choice {
+  background:#fff; border:1px solid #eadfd6;
+  border-radius:20px; padding:19px 22px;
+  box-shadow:0 10px 24px rgba(48,30,18,.045);
+}
+body.woocommerce-checkout .comentre-account-choice strong {
+  display:block;color:#171b2a;font:400 27px/1.1 'Patrick Hand',cursive;
+}
+body.woocommerce-checkout .comentre-account-choice p {
+  margin:9px 0 0;font:500 11px/1.7 'Comfortaa',sans-serif;
+  color:#535967;
+}
+body.woocommerce-checkout .comentre-account-choice a {
+  display:inline-block;margin-top:12px;font:700 11px/1.5 'Comfortaa',sans-serif;
+  color:#9c4847;text-decoration:underline;text-underline-offset:3px;
+}
+@media(max-width:720px) {
+  body.woocommerce-checkout .comentre-account-choices {grid-template-columns:1fr;gap:10px}
+  body.woocommerce-checkout .comentre-account-choice {padding:15px 17px}
 }
 body.woocommerce-checkout .comentre-checkout-ribbon__back {
   color:var(--ce-ink); text-decoration:none; font:700 11px/1.4 'Comfortaa',sans-serif;
@@ -194,6 +219,20 @@ add_action('wp_body_open', static function () {
       </div>
       <a class="comentre-checkout-ribbon__back" href="<?php echo esc_url($origin . '/com-en-famille/'); ?>">← Revenir au site</a>
     </div>
+    <?php if (!(function_exists('is_order_received_page') && is_order_received_page()) && !is_user_logged_in()): ?>
+      <section class="comentre-account-choices" aria-label="Créer un espace ou se connecter">
+        <div class="comentre-account-choice">
+          <strong>♡ C’est ma première commande</strong>
+          <p>Crée ton espace pendant cette commande, choisis ton mot de passe et retrouve tes achats et tes documents au même endroit.</p>
+          <p>Remplis le formulaire de commande ci-dessous pour créer ton compte.</p>
+        </div>
+        <div class="comentre-account-choice">
+          <strong>✦ Je suis déjà cliente</strong>
+          <p>Tu as déjà un espace ? Connecte-toi avec ton e-mail et ton mot de passe avant de finaliser la commande.</p>
+          <a href="<?php echo esc_url(wc_get_page_permalink('myaccount')); ?>">Se connecter à mon compte →</a>
+        </div>
+      </section>
+    <?php endif; ?>
     <?php
 }, 15);
 
