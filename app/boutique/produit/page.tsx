@@ -44,12 +44,12 @@ export default function ProductPage(){
  const hasPaper=Boolean(group?.amazon);
  return <LayoutShell><main className={styles.page}>
   <nav className={styles.breadcrumb} aria-label="Fil d’Ariane">
-   <Link href="/">Accueil</Link><span>♡</span><Link href="/boutique/">La boutique</Link>
-   {group&&<><span>♡</span><span>{group.category==='famille'?'Com’ en famille':'Com’ des entrepreneuses'}</span></>}
+   <Link href="/">Accueil</Link><span>♡</span><Link href={group?.category==='entrepreneuses'?'/com-des-entrepreneuses/':'/com-en-famille/'}>{group?.category==='entrepreneuses'?'Com’ des entrepreneuses':'Com’ en famille'}</Link>
+   {group&&<><span>♡</span><span>{group.primary.name}</span></>}
   </nav>
   {state==='loading'&&<p className={styles.message} role="status">On prépare ta découverte… ♡</p>}
   {state==='unavailable'&&<p className={styles.message} role="alert">La boutique est momentanément indisponible. Réessaie dans quelques instants.</p>}
-  {state==='not-found'&&<p className={styles.message}>Ce produit n’est pas disponible pour le moment. <Link href="/boutique/">Découvrir la boutique</Link></p>}
+  {state==='not-found'&&<p className={styles.message}>Ce produit n’est pas disponible pour le moment. <Link href="/com-en-famille/">Découvrir nos créations</Link></p>}
   {group&&primary&&state==='ready'&&<>
    {isStaging&&<div role="status" style={{background:"#fff1bf",borderRadius:20,padding:"17px 23px",marginBottom:28,fontSize:12,lineHeight:1.8}}><strong>APERÇU DE LA NOUVELLE BOUTIQUE · TEST UNIQUEMENT</strong><div>Tu visualises la fiche dans l’identité Com’ entre nous. Les achats sont désactivés sur cet aperçu.</div></div>}
    <div className={styles.hero}>
@@ -90,6 +90,6 @@ export default function ProductPage(){
     <article><strong>Une question ?</strong><p>Notre équipe est là pour t’accompagner avant ton achat.</p></article>
    </section>
   </>}
-  <Link className={styles.back} href={isStaging?"/boutique/apercu-test/":"/boutique/"}>← Revenir aux créations</Link>
+  <Link className={styles.back} href={group?.category==='entrepreneuses'?'/com-des-entrepreneuses/':'/com-en-famille/'}>← Revenir aux créations</Link>
  </main></LayoutShell>;
 }
