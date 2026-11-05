@@ -358,8 +358,14 @@ if ($action === 'orders' && $method === 'GET') {
     $id = requireCustomer();
     $result = wooApi($baseUrl, $key, $secret, '/wp-json/wc/v3/orders?customer=' . $id . '&per_page=50&orderby=date&order=desc');
     if (!$result['ok'] || !is_array($result['data'])) {
+        // Code HTTP uniquement : utile au diagnostic, sans afficher clés ni données sensibles.
+        $upstreamStatus = (int)($result['status'] ?? 0);
         http_response_code(502);
-        echo json_encode(['ok' => false, 'error' => 'Impossible de charger les commandes pour le moment.']);
+        echo json_encode([
+            'ok' => false,
+            'error' => 'Impossible de charger les commandes depuis WooCommerce.',
+            'diagnostic' => $upstreamStatus > 0 ? 'WooCommerce HTTP ' . $upstreamStatus : 'Connexion API indisponible',
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         exit;
     }
     $orders = array_map(static function ($order) {
