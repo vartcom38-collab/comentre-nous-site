@@ -13,7 +13,7 @@ session_set_cookie_params([
 ]);
 session_start();
 
-$configPath = dirname(__DIR__) . '/woo-private.php';
+$configPath = dirname(__DIR__) . '/woo-commerce-write-private.php';
 if (!is_file($configPath)) {
     http_response_code(500);
     echo json_encode(['ok' => false, 'error' => 'Configuration de la boutique indisponible.']);
@@ -24,7 +24,7 @@ $config = require $configPath;
 $baseUrl = rtrim((string)($config['url'] ?? ''), '/');
 $key = (string)($config['consumer_key'] ?? '');
 $secret = (string)($config['consumer_secret'] ?? '');
-if (!$baseUrl || !$key || !$secret) {
+if ($baseUrl !== 'https://comentrenous.marionbolomey.fr/commerce' || !$key || !$secret) {
     http_response_code(500);
     echo json_encode(['ok' => false, 'error' => 'Configuration de la boutique incomplète.']);
     exit;
@@ -153,7 +153,7 @@ function orderProof(array $input, string $baseUrl, string $key, string $secret):
         echo json_encode(['ok' => false, 'error' => 'Impossible de vérifier cette commande.']);
         exit;
     }
-    if (in_array((string)($order['status'] ?? ''), ['cancelled', 'failed', 'refunded', 'trash'], true)) {
+    if (!in_array((string)($order['status'] ?? ''), ['processing', 'completed'], true)) {
         http_response_code(409);
         echo json_encode(['ok' => false, 'error' => 'Cette commande ne peut pas créer de compte client.']);
         exit;
@@ -207,11 +207,20 @@ if ($action === 'provision-from-order' && $method === 'POST') {
         }
     }
 
+    // Pour un client existant, ne jamais proposer de nouvelle création de mot de passe.
+    $currentCustomer = wooApi($baseUrl, $key, $secret, '/wp-json/wc/v3/customers/' . $customerId);
+    $autoCreated = false;
+    $firstOrderId = '';
+    $passwordReady = false;
+    foreach ((array)($currentCustomer['data']['meta_data'] ?? []) as $meta) {
+        if (($meta['key'] ?? '') === '_comentre_auto_created' && (string)($meta['value'] ?? '') === '1') $autoCreated = true;
+        if (($meta['key'] ?? '') === '_comentre_first_order_id') $firstOrderId = (string)($meta['value'] ?? '');
+        if (($meta['key'] ?? '') === '_comentre_password_ready' && (string)($meta['value'] ?? '') === '1') $passwordReady = true;
+    }
     echo json_encode([
         'ok' => true,
         'created' => $created,
-        'customer_id' => $customerId,
-        'needs_password_setup' => true,
+        'needs_password_setup' => $autoCreated && $firstOrderId === (string)$order['id'] && !$passwordReady,
     ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
 }
@@ -235,6 +244,21 @@ if ($action === 'set-first-password' && $method === 'POST') {
     if (!$customer['ok'] || strtolower((string)($customer['data']['email'] ?? '')) !== $email) {
         http_response_code(403);
         echo json_encode(['ok' => false, 'error' => 'Ce compte ne correspond pas à la commande.']);
+        exit;
+    }
+    // L’activation par reçu ne doit JAMAIS écraser le mot de passe d’un compte existant.
+    // Seul un compte créé automatiquement par ce parcours pour cette commande est éligible.
+    $autoCreated = false;
+    $firstOrderId = '';
+    $passwordReady = false;
+    foreach ((array)($customer['data']['meta_data'] ?? []) as $meta) {
+        if (($meta['key'] ?? '') === '_comentre_auto_created' && (string)($meta['value'] ?? '') === '1') $autoCreated = true;
+        if (($meta['key'] ?? '') === '_comentre_first_order_id') $firstOrderId = (string)($meta['value'] ?? '');
+        if (($meta['key'] ?? '') === '_comentre_password_ready' && (string)($meta['value'] ?? '') === '1') $passwordReady = true;
+    }
+    if (!$autoCreated || $firstOrderId !== (string)$order['id'] || $passwordReady) {
+        http_response_code(409);
+        echo json_encode(['ok'=>false, 'error'=>'Ce compte existe déjà ou a été activé. Connecte-toi avec ton mot de passe dans Mon espace.']);
         exit;
     }
     $updated = wooApi($baseUrl, $key, $secret, '/wp-json/wc/v3/customers/' . $customerId, 'PUT', [
