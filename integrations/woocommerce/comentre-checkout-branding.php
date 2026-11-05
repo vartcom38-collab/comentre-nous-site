@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Com' entre nous — Habillage commande
  * Description: Habillage léger du paiement WooCommerce sur /commerce/, sans modifier les moyens de paiement ni le tunnel d'achat.
- * Version: 0.1.0
+ * Version: 0.2.0
  */
 defined('ABSPATH') || exit;
 
@@ -20,7 +20,7 @@ add_action('wp_enqueue_scripts', static function () {
         null
     );
 
-    wp_register_style('comentre-checkout-theme', false, ['comentre-checkout-fonts'], '0.1.0');
+    wp_register_style('comentre-checkout-theme', false, ['comentre-checkout-fonts'], '0.2.0');
     wp_enqueue_style('comentre-checkout-theme');
     $css = <<<'CSS'
 /* COM’ ENTRE NOUS — habillage de la commande.
@@ -127,6 +127,38 @@ body.woocommerce-checkout :is(.woocommerce-message,.wc-block-components-notice-b
 body.woocommerce-checkout .woocommerce form.checkout {
   max-width:1250px; margin-inline:auto;
 }
+/* Retirer le menu du thème WordPress pendant le paiement et la confirmation.
+   La bannière Com’ entre nous ci-dessus reste visible. */
+body.woocommerce-checkout .wp-block-template-part:has(.wp-block-navigation),
+body.woocommerce-checkout header.site-header,
+body.woocommerce-checkout #masthead,
+body.woocommerce-checkout .main-navigation,
+body.woocommerce-checkout .wp-site-blocks > header,
+body.woocommerce-checkout .site-footer,
+body.woocommerce-checkout .wp-site-blocks > footer {
+  display:none !important;
+}
+body.woocommerce-checkout .comentre-order-next {
+  display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;
+  margin:24px 0 28px;padding:20px 22px;
+  background:linear-gradient(110deg,#dff6f0,#fffaf6);
+  border:1px solid #d3e8e1;border-radius:22px;
+}
+body.woocommerce-checkout .comentre-order-next__copy {flex:1;min-width:220px}
+body.woocommerce-checkout .comentre-order-next__copy strong {
+  display:block;font:400 29px/1.1 'Patrick Hand',cursive;
+}
+body.woocommerce-checkout .comentre-order-next__copy span {
+  display:block;font:500 11px/1.75 'Comfortaa',sans-serif;margin-top:7px;
+}
+body.woocommerce-checkout .comentre-order-next__link {
+  display:inline-block;padding:13px 20px;border-radius:999px;
+  background:#171b2a;color:#fff!important;text-decoration:none;
+  font:700 12px/1.4 'Comfortaa',sans-serif;
+}
+body.woocommerce-checkout .comentre-order-next__link:focus-visible {
+  outline:3px solid #ff766d;outline-offset:3px;
+}
 @media(max-width:780px) {
   body.woocommerce-checkout .comentre-checkout-ribbon {
     margin:14px 12px; padding:16px; border-radius:18px;
@@ -156,3 +188,37 @@ add_action('wp_body_open', static function () {
     </div>
     <?php
 }, 15);
+
+/**
+ * Confirmation : le client garde son reçu et ses téléchargements WooCommerce,
+ * puis peut ouvrir l'espace client du SITE PRINCIPAL (pas /commerce/mon-compte/).
+ * Pas de connexion automatique ni de création de mot de passe sur une page publique.
+ */
+add_action('woocommerce_before_thankyou', static function ($order_id) {
+    if (!$order_id || !function_exists('wc_get_order')) return;
+    $order = wc_get_order($order_id);
+    if (!$order || !in_array($order->get_status(), ['processing','completed'], true)) return;
+    $space = 'https://comentrenous.marionbolomey.fr/mon-espace/';
+    ?>
+    <section class="comentre-order-next" aria-label="Retrouver mes achats">
+      <div class="comentre-order-next__copy">
+        <strong>Merci pour ta commande ♡</strong>
+        <span>Ton achat est confirmé. Retrouve tes commandes et tes téléchargements dans ton espace Com’ entre nous. L’accès à cet espace nécessite une connexion sécurisée.</span>
+      </div>
+      <a class="comentre-order-next__link" href="<?php echo esc_url($space); ?>">Accéder à mon espace ♡</a>
+    </section>
+    <?php
+}, 20);
+
+/** Dans les e-mails envoyés aux clientes, présenter la bonne adresse de connexion.
+ * Le lien ne contient aucune clé de commande ni mot de passe.
+ */
+add_action('woocommerce_email_after_order_table', static function ($order, $sent_to_admin, $plain_text, $email) {
+    if ($sent_to_admin || !is_a($order, 'WC_Order')) return;
+    $url = 'https://comentrenous.marionbolomey.fr/mon-espace/';
+    if ($plain_text) {
+        echo "\nRetrouver mes achats dans mon espace Com’ entre nous : " . esc_url($url) . "\n";
+    } else {
+        echo '<p style="margin:20px 0">Vos achats et téléchargements sont à retrouver dans <a href="' . esc_url($url) . '">votre espace Com’ entre nous</a>, après connexion.</p>';
+    }
+}, 20, 4);
