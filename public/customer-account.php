@@ -109,7 +109,7 @@ function customerPayload(array $customer): array {
 }
 
 function localCustomerPayload(int $id): ?array {
-    if (!function_exists('wc_get_customer')) return null;
+    if (!class_exists('WC_Customer')) return null;
     try {
         $customer = new WC_Customer($id);
         if (!$customer->get_id()) return null;
