@@ -38,7 +38,7 @@ export default function CustomerSpacePage() {
   const [emailConfirmationMessage, setEmailConfirmationMessage] = useState('');
   useEffect(() => {
     void restoreSession();
-    const hash = window.location.hash.match(/^#confirmer-email=(\\d+)\\.([a-f0-9]{64})$/);
+    const hash = window.location.hash.match(/^#confirmer-email=(\d+)\.([a-f0-9]{64})$/);
     if (hash) setEmailConfirmation({id:Number(hash[1]),token:hash[2]});
   }, []);
 
