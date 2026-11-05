@@ -80,7 +80,6 @@ export default function HomePage() {
         </nav>
 
         <div className="actions">
-          <Link href="/boutique" aria-label="Recherche" className="icon-link">⌕</Link>
           <Link href="/mon-espace" aria-label="Se connecter à son espace cliente" className="customer-login-link">Se connecter</Link>
           <button type="button" className="cart" data-woo-cart-toggle aria-label="Ouvrir le panier">
             <span>Panier</span><b data-woo-cart-count>0</b>
@@ -95,7 +94,7 @@ export default function HomePage() {
           <p className="intro">Des outils doux, illustrés et concrets pour exprimer ce que tu ressens, faire circuler les idées et remettre un peu de lien dans la vraie vie.</p>
           <div className="button-row">
             <Link href="/par-ou-commencer" className="btn primary">Découvrir nos univers →</Link>
-            <Link href="/boutique" className="btn secondary">Voir les nouveautés →</Link>
+            <Link href="/com-en-famille/#collection" className="btn secondary">Voir les nouveautés →</Link>
           </div>
         </div>
 
