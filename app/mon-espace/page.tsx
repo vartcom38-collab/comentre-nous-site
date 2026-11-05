@@ -32,8 +32,14 @@ export default function CustomerSpacePage() {
   const [profileMessage, setProfileMessage] = useState('');
   const [editingPassword, setEditingPassword] = useState(false);
   const [passwordMessage, setPasswordMessage] = useState('');
+  const [editingEmail, setEditingEmail] = useState(false);
+  const [emailMessage, setEmailMessage] = useState('');
+  const [emailConfirmation, setEmailConfirmation] = useState<{id:number;token:string}|null>(null);
+  const [emailConfirmationMessage, setEmailConfirmationMessage] = useState('');
   useEffect(() => {
     void restoreSession();
+    const hash = window.location.hash.match(/^#confirmer-email=(\\d+)\\.([a-f0-9]{64})$/);
+    if (hash) setEmailConfirmation({id:Number(hash[1]),token:hash[2]});
   }, []);
 
   async function request(action:string, options?:RequestInit){
@@ -88,6 +94,40 @@ export default function CustomerSpacePage() {
   function money(value:string,currency='EUR'){
     const amount = Number(value || 0);
     try{return new Intl.NumberFormat('fr-FR',{style:'currency',currency}).format(amount)}catch(_){return `${value} €`}
+  }
+
+  async function requestEmailChange(event:FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!csrf) {setEmailMessage('Actualise ton espace, puis réessaie.');return;}
+    const fields = new FormData(event.currentTarget);
+    setBusy(true);setEmailMessage('');
+    try {
+      const result = await request('request-email-change', {
+        method:'POST',headers:{'Content-Type':'application/json','X-Comentre-CSRF':csrf},
+        body:JSON.stringify({new_email:String(fields.get('new_email')||''),current_password:String(fields.get('current_password')||'')})
+      });
+      setEmailMessage(result.message || 'Consulte ta nouvelle boîte mail pour confirmer ton adresse.');
+      setEditingEmail(false);
+    } catch(error) {
+      setEmailMessage(error instanceof Error ? error.message : 'Impossible d’envoyer la confirmation.');
+    } finally {setBusy(false);}
+  }
+
+  async function confirmEmailChange() {
+    if (!emailConfirmation) return;
+    setBusy(true);setEmailConfirmationMessage('');
+    try {
+      const result = await request('confirm-email-change', {
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({customer_id:emailConfirmation.id,token:emailConfirmation.token})
+      });
+      setEmailConfirmationMessage(result.message || 'Ta nouvelle adresse est confirmée.');
+      setEmailConfirmation(null);
+      window.history.replaceState(null,'',window.location.pathname + window.location.search);
+      await restoreSession();
+    } catch(error) {
+      setEmailConfirmationMessage(error instanceof Error ? error.message : 'Impossible de confirmer cette adresse.');
+    } finally {setBusy(false);}
   }
 
   async function saveNewPassword(event:FormEvent<HTMLFormElement>) {
@@ -211,6 +251,14 @@ export default function CustomerSpacePage() {
           </div>
         </section>
 
+        {emailConfirmation ? <section className="customer-email-confirm">
+          <p className="customer-kicker">Sécurité du compte</p>
+          <h2>Confirmer ma nouvelle adresse ♡</h2>
+          <p>Tu as ouvert le lien reçu sur ta nouvelle boîte mail. Confirme ci-dessous pour enregistrer cette adresse sans perdre tes commandes ni tes téléchargements.</p>
+          <button type="button" disabled={busy} onClick={confirmEmailChange}>{busy?'Vérification…':'Confirmer mon adresse e-mail →'}</button>
+          {emailConfirmationMessage ? <p role="status">{emailConfirmationMessage}</p> : null}
+        </section> : emailConfirmationMessage ? <section className="customer-email-confirm" role="status"><p>{emailConfirmationMessage}</p></section> : null}
+
         {!customer && !loading ? <section className="customer-login" id="connexion" aria-labelledby="connexion-title">
           <div className="customer-login-copy">
             <p className="customer-kicker">Connexion cliente</p>
@@ -306,7 +354,16 @@ export default function CustomerSpacePage() {
                   <div className="customer-form-actions"><button type="submit" disabled={busy}>{busy?'Enregistrement…':'Changer mon mot de passe ♡'}</button><button type="button" className="customer-form-cancel" onClick={()=>{setEditingPassword(false);setPasswordMessage('');}}>Annuler</button></div>
                 </form> : <div className="customer-form-actions"><button type="button" onClick={()=>{setPasswordMessage('');setEditingPassword(true);}}>Modifier mon mot de passe →</button></div>}
                 {passwordMessage ? <p className="customer-data-error" role="alert">{passwordMessage}</p> : null}
-                <div className="customer-email-note"><strong>Mon adresse e-mail</strong><p>La modification de l’e-mail reste sécurisée par WooCommerce pour éviter de perdre l’accès aux achats.</p><a href={wooAccount+'edit-account/'}>Modifier mon e-mail →</a></div>
+                <div className="customer-email-note">
+                  <strong>Mon adresse e-mail</strong>
+                  <p>Change ton adresse sans quitter ton espace. Nous t’enverrons un lien sur ta nouvelle boîte mail pour confirmer qu’elle t’appartient. Ton adresse actuelle reste active jusque-là.</p>
+                  {editingEmail ? <form className="customer-password-form" onSubmit={requestEmailChange}>
+                    <label>Nouvelle adresse e-mail<input type="email" name="new_email" autoComplete="email" required maxLength={190}/></label>
+                    <label>Mot de passe actuel<input type="password" name="current_password" autoComplete="current-password" required/></label>
+                    <div className="customer-form-actions"><button disabled={busy} type="submit">{busy?'Envoi en cours…':'Recevoir mon lien de confirmation ♡'}</button><button type="button" className="customer-form-cancel" onClick={()=>{setEditingEmail(false);setEmailMessage('');}}>Annuler</button></div>
+                  </form> : <div className="customer-form-actions"><button type="button" onClick={()=>{setEmailMessage('');setEditingEmail(true);}}>Modifier mon adresse e-mail →</button></div>}
+                  {emailMessage ? <p className="customer-address-message" role="status">{emailMessage}</p> : null}
+                </div>
               </div>
             </> : null}
           </div>
@@ -322,6 +379,12 @@ export default function CustomerSpacePage() {
 }
 
 const styles = String.raw`
+.customer-email-confirm{width:min(900px,calc(100% - 2rem));margin:12px auto 28px;padding:28px;background:#e8f8f4;border-radius:26px;box-shadow:0 12px 32px rgba(48,30,18,.06)}
+.customer-email-confirm h2{font:700 clamp(30px,4vw,46px)/1.1 'Patrick Hand',cursive;margin:0 0 14px}
+.customer-email-confirm p:not(.customer-kicker){font:500 12px/1.9 'Comfortaa',sans-serif;color:#455d59}
+.customer-email-confirm button{background:#171b2a;color:#fff;border:0;padding:14px 20px;border-radius:999px;cursor:pointer;font:700 11px 'Comfortaa',sans-serif}
+.customer-email-confirm button:disabled{opacity:.55}
+
 .customer-password-form{display:grid;gap:14px;margin-top:20px}
 .customer-password-form label{display:grid;gap:7px;color:#171b2a;font:700 11px/1.5 'Comfortaa',sans-serif}
 .customer-password-form input{background:#fffdfb;border:1px solid #e4d9d0;border-radius:13px;padding:13px;color:#171b2a;font:500 12px 'Comfortaa',sans-serif}
