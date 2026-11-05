@@ -59,37 +59,24 @@ function wooApi(string $baseUrl, string $key, string $secret, string $endpoint, 
     return ['ok' => $status >= 200 && $status < 300, 'status' => $status, 'data' => $data];
 }
 
-function verifyWordPressLogin(string $baseUrl, string $email, string $password): bool {
-    $headers = [];
-    $ch = curl_init($baseUrl . '/wp-login.php');
-    curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT => 20,
-        CURLOPT_CONNECTTIMEOUT => 8,
-        CURLOPT_POST => true,
-        CURLOPT_POSTFIELDS => http_build_query([
-            'log' => $email,
-            'pwd' => $password,
-            'wp-submit' => 'Se connecter',
-            'redirect_to' => $baseUrl . '/wp-admin/profile.php',
-            'testcookie' => '1',
-        ]),
-        CURLOPT_COOKIE => 'wordpress_test_cookie=WP%20Cookie%20check',
-        CURLOPT_FOLLOWLOCATION => false,
-        CURLOPT_HEADERFUNCTION => static function ($curl, $line) use (&$headers) {
-            $headers[] = trim($line);
-            return strlen($line);
-        },
-        CURLOPT_USERAGENT => 'ComEntreNous-CustomerAccount/1.0',
-    ]);
-    curl_exec($ch);
-    $status = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-    if ($status < 200 || $status >= 400) return false;
-    foreach ($headers as $line) {
-        if (stripos($line, 'Set-Cookie:') === 0 && stripos($line, 'wordpress_logged_in_') !== false) return true;
-    }
-    return false;
+/**
+ * Vérification directe par WordPress installé sur le même hébergement.
+ * L'ancienne méthode contrôlait un cookie de wp-login.php et pouvait
+ * rejeter une authentification valide selon les redirections/plugins.
+ * Aucun mot de passe n'est conservé ou renvoyé au navigateur.
+ */
+function verifyWordPressLogin(string $baseUrl, string $email, string $password): int {
+    if ($baseUrl !== 'https://comentrenous.marionbolomey.fr/commerce') return 0;
+    $wpLoader = __DIR__ . '/commerce/wp-load.php';
+    if (!is_file($wpLoader)) return 0;
+    require_once $wpLoader;
+    if (!function_exists('wp_authenticate')) return 0;
+    $user = wp_authenticate($email, $password);
+    if (is_wp_error($user) || !($user instanceof WP_User)) return 0;
+    if (strtolower((string)$user->user_email) !== strtolower($email)) return 0;
+    // Ne pas transformer un compte administrateur WordPress en session cliente.
+    if (!in_array('customer', (array)$user->roles, true)) return 0;
+    return (int)$user->ID;
 }
 
 function customerPayload(array $customer): array {
@@ -288,18 +275,21 @@ if ($action === 'login' && $method === 'POST') {
         echo json_encode(['ok' => false, 'error' => 'E-mail et mot de passe requis.']);
         exit;
     }
-    if (!verifyWordPressLogin($baseUrl, $email, $password)) {
+    $wordpressUserId = verifyWordPressLogin($baseUrl, $email, $password);
+    if ($wordpressUserId <= 0) {
         http_response_code(401);
-        echo json_encode(['ok' => false, 'error' => 'E-mail ou mot de passe incorrect.']);
+        echo json_encode(['ok' => false, 'error' => 'Connexion impossible. Vérifie tes identifiants ou utilise « Mot de passe oublié ? ».']);
         exit;
     }
-    $lookup = wooApi($baseUrl, $key, $secret, '/wp-json/wc/v3/customers?email=' . rawurlencode($email) . '&per_page=1');
-    if (!$lookup['ok'] || !is_array($lookup['data']) || empty($lookup['data'][0]['id'])) {
-        http_response_code(404);
-        echo json_encode(['ok' => false, 'error' => 'Compte client introuvable pour cette adresse e-mail.']);
+    $lookup = wooApi($baseUrl, $key, $secret, '/wp-json/wc/v3/customers/' . $wordpressUserId);
+    if (!$lookup['ok'] || !is_array($lookup['data']) ||
+        (int)($lookup['data']['id'] ?? 0) !== $wordpressUserId ||
+        strtolower((string)($lookup['data']['email'] ?? '')) !== $email) {
+        http_response_code(401);
+        echo json_encode(['ok' => false, 'error' => 'Compte client indisponible.']);
         exit;
     }
-    $customer = (array)$lookup['data'][0];
+    $customer = (array)$lookup['data'];
     session_regenerate_id(true);
     $_SESSION['customer_id'] = (int)$customer['id'];
     $_SESSION['customer_email'] = $email;
