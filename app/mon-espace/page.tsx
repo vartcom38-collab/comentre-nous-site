@@ -30,6 +30,8 @@ export default function CustomerSpacePage() {
   const [editingProfile, setEditingProfile] = useState(false);
   const [profileForm, setProfileForm] = useState({first_name:'',last_name:''});
   const [profileMessage, setProfileMessage] = useState('');
+  const [editingPassword, setEditingPassword] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState('');
   useEffect(() => {
     void restoreSession();
   }, []);
@@ -86,6 +88,34 @@ export default function CustomerSpacePage() {
   function money(value:string,currency='EUR'){
     const amount = Number(value || 0);
     try{return new Intl.NumberFormat('fr-FR',{style:'currency',currency}).format(amount)}catch(_){return `${value} €`}
+  }
+
+  async function saveNewPassword(event:FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!csrf) { setPasswordMessage('Actualise ton espace puis réessaie.'); return; }
+    const form = event.currentTarget;
+    const fields = new FormData(form);
+    const current_password = String(fields.get('current_password') || '');
+    const new_password = String(fields.get('new_password') || '');
+    const confirm_password = String(fields.get('confirm_password') || '');
+    if (new_password.length < 12 || new_password !== confirm_password) {
+      setPasswordMessage('Le nouveau mot de passe doit contenir au moins 12 caractères et les deux saisies doivent correspondre.');
+      return;
+    }
+    setBusy(true);setPasswordMessage('');
+    try {
+      const data = await request('change-password', {
+        method:'POST',headers:{'Content-Type':'application/json','X-Comentre-CSRF':csrf},
+        body:JSON.stringify({current_password,new_password,confirm_password})
+      });
+      form.reset();
+      if (data.reauthenticate) {
+        setCustomer(null);setCsrf('');setOrders([]);setDownloads([]);setEditingPassword(false);
+        setMessage('Ton mot de passe est modifié ♡ Reconnecte-toi avec ton nouveau mot de passe.');
+      }
+    } catch(error) {
+      setPasswordMessage(error instanceof Error ? error.message : 'Impossible de changer le mot de passe.');
+    } finally {setBusy(false);}
   }
 
   function beginProfileEdit() {
@@ -266,7 +296,18 @@ export default function CustomerSpacePage() {
                 </div>
               </form> : <div className="customer-form-actions"><button type="button" onClick={beginProfileEdit}>Modifier mon prénom et mon nom →</button></div>}
               {profileMessage ? <p className="customer-address-message" role="status">{profileMessage}</p> : null}
-              <div className="customer-profile-security"><strong>E-mail et mot de passe</strong><p>Pour protéger ton compte, ces modifications utilisent encore le formulaire sécurisé de WooCommerce.</p><a href={wooAccount+'edit-account/'}>Gérer mes identifiants →</a></div>
+              <div className="customer-profile-security">
+                <strong>Mon mot de passe</strong>
+                <p>Tu peux le modifier ici, sans quitter ton espace. Pour ta sécurité, ton mot de passe actuel est nécessaire et tu te reconnecteras une fois après la modification.</p>
+                {editingPassword ? <form className="customer-password-form" onSubmit={saveNewPassword}>
+                  <label>Mot de passe actuel<input type="password" name="current_password" autoComplete="current-password" required/></label>
+                  <label>Nouveau mot de passe (12 caractères minimum)<input type="password" name="new_password" autoComplete="new-password" minLength={12} required/></label>
+                  <label>Confirmer le nouveau mot de passe<input type="password" name="confirm_password" autoComplete="new-password" minLength={12} required/></label>
+                  <div className="customer-form-actions"><button type="submit" disabled={busy}>{busy?'Enregistrement…':'Changer mon mot de passe ♡'}</button><button type="button" className="customer-form-cancel" onClick={()=>{setEditingPassword(false);setPasswordMessage('');}}>Annuler</button></div>
+                </form> : <div className="customer-form-actions"><button type="button" onClick={()=>{setPasswordMessage('');setEditingPassword(true);}}>Modifier mon mot de passe →</button></div>}
+                {passwordMessage ? <p className="customer-data-error" role="alert">{passwordMessage}</p> : null}
+                <div className="customer-email-note"><strong>Mon adresse e-mail</strong><p>La modification de l’e-mail reste sécurisée par WooCommerce pour éviter de perdre l’accès aux achats.</p><a href={wooAccount+'edit-account/'}>Modifier mon e-mail →</a></div>
+              </div>
             </> : null}
           </div>
         </section> : null}
@@ -281,6 +322,12 @@ export default function CustomerSpacePage() {
 }
 
 const styles = String.raw`
+.customer-password-form{display:grid;gap:14px;margin-top:20px}
+.customer-password-form label{display:grid;gap:7px;color:#171b2a;font:700 11px/1.5 'Comfortaa',sans-serif}
+.customer-password-form input{background:#fffdfb;border:1px solid #e4d9d0;border-radius:13px;padding:13px;color:#171b2a;font:500 12px 'Comfortaa',sans-serif}
+.customer-email-note{border-top:1px solid #c9e7de;margin-top:27px;padding-top:19px}
+.customer-email-note strong{font-size:23px}
+
 .customer-profile-security{margin-top:28px;padding:22px;border-radius:20px;background:#e8f8f4}
 .customer-profile-security strong{font:700 27px/1.2 'Patrick Hand',cursive}
 .customer-profile-security p{font:500 11px/1.8 'Comfortaa',sans-serif;color:#45615c}
