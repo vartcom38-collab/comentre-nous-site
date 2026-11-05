@@ -27,6 +27,9 @@ export default function CustomerSpacePage() {
   const [editingAddress, setEditingAddress] = useState<'billing'|'shipping'|null>(null);
   const [addressForm, setAddressForm] = useState<Address>({first_name:'',last_name:'',address_1:'',address_2:'',postcode:'',city:'',country:'FR'});
   const [addressMessage, setAddressMessage] = useState('');
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [profileForm, setProfileForm] = useState({first_name:'',last_name:''});
+  const [profileMessage, setProfileMessage] = useState('');
   useEffect(() => {
     void restoreSession();
   }, []);
@@ -83,6 +86,31 @@ export default function CustomerSpacePage() {
   function money(value:string,currency='EUR'){
     const amount = Number(value || 0);
     try{return new Intl.NumberFormat('fr-FR',{style:'currency',currency}).format(amount)}catch(_){return `${value} €`}
+  }
+
+  function beginProfileEdit() {
+    if (!customer) return;
+    setProfileForm({first_name:customer.first_name || '',last_name:customer.last_name || ''});
+    setProfileMessage('');
+    setEditingProfile(true);
+  }
+
+  async function saveProfile(event:FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!csrf) { setProfileMessage('Actualise ton espace avant de modifier tes informations.'); return; }
+    setBusy(true);setProfileMessage('');
+    try {
+      const data = await request('update-profile',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','X-Comentre-CSRF':csrf},
+        body:JSON.stringify(profileForm)
+      });
+      setCustomer(data.customer);
+      setEditingProfile(false);
+      setProfileMessage('Tes informations ont bien été enregistrées ♡');
+    } catch(error) {
+      setProfileMessage(error instanceof Error ? error.message : 'Impossible de modifier tes informations.');
+    } finally {setBusy(false);}
   }
 
   function beginAddressEdit(kind:'billing'|'shipping') {
@@ -226,8 +254,19 @@ export default function CustomerSpacePage() {
             {activeTab==='account' ? <>
               <div className="customer-section-head"><div><p className="customer-kicker">Mes informations</p><h2>Mon compte</h2></div></div>
               <div className="customer-account-info"><div><small>Nom</small><strong>{customer.display_name || 'Non renseigné'}</strong></div><div><small>Adresse e-mail</small><strong>{customer.email}</strong></div></div>
-              <p className="customer-small-note">Pour changer ton nom, ton e-mail ou ton mot de passe, tu peux utiliser le formulaire sécurisé de WooCommerce.</p>
-              <a className="customer-native-link" href={wooAccount+'edit-account/'}>Modifier mes informations →</a>
+              {editingProfile ? <form className="customer-address-form" onSubmit={saveProfile}>
+                <h3>Modifier mes informations ♡</h3>
+                <div className="customer-form-columns">
+                  <label>Prénom<input type="text" maxLength={100} value={profileForm.first_name} required onChange={e=>setProfileForm(prev=>({...prev,first_name:e.target.value}))}/></label>
+                  <label>Nom<input type="text" maxLength={100} value={profileForm.last_name} required onChange={e=>setProfileForm(prev=>({...prev,last_name:e.target.value}))}/></label>
+                </div>
+                <div className="customer-form-actions">
+                  <button type="submit" disabled={busy}>{busy?'Enregistrement…':'Enregistrer mes informations ♡'}</button>
+                  <button type="button" className="customer-form-cancel" onClick={()=>{setEditingProfile(false);setProfileMessage('');}}>Annuler</button>
+                </div>
+              </form> : <div className="customer-form-actions"><button type="button" onClick={beginProfileEdit}>Modifier mon prénom et mon nom →</button></div>}
+              {profileMessage ? <p className="customer-address-message" role="status">{profileMessage}</p> : null}
+              <div className="customer-profile-security"><strong>E-mail et mot de passe</strong><p>Pour protéger ton compte, ces modifications utilisent encore le formulaire sécurisé de WooCommerce.</p><a href={wooAccount+'edit-account/'}>Gérer mes identifiants →</a></div>
             </> : null}
           </div>
         </section> : null}
@@ -242,6 +281,11 @@ export default function CustomerSpacePage() {
 }
 
 const styles = String.raw`
+.customer-profile-security{margin-top:28px;padding:22px;border-radius:20px;background:#e8f8f4}
+.customer-profile-security strong{font:700 27px/1.2 'Patrick Hand',cursive}
+.customer-profile-security p{font:500 11px/1.8 'Comfortaa',sans-serif;color:#45615c}
+.customer-profile-security a{font:800 11px/1.5 'Comfortaa',sans-serif;color:#9c4847;text-underline-offset:4px}
+
 .customer-address-form{border-top:1px solid #f0e2d9;margin:24px 0 0;padding:24px 0 0}
 .customer-address-form h3{font:700 29px/1.2 'Patrick Hand',cursive;margin:0 0 18px}
 .customer-form-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
