@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { heroScene } from './heroScene';
+import WooCards from '@/components/WooCards';
 
 const nav = [
   ['Com’ en famille', '/com-en-famille'],
@@ -131,19 +132,13 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="products" aria-labelledby="news-title">
+      <section className="products" aria-label="Nouveautés Com’ entre nous">
         <div className="section-head left">
           <p>Les nouveautés</p>
-          <h2 id="news-title">Des idées dans ta valise</h2>
-          <Link href="/boutique" className="shop-link">Voir toute la boutique →</Link>
+          <h2>De jolies créations à découvrir</h2>
+          <Link href="/com-en-famille/#collection" className="shop-link">Découvrir les créations →</Link>
         </div>
-        <div className="product-grid">
-          <article className="product-card" style={{gridColumn:'1 / -1',padding:'28px',textAlign:'center'}}>
-            <h3 style={{fontSize:'1.3rem'}}>Nos créations arrivent bientôt ♡</h3>
-            <p>Nous préparons la boutique avec soin. Les produits en brouillon ne sont pas encore en vente.</p>
-            <Link href="/boutique/" className="shop-link">Découvrir notre boutique →</Link>
-          </article>
-        </div>
+        <WooCards />
       </section>
 
       <section className="podcast">
