@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Com' entre nous — Habillage commande
  * Description: Habillage léger du paiement WooCommerce sur /commerce/, sans modifier les moyens de paiement ni le tunnel d'achat.
- * Version: 0.2.0
+ * Version: 0.3.0
  */
 defined('ABSPATH') || exit;
 
@@ -222,3 +222,110 @@ add_action('woocommerce_email_after_order_table', static function ($order, $sent
         echo '<p style="margin:20px 0">Vos achats et téléchargements sont à retrouver dans <a href="' . esc_url($url) . '">votre espace Com’ entre nous</a>, après connexion.</p>';
     }
 }, 20, 4);
+
+/**
+ * Réinitialisation du mot de passe : habillage de l'écran WooCommerce,
+ * tout en conservant les formulaires et jetons de sécurité natifs.
+ */
+add_action('wp_enqueue_scripts', static function () {
+    if (!function_exists('is_account_page') || !is_account_page() ||
+        !function_exists('is_wc_endpoint_url') || !is_wc_endpoint_url('lost-password')) return;
+
+    wp_enqueue_style(
+        'comentre-password-fonts',
+        'https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;500;600;700&family=Patrick+Hand&display=swap',
+        [],
+        null
+    );
+    wp_register_style('comentre-password-style', false, ['comentre-password-fonts'], '0.3.0');
+    wp_enqueue_style('comentre-password-style');
+    $css = <<<'CSS'
+body.woocommerce-account {
+  background:#fff8f1!important;color:#171b2a;
+  font-family:'Comfortaa',system-ui,sans-serif;
+}
+body.woocommerce-account .wp-site-blocks>header,
+body.woocommerce-account .wp-site-blocks>footer,
+body.woocommerce-account header.site-header,
+body.woocommerce-account footer.site-footer,
+body.woocommerce-account #masthead,
+body.woocommerce-account .main-navigation,
+body.woocommerce-account .wp-block-template-part:has(.wp-block-navigation) {
+  display:none!important;
+}
+body.woocommerce-account .ce-password-ribbon {
+  box-sizing:border-box;max-width:1050px;margin:28px auto 26px;
+  padding:20px 26px;display:flex;align-items:center;flex-wrap:wrap;gap:16px 28px;
+  border-radius:25px;background:linear-gradient(105deg,#fce9e0,#fff6ee 64%,#dff6f0);
+}
+body.woocommerce-account .ce-password-ribbon img {
+  width:105px;height:70px;object-fit:contain;
+}
+body.woocommerce-account .ce-password-ribbon__title {
+  flex:1;min-width:200px;
+}
+body.woocommerce-account .ce-password-ribbon__title strong {
+  display:block;font:400 clamp(29px,4vw,43px)/1.1 'Patrick Hand',cursive;
+}
+body.woocommerce-account .ce-password-ribbon__title span {
+  display:block;font:500 11px/1.8 'Comfortaa',sans-serif;
+}
+body.woocommerce-account .ce-password-ribbon__back {
+  background:#fff;color:#171b2a!important;text-decoration:none;
+  padding:13px 17px;border-radius:999px;
+  font:700 11px/1.5 'Comfortaa',sans-serif;
+}
+body.woocommerce-account main,
+body.woocommerce-account .site-main,
+body.woocommerce-account .wp-block-post-content {
+  max-width:1050px;margin-inline:auto;
+}
+body.woocommerce-account .woocommerce {
+  max-width:680px;margin:24px auto 64px;background:white;
+  padding:clamp(22px,5vw,42px);border-radius:26px;
+  box-shadow:0 15px 45px rgba(48,30,18,.07);
+}
+body.woocommerce-account .woocommerce :is(h1,h2,h3) {
+  font:400 clamp(31px,4vw,44px)/1.15 'Patrick Hand',cursive;color:#171b2a;
+}
+body.woocommerce-account .woocommerce p {
+  color:#515562;font:500 13px/1.85 'Comfortaa',sans-serif;
+}
+body.woocommerce-account .woocommerce input:is([type=email],[type=text],[type=password]) {
+  box-sizing:border-box;width:100%;max-width:100%;
+  background:#fffdfb;border:1px solid #e4d9d0;border-radius:14px;
+  padding:14px;color:#171b2a;font-family:'Comfortaa',sans-serif;
+}
+body.woocommerce-account .woocommerce button,
+body.woocommerce-account .woocommerce button.button {
+  border:0!important;background:#171b2a!important;color:#fff!important;
+  padding:15px 21px!important;border-radius:999px!important;
+  font:700 12px/1.5 'Comfortaa',sans-serif!important;
+}
+body.woocommerce-account .woocommerce :is(.woocommerce-message,.woocommerce-info,.woocommerce-error) {
+  border-radius:14px;
+}
+body.woocommerce-account .woocommerce a {color:#9c4847;}
+@media(max-width:700px) {
+  body.woocommerce-account .ce-password-ribbon {margin:12px;padding:16px;}
+  body.woocommerce-account .ce-password-ribbon__back {width:100%;text-align:center;}
+  body.woocommerce-account .woocommerce {margin-inline:12px;}
+}
+CSS;
+    wp_add_inline_style('comentre-password-style', $css);
+}, 30);
+
+add_action('wp_body_open', static function () {
+    if (!function_exists('is_account_page') || !is_account_page() ||
+        !function_exists('is_wc_endpoint_url') || !is_wc_endpoint_url('lost-password')) return;
+    ?>
+    <div class="ce-password-ribbon" aria-label="Com’ entre nous">
+      <img src="<?php echo esc_url('https://comentrenous.marionbolomey.fr/logo-comentre-nous.svg?v=transparent-final-20260907'); ?>" alt="Com’ entre nous">
+      <div class="ce-password-ribbon__title">
+        <strong>On retrouve ton accès ♡</strong>
+        <span>Un petit lien par e-mail, et tu pourras retrouver tes créations.</span>
+      </div>
+      <a class="ce-password-ribbon__back" href="https://comentrenous.marionbolomey.fr/mon-espace/">← Retour à mon espace</a>
+    </div>
+    <?php
+}, 15);
