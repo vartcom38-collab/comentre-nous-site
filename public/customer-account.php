@@ -388,6 +388,40 @@ if ($action === 'session' && $method === 'GET') {
     exit;
 }
 
+if ($action === 'update-profile' && $method === 'POST') {
+    $wpLoader = __DIR__ . '/commerce/wp-load.php';
+    if (!is_file($wpLoader)) {
+        http_response_code(503);
+        echo json_encode(['ok' => false, 'error' => 'Boutique indisponible.']);
+        exit;
+    }
+    require_once $wpLoader;
+    $id = requireCustomer();
+    verifyCustomerWrite();
+    $input = bodyJson();
+    $firstName = $input['first_name'] ?? null;
+    $lastName = $input['last_name'] ?? null;
+    if (!is_string($firstName) || !is_string($lastName) ||
+        trim($firstName) === '' || trim($lastName) === '' ||
+        mb_strlen($firstName) > 100 || mb_strlen($lastName) > 100) {
+        http_response_code(400);
+        echo json_encode(['ok' => false, 'error' => 'Renseigne un prénom et un nom valides.']);
+        exit;
+    }
+    try {
+        $customer = new WC_Customer($id);
+        if ((int)$customer->get_id() !== $id) throw new RuntimeException('Compte introuvable');
+        $customer->set_first_name(sanitize_text_field($firstName));
+        $customer->set_last_name(sanitize_text_field($lastName));
+        $customer->save();
+        echo json_encode(['ok' => true, 'customer' => localCustomerPayload($id)], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    } catch (Throwable $e) {
+        http_response_code(503);
+        echo json_encode(['ok' => false, 'error' => 'Impossible de modifier les informations du compte.']);
+    }
+    exit;
+}
+
 if ($action === 'update-address' && $method === 'POST') {
     $wpLoader = __DIR__ . '/commerce/wp-load.php';
     if (!is_file($wpLoader)) {
