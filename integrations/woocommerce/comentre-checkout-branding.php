@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Com' entre nous — Habillage commande
  * Description: Habillage léger du paiement WooCommerce sur /commerce/, sans modifier les moyens de paiement ni le tunnel d'achat.
- * Version: 0.5.0
+ * Version: 0.6.0
  */
 defined('ABSPATH') || exit;
 
@@ -271,12 +271,11 @@ add_action('woocommerce_email_after_order_table', static function ($order, $sent
 }, 20, 4);
 
 /**
- * Réinitialisation du mot de passe : habillage de l'écran WooCommerce,
- * tout en conservant les formulaires et jetons de sécurité natifs.
+ * Habillage de tous les écrans du compte WooCommerce (connexion, compte,
+ * réinitialisation), en conservant l'authentification native du checkout.
  */
 add_action('wp_enqueue_scripts', static function () {
-    if (!function_exists('is_account_page') || !is_account_page() ||
-        !function_exists('is_wc_endpoint_url') || !is_wc_endpoint_url('lost-password')) return;
+    if (!function_exists('is_account_page') || !is_account_page()) return;
 
     wp_enqueue_style(
         'comentre-password-fonts',
@@ -284,7 +283,7 @@ add_action('wp_enqueue_scripts', static function () {
         [],
         null
     );
-    wp_register_style('comentre-password-style', false, ['comentre-password-fonts'], '0.3.0');
+    wp_register_style('comentre-password-style', false, ['comentre-password-fonts'], '0.6.0');
     wp_enqueue_style('comentre-password-style');
     $css = <<<'CSS'
 body.woocommerce-account {
@@ -353,6 +352,44 @@ body.woocommerce-account .woocommerce :is(.woocommerce-message,.woocommerce-info
   border-radius:14px;
 }
 body.woocommerce-account .woocommerce a {color:#9c4847;}
+body.woocommerce-account .woocommerce:not(:has(.woocommerce-ResetPassword)) {
+  max-width:1050px;
+}
+body.woocommerce-account .woocommerce-MyAccount-navigation {
+  float:left;width:27%;margin:0 3% 24px 0;
+}
+body.woocommerce-account .woocommerce-MyAccount-navigation ul {
+  list-style:none;padding:0;margin:0;display:grid;gap:8px;
+}
+body.woocommerce-account .woocommerce-MyAccount-navigation li a {
+  display:block;border-radius:12px;padding:12px 14px;
+  background:#fff8f1;color:#171b2a!important;
+  font:700 12px/1.6 'Comfortaa',sans-serif;text-decoration:none;
+}
+body.woocommerce-account .woocommerce-MyAccount-navigation li.is-active a {
+  background:#dff6f0;
+}
+body.woocommerce-account .woocommerce-MyAccount-content {
+  float:right;width:70%;font:500 12px/1.85 'Comfortaa',sans-serif;
+}
+body.woocommerce-account .woocommerce-MyAccount-content a {
+  text-underline-offset:3px;
+}
+body.woocommerce-account .woocommerce table.shop_table {
+  border:1px solid #eadfd6;border-radius:14px;
+}
+body.woocommerce-account .woocommerce .woocommerce-form-login,
+body.woocommerce-account .woocommerce .woocommerce-form-register {
+  border:1px solid #eadfd6;border-radius:18px;padding:22px;
+}
+body.woocommerce-account .woocommerce .woocommerce-form-row {margin-bottom:14px}
+body.woocommerce-account .woocommerce:after {content:'';display:block;clear:both}
+@media(max-width:700px) {
+  body.woocommerce-account .woocommerce-MyAccount-navigation,
+  body.woocommerce-account .woocommerce-MyAccount-content {float:none;width:100%;margin:0 0 22px;}
+  body.woocommerce-account .woocommerce {padding:18px}
+}
+
 @media(max-width:700px) {
   body.woocommerce-account .ce-password-ribbon {margin:12px;padding:16px;}
   body.woocommerce-account .ce-password-ribbon__back {width:100%;text-align:center;}
@@ -363,14 +400,13 @@ CSS;
 }, 30);
 
 add_action('wp_body_open', static function () {
-    if (!function_exists('is_account_page') || !is_account_page() ||
-        !function_exists('is_wc_endpoint_url') || !is_wc_endpoint_url('lost-password')) return;
+    if (!function_exists('is_account_page') || !is_account_page()) return;
     ?>
     <div class="ce-password-ribbon" aria-label="Com’ entre nous">
       <img src="<?php echo esc_url('https://comentrenous.marionbolomey.fr/logo-comentre-nous.svg?v=transparent-final-20260907'); ?>" alt="Com’ entre nous">
       <div class="ce-password-ribbon__title">
-        <strong>On retrouve ton accès ♡</strong>
-        <span>Un petit lien par e-mail, et tu pourras retrouver tes créations.</span>
+        <strong><?php echo (function_exists('is_wc_endpoint_url') && is_wc_endpoint_url('lost-password')) ? 'On retrouve ton accès ♡' : (is_user_logged_in() ? 'Bienvenue dans ton compte ♡' : 'On se retrouve ici ♡'); ?></strong>
+        <span><?php echo (function_exists('is_wc_endpoint_url') && is_wc_endpoint_url('lost-password')) ? 'Un petit lien par e-mail, et tu pourras retrouver tes créations.' : (is_user_logged_in() ? 'Tes informations WooCommerce restent ici, et ta bibliothèque est dans ton espace Com’ entre nous.' : 'Déjà cliente ? Connecte-toi ici pour continuer ta commande avec ton compte existant.'); ?></span>
       </div>
       <a class="ce-password-ribbon__back" href="https://comentrenous.marionbolomey.fr/mon-espace/">← Retour à mon espace</a>
     </div>
