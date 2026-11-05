@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Com' entre nous — Habillage commande
  * Description: Habillage léger du paiement WooCommerce sur /commerce/, sans modifier les moyens de paiement ni le tunnel d'achat.
- * Version: 0.3.0
+ * Version: 0.4.0
  */
 defined('ABSPATH') || exit;
 
@@ -181,8 +181,16 @@ add_action('wp_body_open', static function () {
            src="<?php echo esc_url($origin . '/logo-comentre-nous.svg?v=transparent-final-20260907'); ?>"
            alt="Com’ entre nous">
       <div class="comentre-checkout-ribbon__copy">
-        <strong>On y est presque ♡</strong>
-        <span>Un dernier petit pas pour recevoir ta création Com’ entre nous.</span>
+        <strong><?php echo (function_exists('is_order_received_page') && is_order_received_page()) ? 'Merci pour ton achat ♡' : 'On y est presque ♡'; ?></strong>
+        <span><?php
+          if (function_exists('is_order_received_page') && is_order_received_page()) {
+              echo esc_html('Ta commande est confirmée. Retrouve le détail de ton achat ci-dessous.');
+          } elseif (is_user_logged_in()) {
+              echo esc_html('Ton compte est déjà connecté. Vérifie les détails de ta commande avant le paiement.');
+          } else {
+              echo esc_html('Crée ton espace Com’ entre nous pendant la commande : choisis ton mot de passe et retrouve ensuite tous tes ebooks et tes achats au même endroit.');
+          }
+        ?></span>
       </div>
       <a class="comentre-checkout-ribbon__back" href="<?php echo esc_url($origin . '/com-en-famille/'); ?>">← Revenir au site</a>
     </div>
