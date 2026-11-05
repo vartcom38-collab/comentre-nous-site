@@ -388,6 +388,65 @@ if ($action === 'session' && $method === 'GET') {
     exit;
 }
 
+if ($action === 'change-password' && $method === 'POST') {
+    $wpLoader = __DIR__ . '/commerce/wp-load.php';
+    if (!is_file($wpLoader)) {
+        http_response_code(503);
+        echo json_encode(['ok' => false, 'error' => 'Boutique indisponible.']);
+        exit;
+    }
+    require_once $wpLoader;
+    $id = requireCustomer();
+    verifyCustomerWrite();
+
+    // Limite les tentatives de validation de l'ancien mot de passe dans la session.
+    $attempts = (array)($_SESSION['password_change_attempts'] ?? []);
+    $attempts = array_values(array_filter($attempts, static function ($timestamp) {
+        return is_numeric($timestamp) && (int)$timestamp > time() - 900;
+    }));
+    if (count($attempts) >= 5) {
+        http_response_code(429);
+        echo json_encode(['ok'=>false,'error'=>'Trop de tentatives. Réessaie dans 15 minutes.']);
+        exit;
+    }
+
+    $input = bodyJson();
+    $current = $input['current_password'] ?? null;
+    $new = $input['new_password'] ?? null;
+    $confirm = $input['confirm_password'] ?? null;
+    if (!is_string($current) || !is_string($new) || !is_string($confirm) ||
+        $current === '' || strlen($new) < 12 || strlen($new) > 256 || $new !== $confirm) {
+        http_response_code(400);
+        echo json_encode(['ok'=>false,'error'=>'Vérifie ton ancien mot de passe et choisis un nouveau mot de passe de 12 caractères minimum, confirmé à l’identique.']);
+        exit;
+    }
+    $wpUser = get_user_by('id', $id);
+    if (!$wpUser || !in_array('customer', (array)$wpUser->roles, true)) {
+        http_response_code(401);
+        echo json_encode(['ok'=>false,'error'=>'Connexion requise.']);
+        exit;
+    }
+    if (!wp_check_password($current, (string)$wpUser->user_pass, $id)) {
+        $attempts[] = time();
+        $_SESSION['password_change_attempts'] = $attempts;
+        http_response_code(403);
+        echo json_encode(['ok'=>false,'error'=>'Le mot de passe actuel est incorrect.']);
+        exit;
+    }
+    if (wp_check_password($new, (string)$wpUser->user_pass, $id)) {
+        http_response_code(400);
+        echo json_encode(['ok'=>false,'error'=>'Le nouveau mot de passe doit être différent de l’ancien.']);
+        exit;
+    }
+
+    wp_set_password($new, $id);
+    // Exige une nouvelle connexion après rotation des identifiants.
+    $_SESSION = [];
+    session_regenerate_id(true);
+    echo json_encode(['ok'=>true,'reauthenticate'=>true,'message'=>'Ton mot de passe est modifié. Connecte-toi avec le nouveau mot de passe.']);
+    exit;
+}
+
 if ($action === 'update-profile' && $method === 'POST') {
     $wpLoader = __DIR__ . '/commerce/wp-load.php';
     if (!is_file($wpLoader)) {
