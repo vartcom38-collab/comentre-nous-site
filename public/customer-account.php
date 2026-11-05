@@ -353,60 +353,91 @@ if ($action === 'session' && $method === 'GET') {
 }
 
 if ($action === 'orders' && $method === 'GET') {
+    // La boutique WooCommerce est installée sur ce même serveur :
+    // lecture locale des commandes, sans authentification REST externe (HTTP 401).
     $wpLoader = __DIR__ . '/commerce/wp-load.php';
-    if (is_file($wpLoader)) require_once $wpLoader;
-    $id = requireCustomer();
-    $result = wooApi($baseUrl, $key, $secret, '/wp-json/wc/v3/orders?customer=' . $id . '&per_page=50&orderby=date&order=desc');
-    if (!$result['ok'] || !is_array($result['data'])) {
-        // Code HTTP uniquement : utile au diagnostic, sans afficher clés ni données sensibles.
-        $upstreamStatus = (int)($result['status'] ?? 0);
-        http_response_code(502);
-        echo json_encode([
-            'ok' => false,
-            'error' => 'Impossible de charger les commandes depuis WooCommerce.',
-            'diagnostic' => $upstreamStatus > 0 ? 'WooCommerce HTTP ' . $upstreamStatus : 'Connexion API indisponible',
-        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    if (!is_file($wpLoader)) {
+        http_response_code(503);
+        echo json_encode(['ok' => false, 'error' => 'Boutique indisponible.']);
         exit;
     }
-    $orders = array_map(static function ($order) {
-        $items = array_map(static function ($item) {
-            return [
-                'name' => (string)($item['name'] ?? ''),
-                'quantity' => (int)($item['quantity'] ?? 0),
-                'total' => (string)($item['total'] ?? ''),
+    require_once $wpLoader;
+    $id = requireCustomer();
+    if (!function_exists('wc_get_orders')) {
+        http_response_code(503);
+        echo json_encode(['ok' => false, 'error' => 'WooCommerce indisponible.']);
+        exit;
+    }
+    try {
+        $wooOrders = wc_get_orders([
+            'customer_id' => $id,
+            'limit' => 50,
+            'orderby' => 'date',
+            'order' => 'DESC',
+            'return' => 'objects',
+        ]);
+        $orders = [];
+        foreach ($wooOrders as $order) {
+            if (!($order instanceof WC_Order) || (int)$order->get_customer_id() !== $id) continue;
+            $items = [];
+            foreach ($order->get_items('line_item') as $item) {
+                $items[] = [
+                    'name' => (string)$item->get_name(),
+                    'quantity' => (int)$item->get_quantity(),
+                    'total' => (string)$item->get_total(),
+                ];
+            }
+            $created = $order->get_date_created();
+            $orders[] = [
+                'id' => (int)$order->get_id(),
+                'number' => (string)$order->get_order_number(),
+                'status' => (string)$order->get_status(),
+                'date_created' => $created ? $created->date('c') : '',
+                'total' => (string)$order->get_total(),
+                'currency' => (string)$order->get_currency(),
+                'items' => $items,
             ];
-        }, (array)($order['line_items'] ?? []));
-        return [
-            'id' => (int)($order['id'] ?? 0),
-            'number' => (string)($order['number'] ?? ''),
-            'status' => (string)($order['status'] ?? ''),
-            'date_created' => (string)($order['date_created'] ?? ''),
-            'total' => (string)($order['total'] ?? ''),
-            'currency' => (string)($order['currency'] ?? 'EUR'),
-            'items' => $items,
-        ];
-    }, $result['data']);
-    echo json_encode(['ok' => true, 'orders' => $orders], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        }
+        echo json_encode(['ok' => true, 'orders' => $orders], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    } catch (Throwable $e) {
+        http_response_code(503);
+        echo json_encode(['ok' => false, 'error' => 'Impossible de lire les commandes pour le moment.']);
+    }
     exit;
 }
 
 if ($action === 'downloads' && $method === 'GET') {
-    $id = requireCustomer();
-    $result = wooApi($baseUrl, $key, $secret, '/wp-json/wc/v3/customers/' . $id . '/downloads');
-    if (!$result['ok'] || !is_array($result['data'])) {
-        echo json_encode(['ok' => true, 'downloads' => []]);
+    $wpLoader = __DIR__ . '/commerce/wp-load.php';
+    if (!is_file($wpLoader)) {
+        http_response_code(503);
+        echo json_encode(['ok' => false, 'error' => 'Boutique indisponible.']);
         exit;
     }
-    $downloads = array_map(static function ($item) {
-        return [
-            'download_name' => (string)($item['download_name'] ?? ''),
-            'product_name' => (string)($item['product_name'] ?? ''),
-            'download_url' => (string)($item['download_url'] ?? ''),
-            'downloads_remaining' => $item['downloads_remaining'] ?? '',
-            'access_expires' => (string)($item['access_expires'] ?? ''),
-        ];
-    }, $result['data']);
-    echo json_encode(['ok' => true, 'downloads' => $downloads], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    require_once $wpLoader;
+    $id = requireCustomer();
+    if (!function_exists('wc_get_customer_available_downloads')) {
+        http_response_code(503);
+        echo json_encode(['ok' => false, 'error' => 'WooCommerce indisponible.']);
+        exit;
+    }
+    try {
+        $available = wc_get_customer_available_downloads($id);
+        $downloads = [];
+        foreach ((array)$available as $item) {
+            if (!is_array($item)) continue;
+            $downloads[] = [
+                'download_name' => (string)($item['download_name'] ?? ''),
+                'product_name' => (string)($item['product_name'] ?? ''),
+                'download_url' => (string)($item['download_url'] ?? ''),
+                'downloads_remaining' => $item['downloads_remaining'] ?? '',
+                'access_expires' => (string)($item['access_expires'] ?? ''),
+            ];
+        }
+        echo json_encode(['ok' => true, 'downloads' => $downloads], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    } catch (Throwable $e) {
+        http_response_code(503);
+        echo json_encode(['ok' => false, 'error' => 'Impossible de lire les téléchargements pour le moment.']);
+    }
     exit;
 }
 
