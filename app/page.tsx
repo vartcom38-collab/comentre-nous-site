@@ -348,6 +348,7 @@ mark { display: inline-block; color: inherit; background: linear-gradient(90deg,
 .waiting .soft-photo { opacity: .55; }
 .waiting .floating-heart { opacity: .45; }
 .products { width: min(1260px, calc(100% - 2rem)); margin: 0 auto 4.5rem; }
+.products > section { width: 100%; padding: 0 0 1.5rem; }
 .section-head.left { text-align: left; position: relative; margin-bottom: 1.4rem; }
 .section-head p, .label { margin: 0 0 .55rem; color: var(--coral); font-weight: 800; text-transform: uppercase; letter-spacing: .08em; font-size: .76rem; }
 .section-head h2, .podcast h2 { margin: 0; font: 700 clamp(2.6rem, 4.6vw, 5rem)/.92 var(--hand); letter-spacing: -.035em; }
