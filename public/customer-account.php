@@ -109,6 +109,14 @@ function customerPayload(array $customer): array {
 
 function requireCustomer(): int {
     $id = (int)($_SESSION['customer_id'] ?? 0);
+    if ($id > 0 && function_exists('get_user_by')) {
+        $wpUser = get_user_by('id', $id);
+        if (!$wpUser || !in_array('customer', (array)$wpUser->roles, true)
+            || strtolower((string)$wpUser->user_email) !== (string)($_SESSION['customer_email'] ?? '')) {
+            $_SESSION = [];
+            $id = 0;
+        }
+    }
     if ($id <= 0) {
         http_response_code(401);
         echo json_encode(['ok' => false, 'authenticated' => false, 'error' => 'Connexion requise.']);
@@ -150,6 +158,16 @@ function orderProof(array $input, string $baseUrl, string $key, string $secret):
 
 $action = (string)($_GET['action'] ?? 'session');
 $method = (string)($_SERVER['REQUEST_METHOD'] ?? 'GET');
+/* Les comptes sont créés pendant la commande WooCommerce.
+ * Aucun lien de commande ne doit pouvoir créer un compte ou réinitialiser un mot de passe.
+ * La récupération du mot de passe est gérée par les jetons natifs de WordPress.
+ */
+if (in_array($action, ['provision-from-order', 'set-first-password'], true)) {
+    http_response_code(410);
+    echo json_encode(['ok'=>false, 'error'=>'Utilise la connexion ou la récupération du mot de passe depuis Mon espace.']);
+    exit;
+}
+
 
 if ($action === 'provision-from-order' && $method === 'POST') {
     $input = bodyJson();
@@ -310,6 +328,16 @@ if ($action === 'logout' && $method === 'POST') {
 
 if ($action === 'session' && $method === 'GET') {
     $id = (int)($_SESSION['customer_id'] ?? 0);
+    if ($id > 0) {
+        $wpLoader = __DIR__ . '/commerce/wp-load.php';
+        if (is_file($wpLoader)) require_once $wpLoader;
+        $wpUser = function_exists('get_user_by') ? get_user_by('id', $id) : false;
+        if (!$wpUser || !in_array('customer', (array)$wpUser->roles, true)
+            || strtolower((string)$wpUser->user_email) !== (string)($_SESSION['customer_email'] ?? '')) {
+            $_SESSION = [];
+            $id = 0;
+        }
+    }
     if ($id <= 0) {
         echo json_encode(['ok' => true, 'authenticated' => false]);
         exit;
@@ -325,6 +353,8 @@ if ($action === 'session' && $method === 'GET') {
 }
 
 if ($action === 'orders' && $method === 'GET') {
+    $wpLoader = __DIR__ . '/commerce/wp-load.php';
+    if (is_file($wpLoader)) require_once $wpLoader;
     $id = requireCustomer();
     $result = wooApi($baseUrl, $key, $secret, '/wp-json/wc/v3/orders?customer=' . $id . '&per_page=50&orderby=date&order=desc');
     if (!$result['ok'] || !is_array($result['data'])) {
