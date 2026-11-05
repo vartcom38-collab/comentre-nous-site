@@ -1,35 +1,58 @@
 (() => {
   if (location.pathname.startsWith('/admin')) return;
 
-  const TOKEN_KEY = 'comentre_commerce_test_cart_token';
+  // Panier WooCommerce de la même origine. La session se poursuit vers /commerce/commander/.
+  // Accès au test strictement réservé aux collaborateurs autorisés ; produit Woo #14 seulement.
   const ADMIN_TOKEN_KEY = 'comentre_admin_github_token';
   const getAdminToken = () => sessionStorage.getItem(ADMIN_TOKEN_KEY) || localStorage.getItem(ADMIN_TOKEN_KEY) || '';
+  const STORE_API = '/commerce/wp-json/wc/store/v1/cart';
   let privateTestAuthorized = false;
   let cart = null;
   let drawer = null;
   let backdrop = null;
   let busy = false;
-
-  const getToken = () => localStorage.getItem(TOKEN_KEY) || '';
-  const setToken = (value) => { if (value) localStorage.setItem(TOKEN_KEY, value); };
+  let storeNonce = '';
 
   async function api(action, payload) {
-    const response = await fetch(`/woo-commerce-cart-test.php?action=${encodeURIComponent(action)}`, {
-      method: payload ? 'POST' : 'GET',
-      cache: 'no-store',
-      headers: {
-        ...(payload ? { 'Content-Type': 'application/json' } : {}),
-        ...(getToken() ? { 'X-Cart-Token': getToken() } : {}),
-        ...(getAdminToken() ? { 'Authorization': `Bearer ${getAdminToken()}` } : {}),
-      },
-      body: payload ? JSON.stringify(payload) : undefined,
-    });
-    const data = await response.json().catch(() => ({}));
-    if (data.cart_token) setToken(data.cart_token);
-    if (!response.ok || !data.ok) throw new Error(data.error || 'Le panier est momentanément indisponible.');
-    cart = data.cart || null;
+    if (!privateTestAuthorized) throw new Error('Panier en préparation.');
+    const route = action === 'cart' ? '' :
+      action === 'cart-add' ? '/add-item' :
+      action === 'cart-update' ? '/update-item' :
+      action === 'cart-remove' ? '/remove-item' : null;
+    if (route === null) throw new Error('Action non autorisée.');
+    if (action === 'cart-add' && Number(payload?.id) !== 14) {
+      throw new Error('Seul le produit test est autorisé.');
+    }
+    const request = async () => {
+      const isPost = action !== 'cart';
+      const response = await fetch(STORE_API + route, {
+        method: isPost ? 'POST' : 'GET',
+        credentials: 'same-origin',
+        cache: 'no-store',
+        headers: {
+          'Accept': 'application/json',
+          ...(isPost ? {'Content-Type': 'application/json', 'Nonce': storeNonce} : {}),
+        },
+        body: isPost ? JSON.stringify(payload) : undefined,
+      });
+      const nextNonce = response.headers.get('Nonce');
+      if (nextNonce) storeNonce = nextNonce;
+      const data = await response.json().catch(() => ({}));
+      return {response, data};
+    };
+    if (action !== 'cart' && !storeNonce) await api('cart');
+    let result = await request();
+    // Re-synchroniser le nonce expiré une seule fois, sans retenter le paiement.
+    if (result.response.status === 403 && action !== 'cart') {
+      await api('cart');
+      result = await request();
+    }
+    if (!result.response.ok || !result.data || !Array.isArray(result.data.items)) {
+      throw new Error(result.data?.message || 'Le panier WooCommerce est momentanément indisponible.');
+    }
+    cart = result.data;
     render();
-    return data;
+    return {ok:true,cart};
   }
 
   function money(raw, prices) {
@@ -62,14 +85,14 @@
       <div class="woo-cart-message" data-cart-message></div>
       <div class="woo-cart-items" data-cart-items></div>
       <div class="woo-cart-summary" data-cart-summary></div>
-      <div class="woo-cart-foot"><button type="button" class="woo-cart-continue" data-cart-close>Continuer mes achats</button><p>Panier test uniquement · paiement et commandes désactivés.</p></div>
+      <div class="woo-cart-foot"><a class="woo-cart-checkout" href="/commerce/commander/">Passer la commande test →</a><button type="button" class="woo-cart-continue" data-cart-close>Continuer mes achats</button><p>Réservé au test administratrice · WooPayments en mode test.</p></div>
     `;
     drawer.querySelectorAll('[data-cart-close]').forEach((button) => button.addEventListener('click', close));
     document.body.append(backdrop, drawer);
 
     const style = document.createElement('style');
     style.textContent = `
-      .site-header-actions{display:flex;align-items:center;gap:8px}.cart-pill{border:0;cursor:pointer;font:inherit}.cart-pill [data-woo-cart-count]{display:inline-grid;place-items:center;min-width:20px;height:20px;margin-left:5px;padding:0 5px;border-radius:999px;background:#171b2a;color:#fff;font-size:10px}.woo-cart-backdrop{position:fixed;inset:0;z-index:199990;border:0;background:rgba(23,27,42,.35);opacity:0;pointer-events:none;transition:.2s}.woo-cart-drawer{position:fixed;top:0;right:0;bottom:0;z-index:200000;width:min(430px,100vw);background:#fff8f1;box-shadow:-22px 0 60px rgba(23,27,42,.16);transform:translateX(105%);transition:.25s ease;display:flex;flex-direction:column;font-family:Comfortaa,system-ui,sans-serif;color:#171b2a}.woo-cart-drawer.open{transform:translateX(0)}.woo-cart-backdrop.open{opacity:1;pointer-events:auto}.woo-cart-head{display:flex;justify-content:space-between;align-items:flex-start;padding:24px 22px 16px;border-bottom:1px solid #eadfd6}.woo-cart-head small{font-size:9px;letter-spacing:.14em;color:#ff5d62;font-weight:900}.woo-cart-head h2{margin:3px 0 0;font:700 38px/1 'Patrick Hand',cursive}.woo-cart-head button{border:0;background:#171b2a;color:#fff;border-radius:999px;width:36px;height:36px;font-size:22px;cursor:pointer}.woo-cart-message{padding:0 22px;color:#8f2018;font-size:11px;font-weight:800}.woo-cart-items{padding:14px 18px;display:grid;gap:10px;overflow:auto;flex:1}.woo-cart-empty{padding:42px 18px;text-align:center;color:#747987;font-size:13px}.woo-cart-item{display:grid;grid-template-columns:72px 1fr auto;gap:11px;align-items:center;background:#fff;border-radius:18px;padding:10px;box-shadow:0 9px 25px rgba(48,30,18,.05)}.woo-cart-item img{width:72px;height:72px;object-fit:cover;border-radius:13px;background:#f1ece7}.woo-cart-item h3{margin:0 0 5px;font-size:12px}.woo-cart-item strong{font-size:12px}.woo-cart-qty{display:flex;gap:4px;align-items:center;margin-top:7px}.woo-cart-qty button,.woo-cart-remove{border:0;border-radius:999px;background:#f1ece7;cursor:pointer}.woo-cart-qty button{width:25px;height:25px}.woo-cart-qty span{min-width:22px;text-align:center;font-size:11px;font-weight:900}.woo-cart-remove{align-self:start;width:28px;height:28px;color:#8f2018}.woo-cart-summary{padding:16px 22px;border-top:1px solid #eadfd6;background:#fff}.woo-cart-summary>div{display:flex;justify-content:space-between;gap:12px}.woo-cart-summary small{font-size:11px;color:#727887}.woo-cart-summary strong{font-size:19px}.woo-cart-foot{padding:14px 22px 22px;background:#fff}.woo-cart-continue{width:100%;border:0;border-radius:999px;background:#171b2a;color:#fff;padding:13px 16px;font-weight:900;cursor:pointer}.woo-cart-foot p{margin:9px 0 0;text-align:center;font-size:9px;color:#7d828f}.woo-add-toast{position:fixed;right:18px;bottom:18px;z-index:210000;background:#171b2a;color:#fff;border-radius:999px;padding:11px 15px;font:800 11px Comfortaa,system-ui,sans-serif;box-shadow:0 12px 32px rgba(23,27,42,.22)}@media(max-width:720px){.site-header-actions{gap:4px}.cart-pill{padding-inline:10px!important}.cart-pill{font-size:0!important}.cart-pill:before{content:'Panier';font-size:10px}.woo-cart-drawer{width:100vw}}
+      .site-header-actions{display:flex;align-items:center;gap:8px}.cart-pill{border:0;cursor:pointer;font:inherit}.cart-pill [data-woo-cart-count]{display:inline-grid;place-items:center;min-width:20px;height:20px;margin-left:5px;padding:0 5px;border-radius:999px;background:#171b2a;color:#fff;font-size:10px}.woo-cart-backdrop{position:fixed;inset:0;z-index:199990;border:0;background:rgba(23,27,42,.35);opacity:0;pointer-events:none;transition:.2s}.woo-cart-drawer{position:fixed;top:0;right:0;bottom:0;z-index:200000;width:min(430px,100vw);background:#fff8f1;box-shadow:-22px 0 60px rgba(23,27,42,.16);transform:translateX(105%);transition:.25s ease;display:flex;flex-direction:column;font-family:Comfortaa,system-ui,sans-serif;color:#171b2a}.woo-cart-drawer.open{transform:translateX(0)}.woo-cart-backdrop.open{opacity:1;pointer-events:auto}.woo-cart-head{display:flex;justify-content:space-between;align-items:flex-start;padding:24px 22px 16px;border-bottom:1px solid #eadfd6}.woo-cart-head small{font-size:9px;letter-spacing:.14em;color:#ff5d62;font-weight:900}.woo-cart-head h2{margin:3px 0 0;font:700 38px/1 'Patrick Hand',cursive}.woo-cart-head button{border:0;background:#171b2a;color:#fff;border-radius:999px;width:36px;height:36px;font-size:22px;cursor:pointer}.woo-cart-message{padding:0 22px;color:#8f2018;font-size:11px;font-weight:800}.woo-cart-items{padding:14px 18px;display:grid;gap:10px;overflow:auto;flex:1}.woo-cart-empty{padding:42px 18px;text-align:center;color:#747987;font-size:13px}.woo-cart-item{display:grid;grid-template-columns:72px 1fr auto;gap:11px;align-items:center;background:#fff;border-radius:18px;padding:10px;box-shadow:0 9px 25px rgba(48,30,18,.05)}.woo-cart-item img{width:72px;height:72px;object-fit:cover;border-radius:13px;background:#f1ece7}.woo-cart-item h3{margin:0 0 5px;font-size:12px}.woo-cart-item strong{font-size:12px}.woo-cart-qty{display:flex;gap:4px;align-items:center;margin-top:7px}.woo-cart-qty button,.woo-cart-remove{border:0;border-radius:999px;background:#f1ece7;cursor:pointer}.woo-cart-qty button{width:25px;height:25px}.woo-cart-qty span{min-width:22px;text-align:center;font-size:11px;font-weight:900}.woo-cart-remove{align-self:start;width:28px;height:28px;color:#8f2018}.woo-cart-summary{padding:16px 22px;border-top:1px solid #eadfd6;background:#fff}.woo-cart-summary>div{display:flex;justify-content:space-between;gap:12px}.woo-cart-summary small{font-size:11px;color:#727887}.woo-cart-summary strong{font-size:19px}.woo-cart-foot{padding:14px 22px 22px;background:#fff}.woo-cart-checkout{display:block;text-align:center;margin-bottom:9px;border-radius:999px;background:#171b2a;color:#fff!important;text-decoration:none;padding:13px 16px;font-weight:900;font-size:12px}.woo-cart-continue{width:100%;border:1px solid #eadfd6;border-radius:999px;background:#fff;color:#171b2a;padding:13px 16px;font-weight:900;cursor:pointer}.woo-cart-foot p{margin:9px 0 0;text-align:center;font-size:9px;color:#7d828f}.woo-add-toast{position:fixed;right:18px;bottom:18px;z-index:210000;background:#171b2a;color:#fff;border-radius:999px;padding:11px 15px;font:800 11px Comfortaa,system-ui,sans-serif;box-shadow:0 12px 32px rgba(23,27,42,.22)}@media(max-width:720px){.site-header-actions{gap:4px}.cart-pill{padding-inline:10px!important}.cart-pill{font-size:0!important}.cart-pill:before{content:'Panier';font-size:10px}.woo-cart-drawer{width:100vw}}
     `;
     document.head.appendChild(style);
   }
@@ -82,6 +105,8 @@
     const messageEl = drawer.querySelector('[data-cart-message]');
     if (messageEl) messageEl.textContent = privateTestAuthorized ? '' : 'Le panier est en préparation. Les achats sont désactivés pour le public.';
     const items = cart?.items || [];
+    const checkout = drawer.querySelector('.woo-cart-checkout');
+    if (checkout) checkout.hidden = !privateTestAuthorized || !items.length;
     if (!items.length) {
       itemsEl.innerHTML = '<div class="woo-cart-empty">Ton panier est vide pour le moment.</div>';
       summaryEl.innerHTML = '';
@@ -151,7 +176,6 @@
     const previous = button?.textContent;
     if (button) { button.disabled = true; button.textContent = 'Ajout au panier…'; }
     try {
-      if (!getToken()) await api('cart');
       await api('cart-add', { id: Number(productId), quantity: 1 });
       open();
       if (button) button.textContent = 'Ajouté ✓';
