@@ -30,9 +30,9 @@ export default function MobileMenu() {
         </Link>
 
         <div className="mobile-global-actions">
-          <button type="button" className="mobile-cart-link" data-woo-cart-toggle aria-label="Ouvrir mon panier">
+          <a href="/commerce/panier/" className="mobile-cart-link" data-woo-cart-toggle aria-label="Ouvrir mon panier">
             <span aria-hidden="true">🛍</span><span data-woo-cart-count className="mobile-cart-count">0</span>
-          </button>
+          </a>
           <Link href="/mon-espace" className="mobile-account-link" aria-label="Se connecter à mon espace">♡</Link>
           <button
             type="button"
