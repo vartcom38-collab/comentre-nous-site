@@ -2,7 +2,7 @@
 import {useEffect,useState} from 'react';
 import Link from 'next/link';
 import {LayoutShell} from '@/components/Site';
-import {formatWooPrice} from '@/components/WooCards';
+import {formatWooPrice,fetchWooProducts} from '@/components/WooCards';
 import type {ShopGroup} from '@/src/lib/woo-grouping';
 import {combineFormats} from '@/src/lib/woo-grouping';
 import styles from './product.module.css';
@@ -21,14 +21,11 @@ export default function ProductPage(){
   const source=params.get('source');
   // Le catalogue officiel est /commerce/. Vente désactivée jusqu'au test du panier et des paiements.
   const staging=true;
-  const endpoint=source==='test'?'/woo-test-catalog.php':'/woo-commerce-catalog.php';
+  // Une seule source de vérité : les produits publiés sur /commerce/.
   setIsStaging(staging);
-  const promise:Promise<ProductGroup[]>=fetch(endpoint,{cache:'no-store'}).then(async response=>{
-      if(!response.ok)throw Error('Catalogue d’aperçu indisponible');
-      const data=await response.json();
-      if(!data.ok||!Array.isArray(data.products))throw Error('Catalogue test indisponible');
-      return combineFormats(data.products).map(g=>({ ...g,category:(data.products.find((p:{id:number})=>p.id===g.primary.id)?.categories||[]).some((c:{slug:string})=>c.slug==='com-des-entrepreneuses')?'entrepreneuses':'famille' }));
-     });
+  const promise:Promise<ProductGroup[]>=fetchWooProducts().then(products=>
+    combineFormats(products).map(g=>({ ...g,category:(products.find(p=>p.id===g.primary.id)?.categories||[]).some(c=>c.slug==='com-des-entrepreneuses')?'entrepreneuses':'famille' }))
+  );
   promise.then(groups=>{
    if(!active)return;
    const found=groups.find(g=>g.primary.id===id||g.ebook?.id===id||g.amazon?.id===id);
@@ -48,11 +45,11 @@ export default function ProductPage(){
    <Link href="/">Accueil</Link><span>♡</span><Link href={group?.category==='entrepreneuses'?'/com-des-entrepreneuses/':'/com-en-famille/'}>{group?.category==='entrepreneuses'?'Com’ des entrepreneuses':'Com’ en famille'}</Link>
    {group&&<><span>♡</span><span>{group.primary.name}</span></>}
   </nav>
-  {state==='loading'&&<p className={styles.message} role="status">On prépare ta découverte… ♡</p>}
+
   {state==='unavailable'&&<p className={styles.message} role="alert">La boutique est momentanément indisponible. Réessaie dans quelques instants.</p>}
   {state==='not-found'&&<p className={styles.message}>Ce produit n’est pas disponible pour le moment. <Link href="/com-en-famille/">Découvrir nos créations</Link></p>}
   {group&&primary&&state==='ready'&&<>
-   {isStaging&&<div role="status" style={{background:"#fff1bf",borderRadius:20,padding:"17px 23px",marginBottom:28,fontSize:12,lineHeight:1.8}}><strong>APERÇU DE LA NOUVELLE BOUTIQUE · TEST UNIQUEMENT</strong><div>Tu visualises la fiche dans l’identité Com’ entre nous. Seul l’ebook test peut être ajouté au panier. WooPayments reste en mode test ; les autres articles ne sont pas encore en vente.</div></div>}
+   {isStaging&&<div role="status" style={{background:"#fff1bf",borderRadius:20,padding:"17px 23px",marginBottom:28,fontSize:12,lineHeight:1.8}}><strong>APERÇU DE LA NOUVELLE BOUTIQUE · TEST UNIQUEMENT</strong><div>Tu visualises la fiche dans l’identité Com’ entre nous. Les ebooks publiés peuvent être ajoutés au panier pour vérifier le parcours d’achat. Les paiements réels ne sont pas encore confirmés.</div></div>}
    <div className={styles.hero}>
     <div className={styles.visual}>
      <div className={styles.photo}>
