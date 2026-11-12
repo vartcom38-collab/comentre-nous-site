@@ -11,6 +11,15 @@
   let backdrop = null;
   let busy = false;
   let storeNonce = '';
+  // Réparer un verrouillage de défilement laissé par une ancienne version.
+  function restorePageScroll() {
+    if (document.documentElement.style.overflow === 'hidden') {
+      document.documentElement.style.removeProperty('overflow');
+    }
+  }
+  restorePageScroll();
+  window.addEventListener('pageshow', restorePageScroll);
+
 
   async function api(action, payload) {
     const route = action === 'cart' ? '' :
@@ -173,6 +182,7 @@
 
   function open() {
     ensureUi();
+    restorePageScroll();
     drawer.classList.add('open');
     backdrop.classList.add('open');
     // Ne jamais verrouiller le défilement du document : cela fait
@@ -182,6 +192,7 @@
 
   function close() {
     if (!drawer) return;
+    restorePageScroll();
     drawer.classList.remove('open');
     backdrop.classList.remove('open');
   }
