@@ -108,7 +108,7 @@ export default function WooCards({category,title}:{category?:'famille'|'entrepre
    </Link>
    {purchasable&&purchasable.status==='publish'&&Number(purchasable.price)>0? <div style={{display:'grid',gap:8,padding:'0 18px 20px'}}>
      <button type="button" data-woo-add={purchasable.id} style={{background:'#171b2a',color:'#fff',border:0,borderRadius:999,padding:'13px 18px',fontFamily:'Comfortaa,sans-serif',fontSize:12,fontWeight:800,cursor:'pointer'}}>Ajouter au panier ♡</button>
-     <p style={{margin:0,textAlign:'center',fontSize:10,color:'#747987'}}>Paiement en cours de vérification</p>
+
    </div> : group.amazon?.product_url ? <div style={{padding:'0 12px 15px'}}><a href={group.amazon.product_url} target="_blank" rel="noopener noreferrer" className={styles.noBuy}>Voir la version papier ↗</a></div> : <p className={styles.noBuy}>Disponible prochainement ♡</p>}
   </article>;
  })}
