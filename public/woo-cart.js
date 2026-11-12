@@ -11,14 +11,21 @@
   let backdrop = null;
   let busy = false;
   let storeNonce = '';
+  let cartToken = '';
   let publishedPurchasableIds = null;
   async function canAddPublishedProduct(id) {
     if (id === TEST_PRODUCT_ID) return true;
     if (!publishedPurchasableIds) {
-      const response = await fetch('/woo-commerce-catalog.php', {cache:'no-store'});
-      if (!response.ok) throw new Error('Impossible de vérifier ce produit actuellement.');
-      const catalog = await response.json();
-      if (!catalog.ok || !Array.isArray(catalog.products)) throw new Error('Catalogue indisponible.');
+      // Le catalogue aide à limiter les boutons aux produits publiés.
+      // Si son endpoint échoue ponctuellement (notamment sur réseau mobile),
+      // WooCommerce reste l'autorité pour refuser un produit non achetable.
+      let catalog;
+      try {
+        const response = await fetch('/woo-commerce-catalog.php', {cache:'no-store',credentials:'same-origin'});
+        if (!response.ok) return true;
+        catalog = await response.json();
+        if (!catalog.ok || !Array.isArray(catalog.products)) return true;
+      } catch (_) { return true; }
       publishedPurchasableIds = new Set(catalog.products.filter(p => p.status === 'publish' && p.type === 'simple' && p.price !== '' && Number(p.price) > 0 && (p.categories || []).some(c => ['com-en-famille','com-des-entrepreneuses'].includes(c.slug))).map(p => Number(p.id)));
     }
     return publishedPurchasableIds.has(id);
@@ -50,19 +57,26 @@
         cache: 'no-store',
         headers: {
           'Accept': 'application/json',
-          ...(isPost ? {'Content-Type': 'application/json', 'Nonce': storeNonce} : {}),
+          ...(isPost ? {
+            'Content-Type': 'application/json',
+            ...(cartToken ? {'Cart-Token': cartToken} : {'Nonce': storeNonce})
+          } : {}),
         },
         body: isPost ? JSON.stringify(payload) : undefined,
       });
       const nextNonce = response.headers.get('Nonce');
       if (nextNonce) storeNonce = nextNonce;
+      const nextCartToken = response.headers.get('Cart-Token');
+      if (nextCartToken) cartToken = nextCartToken;
       const data = await response.json().catch(() => ({}));
       return {response, data};
     };
-    if (action !== 'cart' && !storeNonce) await api('cart');
+    if (action !== 'cart' && !storeNonce && !cartToken) await api('cart');
     let result = await request();
     // Re-synchroniser le nonce expiré une seule fois, sans retenter le paiement.
-    if (result.response.status === 403 && action !== 'cart') {
+    if ((result.response.status === 401 || result.response.status === 403) && action !== 'cart') {
+      storeNonce = '';
+      cartToken = '';
       await api('cart');
       result = await request();
     }
@@ -101,7 +115,7 @@
     drawer.setAttribute('aria-label', 'Panier');
     drawer.innerHTML = `
       <div class="woo-cart-head"><div><small>COM’ ENTRE NOUS · BOUTIQUE</small><h2>Mon panier</h2></div><button type="button" data-cart-close aria-label="Fermer">×</button></div>
-      <div class="woo-cart-message" data-cart-message></div>
+      <div class="woo-cart-message" role="alert" aria-live="polite" data-cart-message></div>
       <div class="woo-cart-items" data-cart-items></div>
       <div class="woo-cart-summary" data-cart-summary></div>
       <div class="woo-cart-foot"><a class="woo-cart-checkout" href="/commerce/commander/">Passer commande →</a><button type="button" class="woo-cart-continue" data-cart-close>Continuer mes achats</button></div>
@@ -114,6 +128,16 @@
       .site-header-actions{display:flex;align-items:center;gap:8px}.cart-pill{border:0;cursor:pointer;font:inherit}.cart-pill [data-woo-cart-count]{display:inline-grid;place-items:center;min-width:20px;height:20px;margin-left:5px;padding:0 5px;border-radius:999px;background:#171b2a;color:#fff;font-size:10px}.woo-cart-backdrop{position:fixed;inset:0;z-index:199990;border:0;background:rgba(23,27,42,.35);opacity:0;pointer-events:none;transition:.2s}.woo-cart-drawer{position:fixed;top:0;right:0;bottom:0;z-index:200000;width:min(430px,100vw);background:#fff8f1;box-shadow:-22px 0 60px rgba(23,27,42,.16);transform:translateX(105%);transition:.25s ease;display:flex;flex-direction:column;font-family:Comfortaa,system-ui,sans-serif;color:#171b2a}.woo-cart-drawer.open{transform:translateX(0)}.woo-cart-backdrop.open{opacity:1;pointer-events:auto}.woo-cart-head{display:flex;justify-content:space-between;align-items:flex-start;padding:24px 22px 16px;border-bottom:1px solid #eadfd6}.woo-cart-head small{font-size:9px;letter-spacing:.14em;color:#ff5d62;font-weight:900}.woo-cart-head h2{margin:3px 0 0;font:700 38px/1 'Patrick Hand',cursive}.woo-cart-head button{border:0;background:#171b2a;color:#fff;border-radius:999px;width:36px;height:36px;font-size:22px;cursor:pointer}.woo-cart-message{padding:0 22px;color:#8f2018;font-size:11px;font-weight:800}.woo-cart-items{padding:14px 18px;display:grid;gap:10px;overflow:auto;flex:1}.woo-cart-empty{padding:42px 18px;text-align:center;color:#747987;font-size:13px}.woo-cart-item{display:grid;grid-template-columns:72px 1fr auto;gap:11px;align-items:center;background:#fff;border-radius:18px;padding:10px;box-shadow:0 9px 25px rgba(48,30,18,.05)}.woo-cart-item img{width:72px;height:72px;object-fit:cover;border-radius:13px;background:#f1ece7}.woo-cart-item h3{margin:0 0 5px;font-size:12px}.woo-cart-item strong{font-size:12px}.woo-cart-qty{display:flex;gap:4px;align-items:center;margin-top:7px}.woo-cart-qty button,.woo-cart-remove{border:0;border-radius:999px;background:#f1ece7;cursor:pointer}.woo-cart-qty button{width:25px;height:25px}.woo-cart-qty span{min-width:22px;text-align:center;font-size:11px;font-weight:900}.woo-cart-remove{align-self:start;width:28px;height:28px;color:#8f2018}.woo-cart-summary{padding:16px 22px;border-top:1px solid #eadfd6;background:#fff}.woo-cart-summary>div{display:flex;justify-content:space-between;gap:12px}.woo-cart-summary small{font-size:11px;color:#727887}.woo-cart-summary strong{font-size:19px}.woo-cart-foot{padding:14px 22px 22px;background:#fff}.woo-cart-checkout[hidden]{display:none!important}.woo-cart-checkout{display:block;text-align:center;margin-bottom:9px;border-radius:999px;background:#171b2a;color:#fff!important;text-decoration:none;padding:13px 16px;font-weight:900;font-size:12px}.woo-cart-continue{width:100%;border:1px solid #eadfd6;border-radius:999px;background:#fff;color:#171b2a;padding:13px 16px;font-weight:900;cursor:pointer}.woo-cart-foot p{margin:9px 0 0;text-align:center;font-size:9px;color:#7d828f}.woo-cart-drawer{height:100dvh;max-height:100dvh}.woo-cart-items{min-height:0;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}.woo-cart-foot{flex-shrink:0;padding-bottom:max(18px,env(safe-area-inset-bottom))}.woo-cart-head{flex-shrink:0}.woo-cart-drawer button{touch-action:manipulation}.woo-cart-drawer button:focus-visible,.woo-cart-checkout:focus-visible{outline:3px solid #008f92;outline-offset:3px}@media(max-width:420px){.woo-cart-head{padding:17px 18px 12px}.woo-cart-head h2{font-size:31px}.woo-cart-items{padding:10px 12px}.woo-cart-item{grid-template-columns:50px 1fr auto;gap:8px}.woo-cart-item img{width:50px;height:50px}.woo-cart-foot{padding:10px 15px max(15px,env(safe-area-inset-bottom))}.woo-cart-summary{padding:12px 17px}}
       .woo-add-toast{position:fixed;right:18px;bottom:18px;z-index:210000;background:#171b2a;color:#fff;border-radius:999px;padding:11px 15px;font:800 11px Comfortaa,system-ui,sans-serif;box-shadow:0 12px 32px rgba(23,27,42,.22)}@media(max-width:720px){.site-header-actions{gap:4px}.cart-pill{padding-inline:10px!important}.cart-pill{font-size:0!important}.cart-pill:before{content:'Panier';font-size:10px}.woo-cart-drawer{width:100vw}}
     `;
+    style.textContent += `
+      @media(max-width:720px){
+        .woo-cart-item{grid-template-columns:56px minmax(0,1fr) 36px;gap:10px}
+        .woo-cart-item h3{overflow-wrap:anywhere}
+        .woo-cart-qty button{min-width:44px;min-height:44px;font-size:19px}
+        .woo-cart-qty{gap:7px;flex-wrap:wrap}
+        .woo-cart-remove{width:36px;height:36px;font-size:20px}
+        .woo-cart-checkout,.woo-cart-continue{min-height:48px}
+        .woo-cart-message:not(:empty){padding:12px 18px;background:#fff1ea}
+      }`;
     document.head.appendChild(style);
   }
 
@@ -158,15 +182,15 @@
     if (!Number.isInteger(Number(productId)) || Number(productId) <= 0) { showError('Produit introuvable.'); return; }
     busy = true;
     const previous = button?.textContent;
-    if (button) { button.disabled = true; button.textContent = 'Ajout au panier…'; }
+    if (button) { button.disabled = true; button.setAttribute('aria-busy', 'true'); button.textContent = 'Ajout au panier…'; }
     try {
       await api('cart-add', { id: Number(productId), quantity: 1 });
       open();
       if (button) button.textContent = 'Ajouté ✓';
-      setTimeout(() => { if (button) { button.disabled = false; button.textContent = previous; } }, 1100);
+      setTimeout(() => { if (button) { button.disabled = false; button.removeAttribute('aria-busy'); button.textContent = previous; } }, 1100);
     } catch (error) {
-      if (button) { button.disabled = false; button.textContent = previous; }
-      showError(error.message);
+      if (button) { button.disabled = false; button.removeAttribute('aria-busy'); button.textContent = previous; }
+      showError(error instanceof Error ? error.message : 'Ajout impossible. Réessaie dans quelques instants.');
     } finally { busy = false; }
   }
 
