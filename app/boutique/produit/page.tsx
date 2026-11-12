@@ -34,8 +34,9 @@ export default function ProductPage(){
  const primary=group?.primary as DescribedProduct|undefined;
  const name=primary?.name||'';
  const image=primary?.images?.[0]?.src;
- const hasDigital=Boolean(group?.ebook);
- const canTestBuy=group?.ebook?.id===14;
+ const purchasable=group?.ebook || (group?.primary.type==='simple' ? group.primary : undefined);
+ const hasDigital=Boolean(purchasable);
+ const canTestBuy=Boolean(purchasable?.status==='publish'&&Number(purchasable.price)>0);
  const hasPaper=Boolean(group?.amazon);
  return <LayoutShell><main className={styles.page}>
   <nav className={styles.breadcrumb} aria-label="Fil d’Ariane">
@@ -61,10 +62,10 @@ export default function ProductPage(){
      <div className={styles.softNote}><span>✳</span><div>Des créations imaginées pour accompagner les moments du quotidien, à ton rythme.</div></div>
      <div className={styles.formats}>
       <h2 className={styles.formatsTitle}>Choisis ton format</h2>
-      {hasDigital&&group.ebook&&<div className={styles.format}>
-       <div className={styles.formatHead}><h3>♡ Version numérique</h3><strong>{formatWooPrice(group.ebook)}</strong></div>
-       <p>Un produit téléchargeable à retrouver après confirmation de ton achat.</p>
-       {canTestBuy?<button type="button" data-woo-add={group.ebook.id} className={styles.buy}>Ajouter au panier ♡</button>:<span style={{display:"inline-block",background:"#ead7ff",borderRadius:999,padding:"14px 20px",fontSize:12,fontWeight:800}}>Disponible prochainement ♡</span>}
+      {hasDigital&&purchasable&&<div className={styles.format}>
+       <div className={styles.formatHead}><h3>♡ {purchasable.downloadable?'Version numérique':'Produit disponible'}</h3><strong>{formatWooPrice(purchasable)}</strong></div>
+       <p>{purchasable.downloadable?'Ton téléchargement sera disponible après confirmation de l’achat.':'Ce produit est publié et proposé à la commande. Vérifie les réglages de son format dans WooCommerce.'}</p>
+       {canTestBuy?<button type="button" data-woo-add={purchasable.id} className={styles.buy}>Ajouter au panier ♡</button>:<span style={{display:"inline-block",background:"#ead7ff",borderRadius:999,padding:"14px 20px",fontSize:12,fontWeight:800}}>Disponible prochainement ♡</span>}
       </div>}
       {hasPaper&&group.amazon&&<div className={styles.format+' '+styles.alt}>
        <div className={styles.formatHead}><h3>✳ Version papier</h3></div>
