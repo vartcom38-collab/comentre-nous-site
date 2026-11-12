@@ -92,8 +92,36 @@ export default function CustomerSpacePage() {
 
   async function logout(){
     setBusy(true);
-    try{ await request('logout',{method:'POST'}); }catch(_){}
-    setCustomer(null); setCsrf(''); setOrders([]); setDownloads([]); setDataError(''); setActiveTab('overview'); setSavedCards([]); setPaymentMessage(''); setPaymentError(''); setBusy(false);
+    setMessage('');
+    let wooClosed = false;
+    try{
+      // La connexion WordPress est portée par les cookies /commerce/.
+      // La requête doit cibler ce chemin pour les recevoir.
+      const response = await fetch('/commerce/?comentre_customer_logout=1',{
+        method:'POST',credentials:'same-origin',cache:'no-store',
+        headers:{'Content-Type':'application/json','X-Comentre-Logout':'1'},
+        body:'{}'
+      });
+      const result = await response.json().catch(()=>({}));
+      wooClosed = response.ok && result.ok === true;
+    }catch(_){}
+    let spaceClosed = false;
+    try{
+      await request('logout',{method:'POST'});
+      spaceClosed = true;
+    }catch(_){}
+    if (spaceClosed) {
+      setCustomer(null);setCsrf('');setOrders([]);setDownloads([]);setDataError('');
+      setActiveTab('overview');setSavedCards([]);setPaymentMessage('');setPaymentError('');
+      if(!wooClosed) {
+        setMessage('Tu es déconnectée de ton espace. La déconnexion WooCommerce n’a pas pu être confirmée : reconnecte-toi au besoin depuis sa page de compte pour terminer la déconnexion.');
+      } else {
+        setMessage('Tu es bien déconnectée de ton espace et de la boutique ♡');
+      }
+    } else {
+      setMessage('La déconnexion de ton espace n’a pas pu être confirmée. Réessaie ou actualise la page.');
+    }
+    setBusy(false);
   }
 
   async function loadPaymentMethods() {
