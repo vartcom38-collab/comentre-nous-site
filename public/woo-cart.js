@@ -175,14 +175,15 @@
     ensureUi();
     drawer.classList.add('open');
     backdrop.classList.add('open');
-    document.documentElement.style.overflow = 'hidden';
+    // Ne jamais verrouiller le défilement du document : cela fait
+    // disparaître la barre de défilement du navigateur et peut la laisser
+    // bloquée lors des transitions entre les pages Next.js.
   }
 
   function close() {
     if (!drawer) return;
     drawer.classList.remove('open');
     backdrop.classList.remove('open');
-    document.documentElement.style.overflow = '';
   }
 
   document.addEventListener('click', (event) => {
