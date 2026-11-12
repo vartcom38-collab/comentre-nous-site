@@ -78,7 +78,10 @@ export default function WooCards({category,title}:{category?:'famille'|'entrepre
      <div className={styles.bottom}><strong>{formatWooPrice(price)}</strong><span>Découvrir ↗</span></div>
     </div>
    </Link>
-   <p className={styles.noBuy}>Vente temporairement désactivée</p>
+   {group.ebook?.id===14 ? <div style={{display:'grid',gap:8,padding:'0 18px 20px'}}>
+     <button type="button" data-woo-add={14} style={{background:'#171b2a',color:'#fff',border:0,borderRadius:999,padding:'13px 18px',fontFamily:'Comfortaa,sans-serif',fontSize:12,fontWeight:800,cursor:'pointer'}}>Ajouter au panier · TEST ♡</button>
+     <p style={{margin:0,textAlign:'center',fontSize:10,color:'#747987'}}>Ebook de démonstration · paiement en mode test</p>
+   </div> : <p className={styles.noBuy}>Disponible prochainement ♡</p>}
   </article>;
  })}
  </div>
