@@ -12,17 +12,45 @@ type WooProduct=ShopProduct & {
 type CatalogGroup=ShopGroup & {category:string};
 const categorySlugs={famille:'com-en-famille',entrepreneuses:'com-des-entrepreneuses'} as const;
 
-export async function loadWooCatalog(source:'active'|'commerce'='active'):Promise<CatalogGroup[]>{
- const endpoint='/woo-commerce-catalog.php';
- const response=await fetch(endpoint,{cache:'no-store'});
- if(!response.ok)throw Error('Passerelle WooCommerce indisponible');
- const data=await response.json();
- if(!data.ok||!Array.isArray(data.products))throw Error('Catalogue indisponible');
- const products:WooProduct[]=data.products
-  .filter((p:WooProduct)=>p.status==='publish')
-  .map((p:WooProduct)=>({...p,images:Array.isArray(p.images)?p.images:[],sku:p.sku||''}));
- // Aucun produit non classé ne doit apparaître dans un univers par défaut.
- // Le produit doit avoir une catégorie d'univers explicitement choisie dans WooCommerce.
+const CATALOG_CACHE_KEY='comentre-woo-catalog-published-v2';
+const CATALOG_TTL_MS=2*60*1000;
+let inFlight:Promise<WooProduct[]>|null=null;
+let memoryCache:{at:number;products:WooProduct[]}|null=null;
+
+// Les données publiques déjà consultées sont réutilisées au lieu de bloquer
+// chaque navigation sur une nouvelle requête PHP/WooCommerce.
+export function cachedWooProducts():WooProduct[]|null{
+ if(memoryCache&&Date.now()-memoryCache.at<CATALOG_TTL_MS)return memoryCache.products;
+ if(typeof window==='undefined')return null;
+ try{
+  const stored=JSON.parse(sessionStorage.getItem(CATALOG_CACHE_KEY)||'null');
+  if(stored&&Array.isArray(stored.products)&&Date.now()-stored.at<CATALOG_TTL_MS){
+   memoryCache=stored;
+   return stored.products;
+  }
+ }catch{/* Stockage privé désactivé : on charge normalement. */}
+ return null;
+}
+export async function fetchWooProducts():Promise<WooProduct[]>{
+ const cached=cachedWooProducts();
+ if(cached)return cached;
+ if(inFlight)return inFlight;
+ inFlight=(async()=>{
+  const response=await fetch('/woo-commerce-catalog.php',{cache:'no-store'});
+  if(!response.ok)throw Error('Passerelle WooCommerce indisponible');
+  const data=await response.json();
+  if(!data.ok||!Array.isArray(data.products))throw Error('Catalogue indisponible');
+  const products:WooProduct[]=data.products
+   .filter((p:WooProduct)=>p.status==='publish')
+   .map((p:WooProduct)=>({...p,images:Array.isArray(p.images)?p.images:[],sku:p.sku||''}));
+  memoryCache={at:Date.now(),products};
+  try{sessionStorage.setItem(CATALOG_CACHE_KEY,JSON.stringify(memoryCache));}catch{/* Facultatif */}
+  return products;
+ })();
+ try{return await inFlight;}finally{inFlight=null;}
+}
+export async function loadWooCatalog(_source:'active'|'commerce'='active'):Promise<CatalogGroup[]>{
+ const products=await fetchWooProducts();
  const selected=products.filter(p=>(p.categories||[]).some(c=>Object.values(categorySlugs).includes(c.slug as typeof categorySlugs[keyof typeof categorySlugs])));
  return combineFormats(selected).flatMap(group=>{
   const categories=(group.primary as WooProduct).categories||[];
@@ -56,8 +84,8 @@ export default function WooCards({category,title}:{category?:'famille'|'entrepre
  },[category]);
  return <section id={category==='famille'?'collection':category==='entrepreneuses'?'boutique':undefined} className={styles.section} aria-label={title||'Produits WooCommerce'}>
  {title&&<h2 className={styles.title}>{title}</h2>}
- {preview&&<div role="status" className={styles.preview}><strong>Aperçu du catalogue Com’ entre nous</strong><span>Produits récupérés de WooCommerce dans /commerce/. Les achats sont désactivés durant les tests.</span></div>}
- {loading&&<p role="status" className={styles.message}>On prépare nos créations… ♡</p>}
+ {preview&&<div role="status" className={styles.preview}><strong>Catalogue WooCommerce</strong><span>Les commandes sont encore en phase de vérification des paiements.</span></div>}
+
  {error&&<p role="alert" className={styles.message}>Les produits sont momentanément indisponibles. Vérifie la connexion WooCommerce.</p>}
  {!loading&&!error&&groups.length===0&&<div className={styles.empty}><span>♡</span><h2>De jolies choses se préparent…</h2><p>{preview?'Aucun produit n’est publié dans notre nouveau WooCommerce pour le moment.':'Nos nouveautés arrivent bientôt. Les produits en brouillon restent invisibles.'}</p></div>}
  <div className={styles.grid}>
@@ -78,10 +106,10 @@ export default function WooCards({category,title}:{category?:'famille'|'entrepre
      <div className={styles.bottom}><strong>{formatWooPrice(price)}</strong><span>Découvrir ↗</span></div>
     </div>
    </Link>
-   {group.ebook?.id===14 ? <div style={{display:'grid',gap:8,padding:'0 18px 20px'}}>
-     <button type="button" data-woo-add={14} style={{background:'#171b2a',color:'#fff',border:0,borderRadius:999,padding:'13px 18px',fontFamily:'Comfortaa,sans-serif',fontSize:12,fontWeight:800,cursor:'pointer'}}>Ajouter au panier · TEST ♡</button>
-     <p style={{margin:0,textAlign:'center',fontSize:10,color:'#747987'}}>Ebook de démonstration · paiement en mode test</p>
-   </div> : <p className={styles.noBuy}>Disponible prochainement ♡</p>}
+   {group.ebook&&group.ebook.status==='publish'&&group.ebook.price? <div style={{display:'grid',gap:8,padding:'0 18px 20px'}}>
+     <button type="button" data-woo-add={group.ebook.id} style={{background:'#171b2a',color:'#fff',border:0,borderRadius:999,padding:'13px 18px',fontFamily:'Comfortaa,sans-serif',fontSize:12,fontWeight:800,cursor:'pointer'}}>Ajouter au panier · TEST ♡</button>
+     <p style={{margin:0,textAlign:'center',fontSize:10,color:'#747987'}}>Commande en mode test · paiements réels non vérifiés</p>
+   </div> : group.amazon?.product_url ? <div style={{padding:'0 12px 15px'}}><a href={group.amazon.product_url} target="_blank" rel="noopener noreferrer" className={styles.noBuy}>Voir la version papier ↗</a></div> : <p className={styles.noBuy}>Disponible prochainement ♡</p>}
   </article>;
  })}
  </div>
