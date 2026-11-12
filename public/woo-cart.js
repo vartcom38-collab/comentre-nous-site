@@ -2,11 +2,10 @@
   if (location.pathname.startsWith('/admin')) return;
 
   // Panier WooCommerce de la même origine. La session se poursuit vers /commerce/commander/.
-  // Accès au test strictement réservé aux collaborateurs autorisés ; produit Woo #14 seulement.
-  const ADMIN_TOKEN_KEY = 'comentre_admin_github_token';
-  const getAdminToken = () => sessionStorage.getItem(ADMIN_TOKEN_KEY) || localStorage.getItem(ADMIN_TOKEN_KEY) || '';
+  // Tant que WooPayments est en mode test, seul l'ebook #14 peut être ajouté via notre interface.
+  // Ne pas afficher d'autres boutons d'achat avant l'ouverture commerciale.
+  const TEST_PRODUCT_ID = 14;
   const STORE_API = '/commerce/wp-json/wc/store/v1/cart';
-  let privateTestAuthorized = false;
   let cart = null;
   let drawer = null;
   let backdrop = null;
@@ -14,13 +13,12 @@
   let storeNonce = '';
 
   async function api(action, payload) {
-    if (!privateTestAuthorized) throw new Error('Panier en préparation.');
     const route = action === 'cart' ? '' :
       action === 'cart-add' ? '/add-item' :
       action === 'cart-update' ? '/update-item' :
       action === 'cart-remove' ? '/remove-item' : null;
     if (route === null) throw new Error('Action non autorisée.');
-    if (action === 'cart-add' && Number(payload?.id) !== 14) {
+    if (action === 'cart-add' && Number(payload?.id) !== TEST_PRODUCT_ID) {
       throw new Error('Seul le produit test est autorisé.');
     }
     const request = async () => {
@@ -81,11 +79,11 @@
     drawer.className = 'woo-cart-drawer';
     drawer.setAttribute('aria-label', 'Panier');
     drawer.innerHTML = `
-      <div class="woo-cart-head"><div><small>COM’ ENTRE NOUS · TEST PRIVÉ</small><h2>Mon panier</h2></div><button type="button" data-cart-close aria-label="Fermer">×</button></div>
+      <div class="woo-cart-head"><div><small>COM’ ENTRE NOUS · PAIEMENT TEST</small><h2>Mon panier</h2></div><button type="button" data-cart-close aria-label="Fermer">×</button></div>
       <div class="woo-cart-message" data-cart-message></div>
       <div class="woo-cart-items" data-cart-items></div>
       <div class="woo-cart-summary" data-cart-summary></div>
-      <div class="woo-cart-foot"><a class="woo-cart-checkout" href="/commerce/commander/">Passer la commande test →</a><button type="button" class="woo-cart-continue" data-cart-close>Continuer mes achats</button><p>Réservé au test administratrice · WooPayments en mode test.</p></div>
+      <div class="woo-cart-foot"><a class="woo-cart-checkout" href="/commerce/commander/">Passer la commande test →</a><button type="button" class="woo-cart-continue" data-cart-close>Continuer mes achats</button><p>Commande de démonstration · WooPayments en mode test.</p></div>
     `;
     drawer.querySelectorAll('[data-cart-close]').forEach((button) => button.addEventListener('click', close));
     document.body.append(backdrop, drawer);
@@ -103,10 +101,10 @@
     const itemsEl = drawer.querySelector('[data-cart-items]');
     const summaryEl = drawer.querySelector('[data-cart-summary]');
     const messageEl = drawer.querySelector('[data-cart-message]');
-    if (messageEl) messageEl.textContent = privateTestAuthorized ? '' : 'Le panier est en préparation. Les achats sont désactivés pour le public.';
+    if (messageEl) messageEl.textContent = '';
     const items = cart?.items || [];
     const checkout = drawer.querySelector('.woo-cart-checkout');
-    if (checkout) checkout.hidden = !privateTestAuthorized || !items.length;
+    if (checkout) checkout.hidden = !items.length;
     if (!items.length) {
       itemsEl.innerHTML = '<div class="woo-cart-empty">Ton panier est vide pour le moment.</div>';
       summaryEl.innerHTML = '';
@@ -129,49 +127,13 @@
   }
 
   async function load() {
-    if (!getAdminToken()) { render(); return; }
-    try {
-      const res = await fetch('/woo-commerce-cart-test.php?action=ping', {
-        cache: 'no-store',
-        headers: {Authorization: `Bearer ${getAdminToken()}`},
-      });
-      const data = await res.json().catch(() => ({}));
-      privateTestAuthorized = Boolean(res.ok && data.ok && data.store === 'commerce' && data.test_only);
-      if (privateTestAuthorized) {
-        await api('cart');
-        enablePrivateTestButton();
-      } else render();
-    } catch (_) { render(); }
-  }
-
-  function enablePrivateTestButton() {
-    if (!privateTestAuthorized) return;
-    if (!location.pathname.startsWith('/boutique/produit')) return;
-    if (new URLSearchParams(location.search).get('id') !== '14') return;
-    const upgrade = () => {
-      const spans = Array.from(document.querySelectorAll('span'));
-      const locked = spans.find(el => el.textContent?.trim() === 'Achat désactivé pendant les tests');
-      if (!locked) return;
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.textContent = 'Ajouter au panier · TEST ♡';
-      button.setAttribute('data-woo-add', '14');
-      button.className = locked.className;
-      button.style.cssText = 'border:0;cursor:pointer;display:inline-block;background:#ead7ff;border-radius:999px;padding:14px 20px;font-size:12px;font-weight:800;color:#171b2a';
-      locked.replaceWith(button);
-    };
-    upgrade();
-    // La fiche Next.js peut se charger après ce script : surveiller jusqu'à affichage.
-    const observer = new MutationObserver(() => {
-      upgrade();
-      if (document.querySelector('[data-woo-add="14"]')) observer.disconnect();
-    });
-    observer.observe(document.body,{childList:true,subtree:true});
+    try { await api('cart'); }
+    catch (error) { showError(error instanceof Error ? error.message : 'Impossible de charger le panier.'); }
   }
 
   async function add(productId, button) {
     if (busy) return;
-    if (!privateTestAuthorized) { showError('Ajout réservé à la session de test administratrice.'); return; }
+    if (Number(productId) !== TEST_PRODUCT_ID) { showError('Seul notre ebook de démonstration peut être ajouté pendant les tests.'); return; }
     busy = true;
     const previous = button?.textContent;
     if (button) { button.disabled = true; button.textContent = 'Ajout au panier…'; }
