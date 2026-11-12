@@ -84,7 +84,6 @@ export default function WooCards({category,title}:{category?:'famille'|'entrepre
  },[category]);
  return <section id={category==='famille'?'collection':category==='entrepreneuses'?'boutique':undefined} className={styles.section} aria-label={title||'Produits WooCommerce'}>
  {title&&<h2 className={styles.title}>{title}</h2>}
- {preview&&<div role="status" className={styles.preview}><strong>Catalogue WooCommerce</strong><span>Les commandes sont encore en phase de vérification des paiements.</span></div>}
 
  {error&&<p role="alert" className={styles.message}>Les produits sont momentanément indisponibles. Vérifie la connexion WooCommerce.</p>}
  {!loading&&!error&&groups.length===0&&<div className={styles.empty}><span>♡</span><h2>De jolies choses se préparent…</h2><p>{preview?'Aucun produit n’est publié dans notre nouveau WooCommerce pour le moment.':'Nos nouveautés arrivent bientôt. Les produits en brouillon restent invisibles.'}</p></div>}
@@ -107,8 +106,8 @@ export default function WooCards({category,title}:{category?:'famille'|'entrepre
     </div>
    </Link>
    {group.ebook&&group.ebook.status==='publish'&&group.ebook.price? <div style={{display:'grid',gap:8,padding:'0 18px 20px'}}>
-     <button type="button" data-woo-add={group.ebook.id} style={{background:'#171b2a',color:'#fff',border:0,borderRadius:999,padding:'13px 18px',fontFamily:'Comfortaa,sans-serif',fontSize:12,fontWeight:800,cursor:'pointer'}}>Ajouter au panier · TEST ♡</button>
-     <p style={{margin:0,textAlign:'center',fontSize:10,color:'#747987'}}>Commande en mode test · paiements réels non vérifiés</p>
+     <button type="button" data-woo-add={group.ebook.id} style={{background:'#171b2a',color:'#fff',border:0,borderRadius:999,padding:'13px 18px',fontFamily:'Comfortaa,sans-serif',fontSize:12,fontWeight:800,cursor:'pointer'}}>Ajouter au panier ♡</button>
+     <p style={{margin:0,textAlign:'center',fontSize:10,color:'#747987'}}>Paiement en cours de vérification</p>
    </div> : group.amazon?.product_url ? <div style={{padding:'0 12px 15px'}}><a href={group.amazon.product_url} target="_blank" rel="noopener noreferrer" className={styles.noBuy}>Voir la version papier ↗</a></div> : <p className={styles.noBuy}>Disponible prochainement ♡</p>}
   </article>;
  })}
