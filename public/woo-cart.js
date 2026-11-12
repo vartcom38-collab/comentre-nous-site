@@ -1,7 +1,7 @@
 (() => {
   if (location.pathname.startsWith('/admin')) return;
 
-  // Panier WooCommerce de la même origine. La session se poursuit vers /commerce/commander/.
+  // Même session navigateur (cookies WooCommerce + nonce), utilisée par /commerce/commander/.
   // Le paiement se poursuit dans le checkout WooCommerce natif ; vérifier le mode réel côté WooPayments avant ouverture.
   // Seuls les produits WooCommerce simples, publiés, tarifés et classés sont proposés.
   const TEST_PRODUCT_ID = 14; // Ancien ebook test : reste accepté.
@@ -11,7 +11,6 @@
   let backdrop = null;
   let busy = false;
   let storeNonce = '';
-  let cartToken = '';
   let publishedPurchasableIds = null;
   async function canAddPublishedProduct(id) {
     if (id === TEST_PRODUCT_ID) return true;
@@ -59,24 +58,21 @@
           'Accept': 'application/json',
           ...(isPost ? {
             'Content-Type': 'application/json',
-            ...(cartToken ? {'Cart-Token': cartToken} : {'Nonce': storeNonce})
+            'Nonce': storeNonce
           } : {}),
         },
         body: isPost ? JSON.stringify(payload) : undefined,
       });
       const nextNonce = response.headers.get('Nonce');
       if (nextNonce) storeNonce = nextNonce;
-      const nextCartToken = response.headers.get('Cart-Token');
-      if (nextCartToken) cartToken = nextCartToken;
       const data = await response.json().catch(() => ({}));
       return {response, data};
     };
-    if (action !== 'cart' && !storeNonce && !cartToken) await api('cart');
+    if (action !== 'cart' && !storeNonce) await api('cart');
     let result = await request();
     // Re-synchroniser le nonce expiré une seule fois, sans retenter le paiement.
     if ((result.response.status === 401 || result.response.status === 403) && action !== 'cart') {
       storeNonce = '';
-      cartToken = '';
       await api('cart');
       result = await request();
     }
@@ -121,6 +117,7 @@
       <div class="woo-cart-foot"><a class="woo-cart-checkout" href="/commerce/commander/">Passer commande →</a><button type="button" class="woo-cart-continue" data-cart-close>Continuer mes achats</button></div>
     `;
     drawer.querySelectorAll('[data-cart-close]').forEach((button) => button.addEventListener('click', close));
+    drawer.querySelector('.woo-cart-checkout')?.addEventListener('click', checkout);
     document.body.append(backdrop, drawer);
 
     const style = document.createElement('style');
@@ -170,6 +167,34 @@
     });
     const totals = cart?.totals || {};
     summaryEl.innerHTML = `<div><small>Total du panier</small><strong>${money(totals.total_price, totals)}</strong></div>`;
+  }
+
+  // Vérifier la session cookie réellement utilisée par WooCommerce avant de passer commande.
+  // Cela évite d'envoyer une cliente vers un panier vide dans le navigateur Instagram.
+  async function checkout(event) {
+    event.preventDefault();
+    if (busy) return;
+    const link = event.currentTarget;
+    if (!(link instanceof HTMLAnchorElement)) return;
+    const expectedItems = cart?.items || [];
+    if (!expectedItems.length) { showError('Ton panier est vide. Ajoute une création avant de commander.'); return; }
+    busy = true;
+    link.setAttribute('aria-busy', 'true');
+    const previousText = link.textContent;
+    link.textContent = 'Vérification du panier…';
+    try {
+      const confirmed = await api('cart');
+      if (!confirmed.cart.items?.length) {
+        throw new Error('Le panier ne se retrouve pas dans la session WooCommerce. Réessaie d’ajouter ton produit avant de commander.');
+      }
+      window.location.assign(link.href);
+    } catch (error) {
+      showError(error instanceof Error ? error.message : 'Impossible de vérifier le panier avant la commande.');
+    } finally {
+      busy = false;
+      link.removeAttribute('aria-busy');
+      link.textContent = previousText;
+    }
   }
 
   async function load() {
