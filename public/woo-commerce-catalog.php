@@ -46,7 +46,10 @@ function commerceWooGet(string $base, string $key, string $secret, string $path)
     return is_array($data) && array_is_list($data) ? $data : null;
 }
 $published = commerceWooGet($base, $key, $secret, '/wp-json/wc/v3/products?status=publish&per_page=50');
-$drafts = commerceWooGet($base, $key, $secret, '/wp-json/wc/v3/products?status=draft&per_page=50');
+// La boutique publique ne doit pas patienter pour télécharger aussi les brouillons.
+// Ils ne sont consultés que dans la vue de diagnostic explicite.
+$diagnosticView = isset($_GET['view']) && $_GET['view'] === '1';
+$drafts = $diagnosticView ? commerceWooGet($base, $key, $secret, '/wp-json/wc/v3/products?status=draft&per_page=50') : [];
 if ($published === null || $drafts === null) {
     http_response_code(502);
     echo json_encode(['ok' => false, 'error' => 'Catalogue WooCommerce indisponible']);
@@ -163,7 +166,7 @@ echo json_encode([
     'ok' => true,
     'store' => 'commerce',
     'published_count' => count($products),
-    'draft_count' => count($drafts),
+    'draft_count' => $diagnosticView ? count($drafts) : null,
     'counts_limited_to_50' => true,
     'products' => $products,
 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
