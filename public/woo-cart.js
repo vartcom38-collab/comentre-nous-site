@@ -2,7 +2,7 @@
   if (location.pathname.startsWith('/admin')) return;
 
   // Panier WooCommerce de la même origine. La session se poursuit vers /commerce/commander/.
-  // Achats conservés en mode test pendant la vérification de WooPayments.
+  // Le paiement se poursuit dans le checkout WooCommerce natif ; vérifier le mode réel côté WooPayments avant ouverture.
   // Seuls les produits WooCommerce simples, publiés, tarifés et classés sont proposés.
   const TEST_PRODUCT_ID = 14; // Ancien ebook test : reste accepté.
   const STORE_API = '/commerce/wp-json/wc/store/v1/cart';
@@ -100,11 +100,11 @@
     drawer.className = 'woo-cart-drawer';
     drawer.setAttribute('aria-label', 'Panier');
     drawer.innerHTML = `
-      <div class="woo-cart-head"><div><small>COM’ ENTRE NOUS · PAIEMENT TEST</small><h2>Mon panier</h2></div><button type="button" data-cart-close aria-label="Fermer">×</button></div>
+      <div class="woo-cart-head"><div><small>COM’ ENTRE NOUS · BOUTIQUE</small><h2>Mon panier</h2></div><button type="button" data-cart-close aria-label="Fermer">×</button></div>
       <div class="woo-cart-message" data-cart-message></div>
       <div class="woo-cart-items" data-cart-items></div>
       <div class="woo-cart-summary" data-cart-summary></div>
-      <div class="woo-cart-foot"><a class="woo-cart-checkout" href="/commerce/commander/">Passer la commande test →</a><button type="button" class="woo-cart-continue" data-cart-close>Continuer mes achats</button><p>Commande de démonstration · WooPayments en mode test.</p></div>
+      <div class="woo-cart-foot"><a class="woo-cart-checkout" href="/commerce/commander/">Passer commande →</a><button type="button" class="woo-cart-continue" data-cart-close>Continuer mes achats</button></div>
     `;
     drawer.querySelectorAll('[data-cart-close]').forEach((button) => button.addEventListener('click', close));
     document.body.append(backdrop, drawer);
