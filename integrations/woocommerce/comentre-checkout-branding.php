@@ -229,12 +229,31 @@ add_action('wp_body_open', static function () {
         <div class="comentre-account-choice">
           <strong>✦ Je suis déjà cliente</strong>
           <p>Tu as déjà un espace ? Connecte-toi avec ton e-mail et ton mot de passe avant de finaliser la commande.</p>
-          <a href="<?php echo esc_url(wc_get_page_permalink('myaccount')); ?>">Se connecter à mon compte →</a>
+          <a href="<?php echo esc_url(add_query_arg('comentre_checkout', '1', wc_get_page_permalink('myaccount'))); ?>">Se connecter et revenir à ma commande →</a>
         </div>
       </section>
     <?php endif; ?>
     <?php
 }, 15);
+
+/**
+ * Parcours cliente existante : l'écran de connexion WooCommerce conserve un
+ * indicateur de retour au checkout. Une fois authentifiée, la cliente revient
+ * à sa commande au lieu d'atterrir sur le tableau de bord WooCommerce natif.
+ * L'indicateur n'est ajouté qu'au formulaire affiché depuis le lien du checkout.
+ */
+add_action('woocommerce_login_form_end', static function () {
+    if (!isset($_GET['comentre_checkout']) || $_GET['comentre_checkout'] !== '1') return;
+    echo '<input type="hidden" name="comentre_checkout_return" value="1">';
+}, 20);
+
+add_filter('woocommerce_login_redirect', static function ($redirect, $user) {
+    if (isset($_POST['comentre_checkout_return']) && $_POST['comentre_checkout_return'] === '1'
+        && function_exists('wc_get_checkout_url')) {
+        return wc_get_checkout_url();
+    }
+    return $redirect;
+}, 20, 2);
 
 /**
  * Confirmation : le client garde son reçu et ses téléchargements WooCommerce,
