@@ -34,7 +34,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <HomeFoundersBridge />
         <SeasonalDecor />
         {children}
-        <script src="/woo-cart.js" defer />
+        <script src="/woo-cart.js?v=20261112-test-panier" defer />
         <script src="/family-character-bridge.js" defer />
         <script src="/admin-github-write-queue.js" defer />
         <script src="/admin-podcast-conflict-retry.js" defer />
