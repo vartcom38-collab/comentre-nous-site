@@ -4,13 +4,25 @@
   // Panier WooCommerce de la même origine. La session se poursuit vers /commerce/commander/.
   // Tant que WooPayments est en mode test, seul l'ebook #14 peut être ajouté via notre interface.
   // Ne pas afficher d'autres boutons d'achat avant l'ouverture commerciale.
-  const TEST_PRODUCT_ID = 14;
+  const TEST_PRODUCT_ID = 14; // Ancien ebook test : reste accepté.
   const STORE_API = '/commerce/wp-json/wc/store/v1/cart';
   let cart = null;
   let drawer = null;
   let backdrop = null;
   let busy = false;
   let storeNonce = '';
+  let publishedDigitalIds = null;
+  async function canAddPublishedEbook(id) {
+    if (id === TEST_PRODUCT_ID) return true;
+    if (!publishedDigitalIds) {
+      const response = await fetch('/woo-commerce-catalog.php', {cache:'no-store'});
+      if (!response.ok) throw new Error('Impossible de vérifier ce produit actuellement.');
+      const catalog = await response.json();
+      if (!catalog.ok || !Array.isArray(catalog.products)) throw new Error('Catalogue indisponible.');
+      publishedDigitalIds = new Set(catalog.products.filter(p => p.status === 'publish' && p.downloadable && p.price !== '' && Number(p.price) > 0 && (p.categories || []).some(c => ['com-en-famille','com-des-entrepreneuses'].includes(c.slug))).map(p => Number(p.id)));
+    }
+    return publishedDigitalIds.has(id);
+  }
   // Réparer un verrouillage de défilement laissé par une ancienne version.
   function restorePageScroll() {
     if (document.documentElement.style.overflow === 'hidden') {
@@ -27,8 +39,8 @@
       action === 'cart-update' ? '/update-item' :
       action === 'cart-remove' ? '/remove-item' : null;
     if (route === null) throw new Error('Action non autorisée.');
-    if (action === 'cart-add' && Number(payload?.id) !== TEST_PRODUCT_ID) {
-      throw new Error('Seul le produit test est autorisé.');
+    if (action === 'cart-add' && !(await canAddPublishedEbook(Number(payload?.id)))) {
+      throw new Error('Ce produit n’est pas disponible au panier pour le moment.');
     }
     const request = async () => {
       const isPost = action !== 'cart';
@@ -143,7 +155,7 @@
 
   async function add(productId, button) {
     if (busy) return;
-    if (Number(productId) !== TEST_PRODUCT_ID) { showError('Seul notre ebook de démonstration peut être ajouté pendant les tests.'); return; }
+    if (!Number.isInteger(Number(productId)) || Number(productId) <= 0) { showError('Produit introuvable.'); return; }
     busy = true;
     const previous = button?.textContent;
     if (button) { button.disabled = true; button.textContent = 'Ajout au panier…'; }
