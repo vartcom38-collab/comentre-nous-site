@@ -24,3 +24,24 @@
 @media(max-width:1040px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:700px){.section{padding:26px 16px 52px}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.card{padding:7px;border-radius:15px}.visual{border-radius:10px}.copy{padding:11px 3px 6px}.copy h3{font-size:20px}.sticker{font-size:13px}.bottom span{padding:7px 9px}}
 @media(max-width:360px){.grid{grid-template-columns:1fr}.visual{max-height:230px}}
+
+/* Responsive boutique : boutons utilisables au doigt et textes lisibles. */
+.card button[data-woo-add]{width:100%;min-height:46px;touch-action:manipulation;transition:transform .15s ease,background .15s ease}
+.card button[data-woo-add]:hover{background:#28354a!important;transform:translateY(-1px)}
+.card button[data-woo-add]:focus-visible{outline:3px solid #008f92;outline-offset:3px}
+.card button[data-woo-add]:disabled{opacity:.55;cursor:wait}
+@media(max-width:700px){
+ .bottom{align-items:flex-start}
+ .bottom span{font-size:9px}
+ .card button[data-woo-add]{font-size:11px!important;line-height:1.45;white-space:normal;padding:12px!important}
+ .format{font-size:11px}
+}
+@media(max-width:430px){
+ .grid{grid-template-columns:1fr;max-width:380px;margin-inline:auto}
+ .card{padding:10px}
+ .visual{aspect-ratio:4/3}
+ .visual img{max-height:100%}
+ .copy{padding:14px 7px 10px}
+ .copy h3{font-size:25px}
+ .bottom strong{font-size:14px}
+}
