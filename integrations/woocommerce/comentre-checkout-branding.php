@@ -2,9 +2,40 @@
 /**
  * Plugin Name: Com' entre nous — Habillage commande
  * Description: Habillage léger du paiement WooCommerce sur /commerce/, sans modifier les moyens de paiement ni le tunnel d'achat.
- * Version: 0.6.0
+ * Version: 0.6.1
  */
 defined('ABSPATH') || exit;
+
+/**
+ * Déconnexion WooCommerce appelée depuis /mon-espace/.
+ * Cette requête traverse /commerce/ afin que le navigateur joigne bien les
+ * cookies WordPress, qui ne sont pas transmis à /customer-account.php.
+ * Protection contre les requêtes inter-sites et comptes administrateurs.
+ */
+add_action('init', static function () {
+    if (($_GET['comentre_customer_logout'] ?? '') !== '1') return;
+    header('Content-Type: application/json; charset=utf-8');
+    header('Cache-Control: no-store, private');
+    header('X-Content-Type-Options: nosniff');
+    if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST'
+        || (($_SERVER['HTTP_ORIGIN'] ?? '') !== 'https://comentrenous.marionbolomey.fr')
+        || (($_SERVER['HTTP_X_COMENTRE_LOGOUT'] ?? '') !== '1')) {
+        status_header(403);
+        echo wp_json_encode(['ok'=>false,'error'=>'Requête de déconnexion non autorisée.']);
+        exit;
+    }
+    if (is_user_logged_in()) {
+        $user = wp_get_current_user();
+        if (!in_array('customer', (array)$user->roles, true)) {
+            status_header(403);
+            echo wp_json_encode(['ok'=>false,'error'=>'Ce compte WordPress doit être déconnecté depuis son administration.']);
+            exit;
+        }
+        wp_logout();
+    }
+    echo wp_json_encode(['ok'=>true,'authenticated'=>false]);
+    exit;
+}, 2);
 
 /**
  * Uniquement sur la page de validation de commande, et sa confirmation.
