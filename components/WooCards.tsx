@@ -12,7 +12,7 @@ type WooProduct=ShopProduct & {
 type CatalogGroup=ShopGroup & {category:string};
 const categorySlugs={famille:'com-en-famille',entrepreneuses:'com-des-entrepreneuses'} as const;
 
-const CATALOG_CACHE_KEY='comentre-woo-catalog-published-v2';
+const CATALOG_CACHE_KEY='comentre-woo-catalog-published-v3';
 const CATALOG_TTL_MS=2*60*1000;
 let inFlight:Promise<WooProduct[]>|null=null;
 let memoryCache:{at:number;products:WooProduct[]}|null=null;
