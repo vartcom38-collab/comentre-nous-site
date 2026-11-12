@@ -41,6 +41,7 @@ export default function ProductPage(){
  const name=primary?.name||'';
  const image=primary?.images?.[0]?.src;
  const hasDigital=Boolean(group?.ebook);
+ const canTestBuy=group?.ebook?.id===14;
  const hasPaper=Boolean(group?.amazon);
  return <LayoutShell><main className={styles.page}>
   <nav className={styles.breadcrumb} aria-label="Fil d’Ariane">
@@ -51,7 +52,7 @@ export default function ProductPage(){
   {state==='unavailable'&&<p className={styles.message} role="alert">La boutique est momentanément indisponible. Réessaie dans quelques instants.</p>}
   {state==='not-found'&&<p className={styles.message}>Ce produit n’est pas disponible pour le moment. <Link href="/com-en-famille/">Découvrir nos créations</Link></p>}
   {group&&primary&&state==='ready'&&<>
-   {isStaging&&<div role="status" style={{background:"#fff1bf",borderRadius:20,padding:"17px 23px",marginBottom:28,fontSize:12,lineHeight:1.8}}><strong>APERÇU DE LA NOUVELLE BOUTIQUE · TEST UNIQUEMENT</strong><div>Tu visualises la fiche dans l’identité Com’ entre nous. Les achats sont désactivés sur cet aperçu.</div></div>}
+   {isStaging&&<div role="status" style={{background:"#fff1bf",borderRadius:20,padding:"17px 23px",marginBottom:28,fontSize:12,lineHeight:1.8}}><strong>APERÇU DE LA NOUVELLE BOUTIQUE · TEST UNIQUEMENT</strong><div>Tu visualises la fiche dans l’identité Com’ entre nous. Seul l’ebook test peut être ajouté au panier. WooPayments reste en mode test ; les autres articles ne sont pas encore en vente.</div></div>}
    <div className={styles.hero}>
     <div className={styles.visual}>
      <div className={styles.photo}>
@@ -70,7 +71,7 @@ export default function ProductPage(){
       {hasDigital&&group.ebook&&<div className={styles.format}>
        <div className={styles.formatHead}><h3>♡ Version numérique</h3><strong>{formatWooPrice(group.ebook)}</strong></div>
        <p>Un produit téléchargeable à retrouver après confirmation de ton achat.</p>
-       {isStaging?<span style={{display:"inline-block",background:"#ead7ff",borderRadius:999,padding:"14px 20px",fontSize:12,fontWeight:800}}>Achat désactivé pendant les tests</span>:<button type="button" data-woo-add={group.ebook.id} className={styles.buy}>Ajouter au panier ♡</button>}
+       {canTestBuy?<button type="button" data-woo-add={group.ebook.id} className={styles.buy}>Ajouter au panier · TEST ♡</button>:<span style={{display:"inline-block",background:"#ead7ff",borderRadius:999,padding:"14px 20px",fontSize:12,fontWeight:800}}>Disponible prochainement ♡</span>}
       </div>}
       {hasPaper&&group.amazon&&<div className={styles.format+' '+styles.alt}>
        <div className={styles.formatHead}><h3>✳ Version papier</h3></div>
