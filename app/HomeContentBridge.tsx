@@ -80,8 +80,10 @@ function applyCartIntegration() {
   const cart = document.querySelector<HTMLElement>('.header .cart');
   if (!cart) return;
 
-  cart.setAttribute('href', '#panier');
-  cart.setAttribute('role', 'button');
+  // Bouton natif géré par woo-cart.js. Ne pas lui ajouter un lien #panier :
+  // cela interfère avec le tiroir du panier lors des navigations.
+  cart.removeAttribute('href');
+  cart.setAttribute('type', 'button');
   cart.setAttribute('data-woo-cart-toggle', '1');
   cart.setAttribute('aria-label', 'Ouvrir le panier');
 
